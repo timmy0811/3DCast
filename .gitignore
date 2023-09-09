@@ -1,0 +1,5 @@
+*.opendb
+*.*db*
+*.vs/
+3DCast/bin-int
+*.user

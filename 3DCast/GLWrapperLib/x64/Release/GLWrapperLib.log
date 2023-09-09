@@ -1,0 +1,22 @@
+﻿  ShadowMap.cpp
+  SSAO.cpp
+  Framebuffer.cpp
+  IndexBuffer.cpp
+  Renderer.cpp
+  Shader.cpp
+  VertexArray.cpp
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\VertexArray.cpp(24,3): warning C4312: 'type cast': conversion from 'unsigned int' to 'const void *' of greater size
+  VertexBuffer.cpp
+  VertexBufferLayout.cpp
+  Mesh.cpp
+  Model3D.cpp
+  SpriteRenderer.cpp
+  Texture.cpp
+  glm.cpp
+  stb_image.cpp
+  stb_image_write.cpp
+opengl32.lib(OPENGL32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in assimp-vc142-mt.lib(assimp-vc142-mt.dll); second definition ignored
+Model3D.obj : warning LNK4006: "public: unsigned int __cdecl aiMaterial::GetTextureCount(enum aiTextureType)const " (?GetTextureCount@aiMaterial@@QEBAIW4aiTextureType@@@Z) already defined in assimp-vc142-mt.lib(assimp-vc142-mt.dll); second definition ignored
+Model3D.obj : warning LNK4006: "public: enum aiReturn __cdecl aiMaterial::GetTexture(enum aiTextureType,unsigned int,struct aiString *,enum aiTextureMapping *,unsigned int *,float *,enum aiTextureOp *,enum aiTextureMapMode *)const " (?GetTexture@aiMaterial@@QEBA?AW4aiReturn@@W4aiTextureType@@IPEAUaiString@@PEAW4aiTextureMapping@@PEAIPEAMPEAW4aiTextureOp@@PEAW4aiTextureMapMode@@@Z) already defined in assimp-vc142-mt.lib(assimp-vc142-mt.dll); second definition ignored
+Model3D.obj : warning LNK4006: "public: struct aiScene const * __cdecl Assimp::Importer::ReadFile(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,unsigned int)" (?ReadFile@Importer@Assimp@@QEAAPEBUaiScene@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@I@Z) already defined in assimp-vc142-mt.lib(assimp-vc142-mt.dll); second definition ignored
+  GLWrapperLib.vcxproj -> C:\Git\3DCast\3DCast\x64\Release\GLWrapperLib.lib

@@ -1,0 +1,2 @@
+C:\Git\OpenGL-WrapperLib\GLWrapperLib\x64\Debug\GLWrapperLib.lib
+C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\GLWrapperLib.lib

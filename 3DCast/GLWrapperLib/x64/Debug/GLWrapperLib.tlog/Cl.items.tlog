@@ -1,0 +1,16 @@
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\advanced\ShadowMap.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\ShadowMap.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\advanced\SSAO.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\SSAO.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\buffer\Framebuffer.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Framebuffer.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\IndexBuffer.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\IndexBuffer.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\Renderer.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Renderer.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\Shader.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Shader.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\VertexArray.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\VertexArray.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\VertexBuffer.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\VertexBuffer.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\core\VertexBufferLayout.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\VertexBufferLayout.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\model\Mesh.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Mesh.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\model\Model3D.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Model3D.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\renderer\SpriteRenderer.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\SpriteRenderer.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\texture\Texture.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\Texture.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\vendor\glm\detail\glm.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\glm.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\vendor\stb_image\stb_image.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\stb_image.obj
+C:\Git\3DCast\3DCast\GLWrapperLib\OpenGL_util\vendor\stb_image\stb_image_write.cpp;C:\Git\3DCast\3DCast\GLWrapperLib\x64\Debug\stb_image_write.obj
