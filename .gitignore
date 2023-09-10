@@ -3,3 +3,7 @@
 *.vs/
 3DCast/bin-int
 *.user
+*.sln
+*.vcxproj
+*.filters
+*.aps
