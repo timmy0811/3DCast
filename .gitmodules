@@ -1,0 +1,3 @@
+[submodule "3DCast/3DCast\\vendor\\spdlog"]
+	path = 3DCast/3DCast\\vendor\\spdlog
+	url = https://github.com/gabime/spdlog.git
