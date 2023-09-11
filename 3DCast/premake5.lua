@@ -29,6 +29,10 @@ project "3DCast"
 		"%{prj.name}/vendor/spdlog/include",
 		"GLWrapperLib"
 	}
+	
+	includes{
+		"%{prj.name}src"
+	}
 
 	links{
 		"GLWrapperLib"
