@@ -1,7 +1,8 @@
 #pragma once
 
+#include "castpch.h"
+
 #include "Event.h"
-#include <sstream>
 
 namespace Cast {
 	class CAST_API WindowResizeEvent : public Event {
