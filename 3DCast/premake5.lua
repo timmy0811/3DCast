@@ -19,6 +19,9 @@ project "3DCast"
 	targetdir (outputdirBIN)
 	objdir (outputdirOBJ)
 
+	pchheader "castpch.h"
+	pchsource "3DCast/src/castpch.cpp"
+
 	files{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
@@ -27,11 +30,8 @@ project "3DCast"
 
 	includedirs{
 		"%{prj.name}/vendor/spdlog/include",
+		"%{prj.name}/src",
 		"GLWrapperLib"
-	}
-	
-	includes{
-		"%{prj.name}src"
 	}
 
 	links{

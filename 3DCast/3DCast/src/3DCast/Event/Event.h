@@ -1,9 +1,8 @@
 #pragma once
 
-#include "3DCast/Core.h"
+#include "castpch.h"
 
-#include <string>
-#include <functional>
+#include "3DCast/Core.h"
 
 namespace Cast {
 	enum class EventType {
