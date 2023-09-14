@@ -11,6 +11,13 @@ workspace "3DCast"
 outputdirBIN = "$(SolutionDir)bin/$(Platform)-$(Configuration)/$(ProjectName)/"
 outputdirOBJ = "$(SolutionDir)bin-int/$(Platform)-$(Configuration)/$(ProjectName)/"
 
+-- Includes ----------------------------
+IncludeDirs = {}
+IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
+
+include "3DCast/vendor/GLFW"
+----------------------------------------
+
 project "3DCast"
 	location "3DCast"
 	kind "SharedLib"
@@ -31,11 +38,14 @@ project "3DCast"
 	includedirs{
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/src",
-		"GLWrapperLib"
+		"GLWrapperLib",
+		"%{IncludeDirs.GLFW}"
 	}
 
 	links{
-		"GLWrapperLib"
+		"GLWrapperLib",
+		"GLFW",
+		"opengl32.lib"
 	}
 
 	filter "system:windows"
