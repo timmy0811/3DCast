@@ -59,7 +59,7 @@ project "3DCast"
 		}
 
 	filter "configurations:Debug"
-		defines "CAST_DEBUG"
+		defines {"CAST_DEBUG", "CAST_ENABLE_ASSERTS"}
 		symbols "On"
 
 	filter "configurations:Release"

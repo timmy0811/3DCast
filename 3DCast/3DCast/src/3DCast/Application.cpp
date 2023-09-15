@@ -6,6 +6,7 @@
 
 Cast::Application::Application()
 {
+	m_Window = std::unique_ptr<Window>(Window::Create());
 }
 
 Cast::Application::~Application()
@@ -18,5 +19,7 @@ void Cast::Application::Run()
 	WindowResizeEvent e(1020, 900);
 	LOG_INFO(e.ToString()); // Need to revisit
 
-	while (true);
+	while (m_Running) {
+		m_Window->OnUpdate();
+	}
 }
