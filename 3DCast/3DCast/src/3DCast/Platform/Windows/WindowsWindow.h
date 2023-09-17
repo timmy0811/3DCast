@@ -7,6 +7,10 @@
 namespace Cast {
 	static bool s_GLFWInitialized = false;
 
+	static void GLFWErrorCallback(int error, const char* desc) {
+		LOG_CORE_ERROR("GLFW Error ({0}): {1}", error, desc);
+	}
+
 	class WindowsWindow : public Window
 	{
 	public:
