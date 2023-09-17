@@ -61,14 +61,17 @@ project "3DCast"
 	filter "configurations:Debug"
 		defines {"CAST_DEBUG", "CAST_ENABLE_ASSERTS"}
 		symbols "On"
+		buildoptions "/MDd"
 
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
+		buildoptions "/MD"
 
 	filter "configurations:Dist"
 		defines "CAST_DIST"
 		optimize "On"
+		buildoptions "/MD"
 
 project "3DCast_Runtime"
 	location "3DCast_Runtime"
@@ -109,14 +112,19 @@ project "3DCast_Runtime"
 	filter "configurations:Debug"
 		defines "CAST_DEBUG"
 		symbols "On"
+		buildoptions "/MDd"
+
 
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
+		buildoptions "/MD"
 
 	filter "configurations:Dist"
 		defines "CAST_DIST"
 		optimize "On"
+		buildoptions "/MD"
+
 
 project "GLWrapperLib"
 	location "GLWrapperLib"
@@ -148,6 +156,7 @@ project "GLWrapperLib"
 	filter "configurations:Debug"
 		defines "CAST_DEBUG"
 		symbols "On"
+		buildoptions "/MDd"
 
 		links{
 			"assimp-vc142-mtd.lib",
@@ -165,6 +174,7 @@ project "GLWrapperLib"
 	filter {"configurations:Release", "configurations:Dist"}
 		defines "CAST_RELEASE"
 		optimize "On"
+		buildoptions "/MD"
 
 		links{
 			"assimp-vc142-mt.lib",
