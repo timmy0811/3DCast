@@ -14,8 +14,10 @@ outputdirOBJ = "$(SolutionDir)bin-int/$(Platform)-$(Configuration)/$(ProjectName
 -- Includes ----------------------------
 IncludeDirs = {}
 IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
+IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
 
 include "3DCast/vendor/GLFW"
+include "3DCast/vendor/GLEW"
 ----------------------------------------
 
 project "3DCast"
@@ -39,12 +41,14 @@ project "3DCast"
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/src",
 		"GLWrapperLib",
-		"%{IncludeDirs.GLFW}"
+		"%{IncludeDirs.GLFW}",
+		"%{IncludeDirs.GLEW}"
 	}
 
 	links{
 		"GLWrapperLib",
 		"GLFW",
+		"GLEW",
 		"opengl32.lib"
 	}
 
@@ -55,7 +59,8 @@ project "3DCast"
 
 		defines{
 			"CAST_PLATFORM_WINDOWS",
-			"CAST_BUILD_DLL"
+			"CAST_BUILD_DLL",
+			"GLEW_STATIC"
 		}
 
 	filter "configurations:Debug"
@@ -66,12 +71,12 @@ project "3DCast"
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
-		buildoptions "/MD"
+		buildoptions "/MT"
 
 	filter "configurations:Dist"
 		defines "CAST_DIST"
 		optimize "On"
-		buildoptions "/MD"
+		buildoptions "/MT"
 
 project "3DCast_Runtime"
 	location "3DCast_Runtime"
@@ -143,7 +148,7 @@ project "GLWrapperLib"
 	includedirs{
 		"%{prj.name}/dependencies/assimp-5.2.5/include",
 		"%{prj.name}/dependencies/yaml-cpp/include",
-		"%{prj.name}/dependencies/glew-2.1.0/include",
+		"%{IncludeDirs.GLEW}",
 		"%{prj.name}/OpenGL_util",
 		"%{prj.name}/OpenGL_util/vendor"
 	}
@@ -160,15 +165,14 @@ project "GLWrapperLib"
 
 		links{
 			"assimp-vc142-mtd.lib",
-			"glew32s.lib",
 			"yaml-cppd.lib",
-			"opengl32.lib"
+			"opengl32.lib",
+			"GLEW"
 		}
 
 		libdirs{
 			"%{prj.name}/dependencies/assimp-5.2.5/lib/Debug",
-			"%{prj.name}/dependencies/yaml-cpp/lib/Debug",
-			"%{prj.name}/dependencies/glew-2.1.0/lib/Release/x64",
+			"%{prj.name}/dependencies/yaml-cpp/lib/Debug"
 		}
 
 	filter {"configurations:Release", "configurations:Dist"}
@@ -178,13 +182,12 @@ project "GLWrapperLib"
 
 		links{
 			"assimp-vc142-mt.lib",
-			"glew32s.lib",
 			"yaml-cpp.lib",
-			"opengl32.lib"
+			"opengl32.lib",
+			"GLEW"
 		}
 
 		libdirs{
 			"%{prj.name}/dependencies/assimp-5.2.5/lib/Release",
-			"%{prj.name}/dependencies/yaml-cpp/lib/Release",
-			"%{prj.name}/dependencies/glew-2.1.0/lib/Release/x64",
+			"%{prj.name}/dependencies/yaml-cpp/lib/Release"
 		}

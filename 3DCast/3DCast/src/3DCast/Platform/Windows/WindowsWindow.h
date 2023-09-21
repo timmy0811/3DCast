@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3DCast/Window.h"
+#include <GLEW/glew.h>
 
 #include <GLFW/glfw3.h>
 
