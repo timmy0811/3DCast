@@ -1,4 +1,5 @@
 #include "castpch.h"
+
 #include "WindowsWindow.h"
 
 #include "3DCast/Event/ApplicationEvent.h"
@@ -50,6 +51,11 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	glfwMakeContextCurrent(m_Window);
 	glfwSetWindowUserPointer(m_Window, &m_Data);
 	SetVSync(true);
+
+	glewExperimental = true;
+	if (glewInit() != GLEW_OK) {
+		std::cout << "Could not init glew." << std::endl;
+	}
 
 	// GLFW Callbacks
 	glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
