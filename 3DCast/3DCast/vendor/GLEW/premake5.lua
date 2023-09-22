@@ -34,7 +34,7 @@ project "GLEW"
 
 		symbols "On"
 
-    filter { "system:windows", "configurations:Release" }
+    filter { "system:windows", "configurations:Release", "configurations:Dist" }
         buildoptions "/MT"
         optimize "ON"
 

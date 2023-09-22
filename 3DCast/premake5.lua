@@ -15,9 +15,11 @@ outputdirOBJ = "$(SolutionDir)bin-int/$(Platform)-$(Configuration)/$(ProjectName
 IncludeDirs = {}
 IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
 IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
+IncludeDirs["ImGui"] = "3DCast/vendor/imgui"
 
 include "3DCast/vendor/GLFW"
 include "3DCast/vendor/GLEW"
+include "3DCast/vendor/imgui"
 ----------------------------------------
 
 project "3DCast"
@@ -42,13 +44,15 @@ project "3DCast"
 		"%{prj.name}/src",
 		"GLWrapperLib",
 		"%{IncludeDirs.GLFW}",
-		"%{IncludeDirs.GLEW}"
+		"%{IncludeDirs.GLEW}",
+		"%{IncludeDirs.ImGui}"
 	}
 
 	links{
 		"GLWrapperLib",
 		"GLFW",
 		"GLEW",
+		"ImGui",
 		"opengl32.lib"
 	}
 
