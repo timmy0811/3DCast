@@ -57,7 +57,7 @@ project "3DCast"
 	}
 
 	postbuildcommands{
-		"{COPY} $(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast/3DCast.dll $(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast_Runtime/"
+		"{COPY} \"$(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast/3DCast.dll\" \"$(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast_Runtime/\""
 	}
 
 	filter "system:windows"
