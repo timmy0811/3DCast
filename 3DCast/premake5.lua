@@ -56,6 +56,10 @@ project "3DCast"
 		"opengl32.lib"
 	}
 
+	postbuildcommands{
+		"{COPY} $(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast/3DCast.dll $(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast_Runtime/"
+	}
+
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -103,10 +107,6 @@ project "3DCast_Runtime"
 
 	links{
 		"3DCast"
-	}
-
-	postbuildcommands{
-		"{COPY} $(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast/3DCast.dll $(SolutionDir)bin/$(Platform)-$(Configuration)/$(ProjectName)/"
 	}
 
 	filter "system:windows"

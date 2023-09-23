@@ -40,7 +40,14 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 
 	if (!s_GLFWInitialized) {
 		int result = glfwInit();
-		CAST_ASSERT(result, "Could not initialize GLFW!");
+
+		glfwWindowHint(GLFW_DEPTH_BITS, 24);
+		glfwWindowHint(GLFW_SAMPLES, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		CAST_ASSERT(result, "Could not initialize GLFW.");
 
 		glfwSetErrorCallback(GLFWErrorCallback);
 
@@ -48,6 +55,11 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	}
 
 	m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+	if (!m_Window) {
+		glfwTerminate();
+		CAST_ASSERT(false, "Could not initialize Window.");
+	}
+
 	glfwMakeContextCurrent(m_Window);
 	glfwSetWindowUserPointer(m_Window, &m_Data);
 	SetVSync(true);
@@ -55,7 +67,10 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Could not init glew." << std::endl;
+		__debugbreak;
 	}
+
+	LOG_CORE_INFO("Detected OpenGL Version: {0}", *glGetString(GL_VERSION));
 
 	// GLFW Callbacks
 	glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
@@ -70,6 +85,12 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window) {
 		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 		WindowCloseEvent event;
+		data.EventCallback(event);
+		});
+
+	glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int c) {
+		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+		KeyTypedEvent event(c);
 		data.EventCallback(event);
 		});
 
