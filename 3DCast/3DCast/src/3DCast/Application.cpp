@@ -3,6 +3,8 @@
 
 #include "3DCast/Log.h"
 
+#include <GLEW/glew.h>
+
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
 namespace Cast {
@@ -25,6 +27,9 @@ Cast::Application::~Application()
 void Cast::Application::Run()
 {
 	while (m_Running) {
+		glClearColor(1.0, 0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
