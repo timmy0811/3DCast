@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include "3DCast/Log.h"
+#include "Input.h"
 
 #include <GLEW/glew.h>
 
@@ -33,6 +34,9 @@ void Cast::Application::Run()
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
+
+		auto [x, y] = Input::GetMousePos();
+		LOG_CORE_TRACE("{0}, {0}", x, y);
 
 		m_Window->OnUpdate();
 	}

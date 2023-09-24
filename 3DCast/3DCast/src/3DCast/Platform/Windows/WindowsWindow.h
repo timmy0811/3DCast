@@ -31,6 +31,8 @@ namespace Cast {
 		virtual void Init(const WindowProperties& props);
 		virtual void Destroy();
 
+		inline virtual void* GetNativeWindow() const override;
+
 	private:
 		GLFWwindow* m_Window;
 
