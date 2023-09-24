@@ -158,6 +158,11 @@ void Cast::WindowsWindow::Destroy()
 	glfwDestroyWindow(m_Window);
 }
 
+void* Cast::WindowsWindow::GetNativeWindow() const
+{
+	return m_Window;
+}
+
 Cast::Window* Cast::Window::Create(const WindowProperties& props) {
 	return new WindowsWindow(props);
 }
