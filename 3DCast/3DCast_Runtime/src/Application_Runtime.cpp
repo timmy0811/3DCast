@@ -7,11 +7,14 @@ public:
 		: Layer("Example") {}
 
 	void OnUpdate() override {
-		LOG_INFO("ExampleLayer::Update");
+		// LOG_INFO("ExampleLayer::Update");
+		if (Cast::Input::IsKeyPressed(CAST_KEY_G)) {
+			LOG_INFO("G got pressed!");
+		}
 	}
 
 	void OnEvent(Cast::Event& e) override {
-		LOG_TRACE("{0}", e.ToString());
+		// LOG_TRACE("{0}", e.ToString());
 	}
 };
 

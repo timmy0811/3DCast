@@ -35,8 +35,8 @@ void Cast::Application::Run()
 			layer->OnUpdate();
 		}
 
-		auto [x, y] = Input::GetMousePos();
-		LOG_CORE_TRACE("{0}, {0}", x, y);
+		// auto [x, y] = Input::GetMousePos();
+		// LOG_CORE_TRACE("{0}, {0}", x, y);
 
 		m_Window->OnUpdate();
 	}
@@ -47,7 +47,7 @@ void Cast::Application::OnEvent(Event& e)
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(OnWindowClose));
 
-	LOG_CORE_TRACE("{0}", e.ToString());
+	// LOG_CORE_TRACE("{0}", e.ToString());
 	for (auto iter = m_LayerStack.end(); iter != m_LayerStack.begin();) {
 		(*--iter)->OnEvent(e);
 		if (e.Handled)
