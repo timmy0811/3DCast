@@ -16,6 +16,7 @@ IncludeDirs = {}
 IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
 IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
 IncludeDirs["ImGui"] = "3DCast/vendor/imgui"
+IncludeDirs["glm"] = "3DCast/vendor/glm"
 
 include "3DCast/vendor/GLFW"
 include "3DCast/vendor/GLEW"
@@ -36,7 +37,9 @@ project "3DCast"
 	files{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
-		"%{prj.name}/OpenGL_util/**.hpp"
+		"%{prj.name}/OpenGL_util/**.hpp",
+		"%{prj.name}/vendor/glm/glm/**.hpp",
+		"%{prj.name}/vendor/glm/glm/**.inl"
 	}
 
 	includedirs{
@@ -45,6 +48,7 @@ project "3DCast"
 		"GLWrapperLib",
 		"%{IncludeDirs.GLFW}",
 		"%{IncludeDirs.GLEW}",
+		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.ImGui}"
 	}
 
@@ -102,7 +106,8 @@ project "3DCast_Runtime"
 
 	includedirs{
 		"3DCast/vendor/spdlog/include",
-		"3DCast/src"
+		"3DCast/src",
+		"%{IncludeDirs.glm}"
 	}
 
 	links{

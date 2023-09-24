@@ -7,3 +7,6 @@
 [submodule "3DCast\\3DCast\\vendor\\imgui"]
 	path = 3DCast\\3DCast\\vendor\\imgui
 	url = https://github.com/timmy0811/imgui.git
+[submodule "3DCast\\3DCast\\vendor\\glm"]
+	path = 3DCast\\3DCast\\vendor\\glm
+	url = https://github.com/g-truc/glm.git
