@@ -3,7 +3,6 @@
 
 Cast::LayerStack::LayerStack()
 {
-	m_LayerInsert = m_Layers.begin();
 }
 
 Cast::LayerStack::~LayerStack()
@@ -15,7 +14,7 @@ Cast::LayerStack::~LayerStack()
 
 void Cast::LayerStack::PushLayer(Layer* layer)
 {
-	m_LayerInsert = m_Layers.emplace(m_LayerInsert, layer);
+	m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex++, layer);
 }
 
 void Cast::LayerStack::PushOverlay(Layer* overlay)
@@ -28,7 +27,7 @@ void Cast::LayerStack::PopLayer(Layer* layer)
 	auto iter = std::find(m_Layers.begin(), m_Layers.end(), layer);
 	if (iter != m_Layers.end()) {
 		m_Layers.erase(iter);
-		m_LayerInsert--;
+		m_LayerInsertIndex--;
 	}
 }
 
