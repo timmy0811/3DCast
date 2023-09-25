@@ -6,6 +6,7 @@
 #include "3DCast/Event/Event.h"
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Layer/LayerStack.h"
+#include "3DCast/ImGui/ImGuiLayer.h"
 
 namespace Cast {
 	class CAST_API Application
@@ -32,6 +33,7 @@ namespace Cast {
 		static Application* s_Instance;
 
 		std::unique_ptr<Window> m_Window;
+		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running;
 		LayerStack m_LayerStack;
 	};

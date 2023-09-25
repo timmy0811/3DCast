@@ -22,7 +22,6 @@ class Application_Runtime : public Cast::Application {
 public:
 	Application_Runtime() {
 		PushLayer(new ExampleLayer());
-		PushOverlay(new Cast::ImGuiLayer());
 	}
 	~Application_Runtime() {}
 };
