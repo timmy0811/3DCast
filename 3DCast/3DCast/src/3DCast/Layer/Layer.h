@@ -5,7 +5,7 @@
 namespace Cast {
 	static int s_LayerIdentifier = 0;
 
-	class CAST_API Layer
+	class Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer_" + std::to_string(s_LayerIdentifier));

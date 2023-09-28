@@ -67,7 +67,7 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Could not init glew." << std::endl;
-		__debugbreak;
+		__debugbreak();
 	}
 
 	LOG_CORE_INFO("Detected OpenGL Version: {0}", *glGetString(GL_VERSION));

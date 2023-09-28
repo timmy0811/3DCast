@@ -1,6 +1,7 @@
 project "GLEW"
     kind "StaticLib"
     language "C"
+    staticruntime "On"
     
     targetdir (outputdirBIN)
     objdir (outputdirOBJ)
@@ -18,11 +19,11 @@ project "GLEW"
     }
 
     filter "system:windows"
-        buildoptions { "-std=c11", "-lgdi32" }
         systemversion "latest"
-        staticruntime "On"
 
     filter "configurations:Debug"
+        runtime "Debug"
+
 		defines {
             "WIN32", 
             "_WINDOWS",
@@ -34,8 +35,8 @@ project "GLEW"
 
 		symbols "On"
 
-    filter { "system:windows", "configurations:Release", "configurations:Dist" }
-        buildoptions "/MT"
+    filter { "configurations:Release", "configurations:Dist" }
+        runtime "Release"
         optimize "ON"
 
         defines {

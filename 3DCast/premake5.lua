@@ -25,8 +25,10 @@ include "3DCast/vendor/imgui"
 
 project "3DCast"
 	location "3DCast"
-	kind "SharedLib"
+	kind "StaticLib"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "On"
 
 	targetdir (outputdirBIN)
 	objdir (outputdirOBJ)
@@ -60,40 +62,37 @@ project "3DCast"
 		"opengl32.lib"
 	}
 
-	postbuildcommands{
-		"{COPY} \"$(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast/3DCast.dll\" \"$(SolutionDir)bin/$(Platform)-$(Configuration)/3DCast_Runtime/\""
-	}
-
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines{
 			"CAST_PLATFORM_WINDOWS",
-			"CAST_BUILD_DLL",
-			"GLEW_STATIC"
+			"CAST_BUILD_STATIC",
+			"GLEW_STATIC",
+			"_CRT_SECURE_NO_WARNINGS"
 		}
 
 	filter "configurations:Debug"
 		defines {"CAST_DEBUG", "CAST_ENABLE_ASSERTS"}
 		symbols "On"
-		buildoptions "/MDd"
+		runtime "Debug"
 
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
-		buildoptions "/MT"
+		runtime "Release"
 
 	filter "configurations:Dist"
 		defines "CAST_DIST"
 		optimize "On"
-		buildoptions "/MT"
+		runtime "Release"
 
 project "3DCast_Runtime"
 	location "3DCast_Runtime"
 	kind "ConsoleApp"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "On"
 
 	targetdir (outputdirBIN)
 	objdir (outputdirOBJ)
@@ -107,7 +106,8 @@ project "3DCast_Runtime"
 	includedirs{
 		"3DCast/vendor/spdlog/include",
 		"3DCast/src",
-		"%{IncludeDirs.glm}"
+		"%{IncludeDirs.glm}",
+		"%{IncludeDirs.ImGui}"
 	}
 
 	links{
@@ -115,8 +115,6 @@ project "3DCast_Runtime"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines{
@@ -126,13 +124,13 @@ project "3DCast_Runtime"
 	filter "configurations:Debug"
 		defines "CAST_DEBUG"
 		symbols "On"
-		buildoptions "/MDd"
+		runtime "Debug"
 
 
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
-		buildoptions "/MD"
+		runtime "Release"
 
 	filter "configurations:Dist"
 		defines "CAST_DIST"
@@ -144,6 +142,8 @@ project "GLWrapperLib"
 	location "GLWrapperLib"
 	kind "StaticLib"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "On"
 
 	targetdir (outputdirBIN)
 	objdir (outputdirOBJ)
@@ -163,14 +163,12 @@ project "GLWrapperLib"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
 		systemversion "latest"
 
 	filter "configurations:Debug"
 		defines "CAST_DEBUG"
 		symbols "On"
-		buildoptions "/MDd"
+		runtime "Debug"
 
 		links{
 			"assimp-vc142-mtd.lib",

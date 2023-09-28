@@ -14,7 +14,7 @@ namespace Cast {
 			:Title(title), Width(width), Height(height) {}
 	};
 
-	class CAST_API Window {
+	class Window {
 	public:
 		using EventCallbackFunc = std::function<void(Event&)>;
 

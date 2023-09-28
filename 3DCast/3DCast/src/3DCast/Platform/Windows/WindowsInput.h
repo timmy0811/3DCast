@@ -3,7 +3,7 @@
 #include "3DCast/Input.h"
 
 namespace Cast {
-	class CAST_API WindowsInput : public Input {
+	class WindowsInput : public Input {
 	protected:
 		virtual bool IsKeyPressedImpl(int keyCode) override;
 		virtual bool IsMouseButtonPressedImpl(int keyCode) override;

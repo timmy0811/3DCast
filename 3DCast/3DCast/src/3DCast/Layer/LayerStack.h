@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace Cast {
-	class CAST_API LayerStack
+	class LayerStack
 	{
 	public:
 		LayerStack();
