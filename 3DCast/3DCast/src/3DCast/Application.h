@@ -9,7 +9,7 @@
 #include "3DCast/ImGui/ImGuiLayer.h"
 
 namespace Cast {
-	class CAST_API Application
+	class Application
 	{
 	public:
 		Application();

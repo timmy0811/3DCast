@@ -5,7 +5,7 @@
 #include "Event.h"
 
 namespace Cast {
-	class CAST_API KeyEvent : public Event {
+	class KeyEvent : public Event {
 	public:
 		inline int GetKeyCode() const { return m_KeyCode; }
 
@@ -18,7 +18,7 @@ namespace Cast {
 		int m_KeyCode;
 	};
 
-	class CAST_API KeyPressedEvent : public KeyEvent {
+	class KeyPressedEvent : public KeyEvent {
 	public:
 		KeyPressedEvent(int keyCode, int repeatCount)
 			:KeyEvent(keyCode), m_RepeatCount(repeatCount) {}
@@ -37,7 +37,7 @@ namespace Cast {
 		int m_RepeatCount;
 	};
 
-	class CAST_API KeyReleasedEvent : public KeyEvent {
+	class KeyReleasedEvent : public KeyEvent {
 	public:
 		KeyReleasedEvent(int keyCode)
 			:KeyEvent(keyCode) {}
@@ -51,7 +51,7 @@ namespace Cast {
 		EVENT_CLASS_TYPE(KeyReleased);
 	};
 
-	class CAST_API KeyTypedEvent : public KeyEvent {
+	class KeyTypedEvent : public KeyEvent {
 	public:
 		KeyTypedEvent(int keyCode)
 			:KeyEvent(keyCode) {}

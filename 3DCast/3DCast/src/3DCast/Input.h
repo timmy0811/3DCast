@@ -3,7 +3,7 @@
 #include "3DCast/Core.h"
 
 namespace Cast {
-	class CAST_API Input {
+	class Input {
 	public:
 		inline static bool IsKeyPressed(int keyCode) { return s_Instance->IsKeyPressedImpl(keyCode); }
 		inline static bool IsMouseButtonPressed(int keyCode) { return s_Instance->IsMouseButtonPressedImpl(keyCode); }

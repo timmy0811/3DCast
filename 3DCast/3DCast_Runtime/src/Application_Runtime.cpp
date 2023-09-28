@@ -1,4 +1,5 @@
 #include <3DCast.h>
+#include <imgui.h>
 
 class ExampleLayer : public Cast::Layer
 {
@@ -11,6 +12,11 @@ public:
 		if (Cast::Input::IsKeyPressed(CAST_KEY_G)) {
 			LOG_INFO("G got pressed!");
 		}
+	}
+
+	virtual void OnImGuiRender() override {
+		/*ImGui::Begin("TEst");
+		ImGui::End();*/
 	}
 
 	void OnEvent(Cast::Event& e) override {
