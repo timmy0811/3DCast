@@ -1,25 +1,26 @@
+#include "glpch.h"
 #include "Mesh.h"
 
-GL::model::Mesh::Mesh(std::vector<primitive::vertex::VertexMesh> vertices, std::vector<unsigned int> indices, std::vector<texture::Texture*> textures)
+GL::Model::Mesh::Mesh(std::vector<primitive::vertex::VertexMesh> vertices, std::vector<unsigned int> indices, std::vector<Texture::Texture*> textures)
 	:m_Vertices(vertices), m_Indices(indices), textures(textures)
 {
 	// Load members
-	m_IB = std::make_unique<core::IndexBuffer>(&m_Indices[0], (unsigned int)m_Indices.size());
+	m_IB = std::make_unique<Core::IndexBuffer>(&m_Indices[0], (unsigned int)m_Indices.size());
 
 	// Basic Setup
-	m_VB = std::make_unique<core::VertexBuffer>(&m_Vertices[0], (unsigned int)(sizeof(primitive::vertex::VertexMesh) * m_Vertices.size()));
-	m_VBLayout = std::make_unique<core::VertexBufferLayout>();
+	m_VB = std::make_unique<Core::VertexBuffer>(&m_Vertices[0], (unsigned int)(sizeof(primitive::vertex::VertexMesh) * m_Vertices.size()));
+	m_VBLayout = std::make_unique<Core::VertexBufferLayout>();
 
 	m_VBLayout->Push<float>(3);	// Position
 	m_VBLayout->Push<float>(2);	// TexCoord
 	m_VBLayout->Push<float>(3); // Normal
 	m_VBLayout->Push<float>(1);	// Texture Index
 
-	m_VA = std::make_unique<core::VertexArray>();
+	m_VA = std::make_unique<Core::VertexArray>();
 	m_VA->AddBuffer(*m_VB, *m_VBLayout);
 }
 
-void GL::model::Mesh::LoadTextures(core::Shader& shader)
+void GL::Model::Mesh::LoadTextures(Core::Shader& shader)
 {
 	unsigned int diffuseInd = 0;
 	unsigned int specularInd = 0;
@@ -48,23 +49,23 @@ void GL::model::Mesh::LoadTextures(core::Shader& shader)
 
 	shader.Bind();
 
-	for (texture::Texture* tex : textures) {
+	for (Texture::Texture* tex : textures) {
 		tex->Bind(bindOffset++);
 
 		switch (tex->GetType()) {
-		case texture::TextureType::DIFFUSE:
+		case Texture::TextureType::DIFFUSE:
 			samplerDiffuse[diffuseInd++] = tex->GetBoundPort();
 			break;
-		case texture::TextureType::SPECULAR:
+		case Texture::TextureType::SPECULAR:
 			samplerSpecular[specularInd++] = tex->GetBoundPort();
 			break;
-		case texture::TextureType::SHINE:
+		case Texture::TextureType::SHINE:
 			samplerShine[shineIndex++] = tex->GetBoundPort();
 			break;
-		case texture::TextureType::NORMAL:
+		case Texture::TextureType::NORMAL:
 			samplerNormal[normalIndex++] = tex->GetBoundPort();
 			break;
-		case texture::TextureType::HEIGHT:
+		case Texture::TextureType::HEIGHT:
 			samplerHeight[heightInd++] = tex->GetBoundPort();
 			break;
 		}
@@ -77,7 +78,7 @@ void GL::model::Mesh::LoadTextures(core::Shader& shader)
 	shader.SetUniform1iv("u_samplerHeight", MAX_TEXTURE_SLOTS, samplerHeight);
 }
 
-void GL::model::Mesh::Draw(core::Shader& shader)
+void GL::Model::Mesh::Draw(Core::Shader& shader)
 {
 	LoadTextures(shader);
 

@@ -40,5 +40,5 @@ namespace Cast {
 #define LOG_INFO(...) ::Cast::Log::GetClientLogger()->info(__VA_ARGS__)
 #define LOG_TRACE(...) ::Cast::Log::GetClientLogger()->trace(__VA_ARGS__)
 
-#define LOG_START_LOCAL_SW(...) spdlog::stopwatch(__VA_ARGS__)
-#define LOG_SW_ELAPSED(...) spdlog::debug("Elapsed {}", __VA_ARGS__)
+#define LOG_START_LOCAL_SW(name) spdlog::stopwatch name
+#define LOG_SW_ELAPSED(name) spdlog::debug("Elapsed {0}", name)

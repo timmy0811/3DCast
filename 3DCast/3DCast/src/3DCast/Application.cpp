@@ -6,6 +6,9 @@
 
 #include <GLEW/glew.h>
 
+#include "OpenGL_util/core/Shader.h"
+#include "OpenGL_util/core/Framebuffer.h"
+
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
 namespace Cast {
@@ -22,6 +25,11 @@ Cast::Application::Application()
 
 	m_ImGuiLayer = new ImGuiLayer();
 	PushOverlay(m_ImGuiLayer);
+
+	GL::Core::Framebuffer fb({ 10.f, 10.f });
+
+	GL::Core::Shader myShader("C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.vert",
+		"C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.frag");
 }
 
 Cast::Application::~Application()
@@ -46,6 +54,8 @@ void Cast::Application::Run()
 
 		m_Window->OnUpdate();
 	}
+
+	LOG_INFO("Terminating Application");
 }
 
 void Cast::Application::OnEvent(Event& e)

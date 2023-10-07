@@ -1,18 +1,13 @@
 #pragma once
 
-#include "../debug/Debug.hpp"
-#include "../vendor/glm/glm.hpp"
-#include "../vendor/glm/gtx/normal.hpp"
+#include "debug/Debug.hpp"
+#include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtx/normal.hpp"
 
-#include "../misc/Primitive.hpp"
+#include "misc/Primitive.hpp"
 
-namespace GL::core {
+namespace GL::Core {
 	class VertexBuffer {
-	private:
-		unsigned int m_RendererID;
-		size_t m_DataPtr;
-		size_t m_BufferSize;
-
 	public:
 		VertexBuffer(const void* data, unsigned int size);
 		VertexBuffer(unsigned int count, size_t elementSize);
@@ -35,5 +30,10 @@ namespace GL::core {
 		void Unbind() const;
 
 		inline size_t getSize() const { return m_DataPtr; };
+
+	private:
+		unsigned int m_RendererID;
+		size_t m_DataPtr;
+		size_t m_BufferSize;
 	};
 }

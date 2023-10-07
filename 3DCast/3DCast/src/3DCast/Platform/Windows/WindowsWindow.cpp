@@ -1,6 +1,7 @@
 #include "castpch.h"
 
 #include "WindowsWindow.h"
+#include "3DCast/Platform/OpenGL/OpenGLContext.h"
 
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Event/MouseEvent.h"
@@ -14,7 +15,7 @@ Cast::WindowsWindow::WindowsWindow(const WindowProperties& props)
 void Cast::WindowsWindow::OnUpdate()
 {
 	glfwPollEvents();
-	glfwSwapBuffers(m_Window);
+	m_Context->SwapBuffer();
 }
 
 void Cast::WindowsWindow::SetVSync(bool enabled)
@@ -60,17 +61,11 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 		CAST_ASSERT(false, "Could not initialize Window.");
 	}
 
-	glfwMakeContextCurrent(m_Window);
+	m_Context = new OpenGLContext(m_Window);
+	m_Context->Init();
+
 	glfwSetWindowUserPointer(m_Window, &m_Data);
 	SetVSync(true);
-
-	glewExperimental = true;
-	if (glewInit() != GLEW_OK) {
-		std::cout << "Could not init glew." << std::endl;
-		__debugbreak();
-	}
-
-	LOG_CORE_INFO("Detected OpenGL Version: {0}", *glGetString(GL_VERSION));
 
 	// GLFW Callbacks
 	glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {

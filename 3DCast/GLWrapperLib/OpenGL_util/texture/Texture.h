@@ -1,22 +1,13 @@
 #pragma once
 
-#include "../core/Renderer.h"
-#include "../vendor/stb_image/stb_image.h"
+#include "core/Renderer.h"
+#include "vendor/stb_image/stb_image.h"
 
-namespace GL::texture {
+namespace GL::Texture {
 	enum class TextureType { DIFFUSE, SPECULAR, SHINE, NORMAL, HEIGHT, DEFAULT };
 
 	class Texture
 	{
-	private:
-		int m_BoundID = -1;
-		unsigned int m_RendererID;
-		std::string m_Filepath;
-		unsigned char* m_LocalBuffer;
-		int m_Width, m_Height, m_BPP;
-
-		TextureType m_Type;
-
 	public:
 		Texture(const std::string& path, const bool flipUV);
 		~Texture();
@@ -32,5 +23,14 @@ namespace GL::texture {
 
 		void SetType(TextureType type) { m_Type = type; };
 		inline TextureType GetType() { return m_Type; };
+
+	private:
+		int m_BoundID = -1;
+		unsigned int m_RendererID;
+		std::string m_Filepath;
+		unsigned char* m_LocalBuffer;
+		int m_Width, m_Height, m_BPP;
+
+		TextureType m_Type;
 	};
 }

@@ -1,12 +1,14 @@
+#include "glpch.h"
 #include "SSAO.h"
+
 #include <random>
 
-GL::advanced::SSAO::SSAO()
+GL::Advanced::SSAO::SSAO()
 {
 	m_Kernel.reserve(64);
 }
 
-void GL::advanced::SSAO::GenerateSampleKernel(int samples)
+void GL::Advanced::SSAO::GenerateSampleKernel(int samples)
 {
 	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
 	std::default_random_engine generator;
@@ -23,7 +25,7 @@ void GL::advanced::SSAO::GenerateSampleKernel(int samples)
 	}
 }
 
-void GL::advanced::SSAO::GenerateSSAONoiseMap()
+void GL::Advanced::SSAO::GenerateSSAONoiseMap()
 {
 	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
 	std::default_random_engine generator;
@@ -44,7 +46,7 @@ void GL::advanced::SSAO::GenerateSSAONoiseMap()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-void GL::advanced::SSAO::BindNoiseTex(const unsigned int slot)
+void GL::Advanced::SSAO::BindNoiseTex(const unsigned int slot)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_IdNoise));

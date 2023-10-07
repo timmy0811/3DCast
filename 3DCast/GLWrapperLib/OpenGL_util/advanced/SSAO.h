@@ -1,12 +1,12 @@
 #pragma once
 
+#include "vendor/glm/glm.hpp"
+#include "dependencies.hpp"
+#include "debug/Debug.hpp"
+
 #include <vector>
-#include "../vendor/glm/glm.hpp"
-#include "../dependencies.hpp"
 
-#include "../debug/Debug.hpp"
-
-namespace GL::advanced {
+namespace GL::Advanced {
 	class SSAO
 	{
 	public:

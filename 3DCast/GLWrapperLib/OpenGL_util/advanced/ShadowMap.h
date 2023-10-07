@@ -1,14 +1,11 @@
 #pragma once
 
-#include "../dependencies.hpp"
+#include "dependencies.hpp"
+#include "debug/Debug.hpp"
 
-#include <string>
+#include "vendor/glm/glm.hpp"
 
-#include "../vendor/glm/glm.hpp"
-
-#include "../debug/Debug.hpp"
-
-namespace GL::advanced {
+namespace GL::Advanced {
 	class ShadowMap
 	{
 	public:

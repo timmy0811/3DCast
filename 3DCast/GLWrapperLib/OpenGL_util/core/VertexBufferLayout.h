@@ -1,11 +1,11 @@
 #pragma once
 
+#include "dependencies.hpp"
+#include "debug/Debug.hpp"
+
 #include <vector>
-#include "../dependencies.hpp"
 
-#include "../debug/Debug.hpp"
-
-namespace GL::core {
+namespace GL::Core {
 	struct VertexBufferElement {
 		unsigned int type;
 		unsigned int count;

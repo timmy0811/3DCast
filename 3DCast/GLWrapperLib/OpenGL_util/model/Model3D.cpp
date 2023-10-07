@@ -1,6 +1,7 @@
+#include "glpch.h"
 #include "Model3D.h"
 
-void GL::model::Model3D::Load(const std::string& path)
+void GL::Model::Model3D::Load(const std::string& path)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs); // Some models work with flipped UVs
@@ -16,7 +17,7 @@ void GL::model::Model3D::Load(const std::string& path)
 	ProcessNode(scene->mRootNode, scene);
 }
 
-void GL::model::Model3D::ProcessNode(aiNode* node, const aiScene* scene)
+void GL::Model::Model3D::ProcessNode(aiNode* node, const aiScene* scene)
 {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -28,11 +29,11 @@ void GL::model::Model3D::ProcessNode(aiNode* node, const aiScene* scene)
 	}
 }
 
-GL::model::Mesh GL::model::Model3D::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+GL::Model::Mesh GL::Model::Model3D::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<primitive::vertex::VertexMesh> vertices;
 	std::vector<unsigned int> indices;
-	std::vector<texture::Texture*> textures;
+	std::vector<Texture::Texture*> textures;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 		primitive::vertex::VertexMesh v;
@@ -74,28 +75,28 @@ GL::model::Mesh GL::model::Model3D::ProcessMesh(aiMesh* mesh, const aiScene* sce
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<texture::Texture*> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE);
+		std::vector<Texture::Texture*> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		std::vector<texture::Texture*> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR);
+		std::vector<Texture::Texture*> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		std::vector<texture::Texture*> shineMaps = LoadMaterialTextures(material, aiTextureType_SHININESS);
+		std::vector<Texture::Texture*> shineMaps = LoadMaterialTextures(material, aiTextureType_SHININESS);
 		textures.insert(textures.end(), shineMaps.begin(), shineMaps.end());
 
-		std::vector<texture::Texture*> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS);
+		std::vector<Texture::Texture*> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-		std::vector<texture::Texture*> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT);
+		std::vector<Texture::Texture*> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	return Mesh(vertices, indices, textures);
 }
 
-std::vector<GL::texture::Texture*> GL::model::Model3D::LoadMaterialTextures(aiMaterial* mat, aiTextureType type)
+std::vector<GL::Texture::Texture*> GL::Model::Model3D::LoadMaterialTextures(aiMaterial* mat, aiTextureType type)
 {
-	std::vector<texture::Texture*> textures;
+	std::vector<Texture::Texture*> textures;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;
@@ -114,31 +115,31 @@ std::vector<GL::texture::Texture*> GL::model::Model3D::LoadMaterialTextures(aiMa
 		}
 
 		if (!skip) {
-			texture::Texture* texture = new texture::Texture(path, false); // m_Directory + str ???
+			Texture::Texture* texture = new Texture::Texture(path, false); // m_Directory + str ???
 
 			switch (type) {
 			case aiTextureType_DIFFUSE: {
-				texture->SetType(texture::TextureType::DIFFUSE);
+				texture->SetType(Texture::TextureType::DIFFUSE);
 				break;
 			}
 			case aiTextureType_SPECULAR: {
-				texture->SetType(texture::TextureType::SPECULAR);
+				texture->SetType(Texture::TextureType::SPECULAR);
 				break;
 			}
 			case aiTextureType_SHININESS: {
-				texture->SetType(texture::TextureType::SHINE);
+				texture->SetType(Texture::TextureType::SHINE);
 				break;
 			}
 			case aiTextureType_HEIGHT: {
-				texture->SetType(texture::TextureType::HEIGHT);
+				texture->SetType(Texture::TextureType::HEIGHT);
 				break;
 			}
 			case aiTextureType_NORMALS: {
-				texture->SetType(texture::TextureType::NORMAL);
+				texture->SetType(Texture::TextureType::NORMAL);
 				break;
 			}
 			default:
-				texture->SetType(texture::TextureType::DEFAULT);
+				texture->SetType(Texture::TextureType::DEFAULT);
 			}
 
 			textures.push_back(texture);
@@ -148,19 +149,19 @@ std::vector<GL::texture::Texture*> GL::model::Model3D::LoadMaterialTextures(aiMa
 	return textures;
 }
 
-GL::model::Model3D::Model3D(const char* path)
+GL::Model::Model3D::Model3D(const char* path)
 {
 	Load(path);
 }
 
-GL::model::Model3D::~Model3D()
+GL::Model::Model3D::~Model3D()
 {
-	for (texture::Texture* tex : m_LoadedTextures) {
+	for (Texture::Texture* tex : m_LoadedTextures) {
 		delete tex;
 	}
 }
 
-void GL::model::Model3D::Draw(GL::core::Shader& shader)
+void GL::Model::Model3D::Draw(GL::Core::Shader& shader)
 {
 	for (Mesh& mesh : m_Meshes) {
 		mesh.Draw(shader);

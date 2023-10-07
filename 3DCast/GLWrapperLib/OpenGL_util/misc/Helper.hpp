@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../vendor/glm/glm.hpp"
-#include "../vendor/glm/gtc/matrix_transform.hpp"
+#include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtc/matrix_transform.hpp"
 
-#include "../core/Shader.h"
-#include "../core/Renderer.h"
+#include "core/Shader.h"
+#include "core/Renderer.h"
 
 namespace GL::Helper {
 	struct Vec2_4 {
@@ -28,8 +28,8 @@ namespace GL::Helper {
 				0, 1, 2, 2, 3, 0
 			};
 
-			m_IndexBuffer = std::make_unique<core::IndexBuffer>(index, 6);
-			m_VertexBuffer = std::make_unique<core::VertexBuffer>(4, sizeof(primitive::vertex::Vertex3D));
+			m_IndexBuffer = std::make_unique<Core::IndexBuffer>(index, 6);
+			m_VertexBuffer = std::make_unique<Core::VertexBuffer>(4, sizeof(primitive::vertex::Vertex3D));
 
 			primitive::vertex::Vertex3D vert[] = {
 				glm::vec3(-1.f, -1.f, 0.f),
@@ -41,27 +41,27 @@ namespace GL::Helper {
 			m_VertexBuffer->Bind();
 			m_VertexBuffer->AddVertexData(vert, sizeof(primitive::vertex::Vertex3D) * 4);
 
-			m_VertexBufferLayout = std::make_unique<core::VertexBufferLayout>();
+			m_VertexBufferLayout = std::make_unique<Core::VertexBufferLayout>();
 			m_VertexBufferLayout->Push<float>(3);	// Position
 
-			m_VertexArray = std::make_unique<core::VertexArray>();
+			m_VertexArray = std::make_unique<Core::VertexArray>();
 			m_VertexArray->AddBuffer(*m_VertexBuffer, *m_VertexBufferLayout);
 		}
 
-		void Draw(const core::Shader& shader) {
-			GL::core::GLContext::Draw(*m_VertexArray, *m_IndexBuffer, shader, GL_TRIANGLES, 6);
+		void Draw(const Core::Shader& shader) {
+			GL::Core::GLContext::Draw(*m_VertexArray, *m_IndexBuffer, shader, GL_TRIANGLES, 6);
 		}
 
 		// Only used for custom dimensions
-		void SetProjectionMat(core::Shader& shader) {
+		void SetProjectionMat(Core::Shader& shader) {
 			shader.Bind();
 			shader.SetUniformMat4f("u_ScreenQuadProj", m_MatProjectionVertex);
 		}
 
-		std::unique_ptr<core::VertexBuffer> m_VertexBuffer;
-		std::unique_ptr<core::IndexBuffer> m_IndexBuffer;
-		std::unique_ptr<core::VertexBufferLayout> m_VertexBufferLayout;
-		std::unique_ptr<core::VertexArray> m_VertexArray;
+		std::unique_ptr<Core::VertexBuffer> m_VertexBuffer;
+		std::unique_ptr<Core::IndexBuffer> m_IndexBuffer;
+		std::unique_ptr<Core::VertexBufferLayout> m_VertexBufferLayout;
+		std::unique_ptr<Core::VertexArray> m_VertexArray;
 
 		glm::mat4 m_MatProjectionVertex;
 	};

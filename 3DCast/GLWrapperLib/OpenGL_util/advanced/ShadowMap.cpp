@@ -1,16 +1,17 @@
+#include "glpch.h"
 #include "ShadowMap.h"
 #include <string>
 
-GL::advanced::ShadowMap::ShadowMap(const glm::ivec2& size)
+GL::Advanced::ShadowMap::ShadowMap(const glm::ivec2& size)
 {
 	Init(size);
 }
 
-GL::advanced::ShadowMap::~ShadowMap()
+GL::Advanced::ShadowMap::~ShadowMap()
 {
 }
 
-bool GL::advanced::ShadowMap::Init(const glm::ivec2& size)
+bool GL::Advanced::ShadowMap::Init(const glm::ivec2& size)
 {
 	m_Width = size.x;
 	m_Height = size.y;
@@ -55,14 +56,14 @@ bool GL::advanced::ShadowMap::Init(const glm::ivec2& size)
 	return true;
 }
 
-void GL::advanced::ShadowMap::BindAndClear()
+void GL::Advanced::ShadowMap::BindAndClear()
 {
 	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_IdFBO));
 	GLCall(glViewport(0, 0, m_Width, m_Height));
 	GLCall(glClear(GL_DEPTH_BUFFER_BIT));
 }
 
-unsigned int GL::advanced::ShadowMap::BindDepthTexture(const unsigned int slot)
+unsigned int GL::Advanced::ShadowMap::BindDepthTexture(const unsigned int slot)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_IdDepthBuffer));
@@ -70,7 +71,7 @@ unsigned int GL::advanced::ShadowMap::BindDepthTexture(const unsigned int slot)
 	return m_BoundPort;
 }
 
-void GL::advanced::ShadowMap::UnbindDepthTexture()
+void GL::Advanced::ShadowMap::UnbindDepthTexture()
 {
 	GLCall(glActiveTexture(m_BoundPort));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));

@@ -1,17 +1,18 @@
+#include "glpch.h"
 #include "VertexArray.h"
 
-GL::core::VertexArray::VertexArray()
+GL::Core::VertexArray::VertexArray()
 {
 	GLCall(glGenVertexArrays(1, &m_RendererID));
 	//GLCall(glBindVertexArray(m_RendererID));
 }
 
-GL::core::VertexArray::~VertexArray()
+GL::Core::VertexArray::~VertexArray()
 {
 	GLCall(glDeleteVertexArrays(1, &m_RendererID));
 }
 
-void GL::core::VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
+void GL::Core::VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
 {
 	Bind();
 	vb.Bind();
@@ -29,12 +30,12 @@ void GL::core::VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBuffer
 	}
 }
 
-void GL::core::VertexArray::Bind() const
+void GL::Core::VertexArray::Bind() const
 {
 	GLCall(glBindVertexArray(m_RendererID));
 }
 
-void GL::core::VertexArray::Unbind() const
+void GL::Core::VertexArray::Unbind() const
 {
 	GLCall(glBindVertexArray(0));
 }
