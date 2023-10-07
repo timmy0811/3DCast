@@ -1,6 +1,7 @@
+#include "glpch.h"
 #include "Framebuffer.h"
 
-GL::buffer::Framebuffer::Framebuffer(const glm::ivec2& size, bool attachDepth, DepthBufferType depthType)
+GL::Core::Framebuffer::Framebuffer(const glm::ivec2& size, bool attachDepth, DepthBufferType depthType)
 {
 	m_Width = size.x;
 	m_Height = size.y;
@@ -52,11 +53,11 @@ GL::buffer::Framebuffer::Framebuffer(const glm::ivec2& size, bool attachDepth, D
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-GL::buffer::Framebuffer::~Framebuffer()
+GL::Core::Framebuffer::~Framebuffer()
 {
 }
 
-unsigned int GL::buffer::Framebuffer::BindDepthTexture(const unsigned int slot)
+unsigned int GL::Core::Framebuffer::BindDepthTexture(const unsigned int slot)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RBODepth));
@@ -64,30 +65,30 @@ unsigned int GL::buffer::Framebuffer::BindDepthTexture(const unsigned int slot)
 	return m_BoundPort;
 }
 
-void GL::buffer::Framebuffer::Bind(unsigned int Framebuffer)
+void GL::Core::Framebuffer::Bind(unsigned int Framebuffer)
 {
 	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Framebuffer));
 }
 
-void GL::buffer::Framebuffer::Bind() const
+void GL::Core::Framebuffer::Bind() const
 {
 	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_IdFBO));
 	GLCall(glViewport(0, 0, m_Width, m_Height));
 }
 
-void GL::buffer::Framebuffer::BindAndClear()
+void GL::Core::Framebuffer::BindAndClear()
 {
 	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_IdFBO));
 	GLCall(glViewport(0, 0, m_Width, m_Height));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void GL::buffer::Framebuffer::Unbind()
+void GL::Core::Framebuffer::Unbind()
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-void GL::buffer::Framebuffer::BindTextures(const unsigned int startSlot)
+void GL::Core::Framebuffer::BindTextures(const unsigned int startSlot)
 {
 	for (int i = 0; i < m_Buffers.size(); i++) {
 		GLCall(glActiveTexture(GL_TEXTURE0 + startSlot + i));
@@ -95,13 +96,13 @@ void GL::buffer::Framebuffer::BindTextures(const unsigned int startSlot)
 	}
 }
 
-void GL::buffer::Framebuffer::BindTexture(int index, const unsigned int startSlot)
+void GL::Core::Framebuffer::BindTexture(int index, const unsigned int startSlot)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + startSlot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_Buffers[index]));
 }
 
-bool GL::buffer::Framebuffer::PushColorAttribute(const char channel, BufferDataType dataType, const void* data)
+bool GL::Core::Framebuffer::PushColorAttribute(const char channel, BufferDataType dataType, const void* data)
 {
 	BufferFormat formatIntern{};
 	BufferFormat format{};
@@ -245,7 +246,7 @@ bool GL::buffer::Framebuffer::PushColorAttribute(const char channel, BufferDataT
 	return true;
 }
 
-bool GL::buffer::Framebuffer::PushColorAttribute(unsigned int internalFormat, unsigned int format, unsigned int dataType, const void* data)
+bool GL::Core::Framebuffer::PushColorAttribute(unsigned int internalFormat, unsigned int format, unsigned int dataType, const void* data)
 {
 	size_t size = m_Buffers.size();
 	m_Buffers.push_back(0);
@@ -265,7 +266,7 @@ bool GL::buffer::Framebuffer::PushColorAttribute(unsigned int internalFormat, un
 	return true;
 }
 
-inline bool GL::buffer::Framebuffer::Validate() const
+inline bool GL::Core::Framebuffer::Validate() const
 {
 	Bind();
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../vendor/glm/glm.hpp"
-#include "../vendor/glm/gtx/normal.hpp"
+#include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtx/normal.hpp"
 
 namespace GL::primitive {
 	namespace vertex {

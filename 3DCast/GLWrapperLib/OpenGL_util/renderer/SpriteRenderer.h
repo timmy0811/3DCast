@@ -1,20 +1,20 @@
 #pragma once
 
+#include "misc/Helper.hpp"
+#include "misc/Primitive.hpp"
+
+#include "core/VertexBuffer.h"
+#include "core/VertexArray.h"
+#include "core/IndexBuffer.h"
+#include "core/VertexBufferLayout.h"
+#include "core/Shader.h"
+#include "texture/Texture.h"
+
 #include <memory>
 #include <map>
 #include <string>
 
-#include "../misc/Helper.hpp"
-#include "../misc/Primitive.hpp"
-
-#include "../core/VertexBuffer.h"
-#include "../core/VertexArray.h"
-#include "../core/IndexBuffer.h"
-#include "../core/VertexBufferLayout.h"
-#include "../core/Shader.h"
-#include "../texture/Texture.h"
-
-namespace GL::renderer {
+namespace GL::Renderer {
 	struct Sprite {
 		Sprite(const std::string& path, const glm::vec2& position, const glm::vec2& size, const bool flipUV = false) {
 			this->Path = path;
@@ -37,7 +37,7 @@ namespace GL::renderer {
 			Uvs = uvs;
 		}
 
-		Sprite() {};
+		Sprite() = default;
 
 		unsigned int Id;
 		std::string Path;
@@ -85,10 +85,10 @@ namespace GL::renderer {
 		void UpdateSamplerArray();
 
 	private:
-		std::unique_ptr<core::VertexBuffer> m_VB;
-		std::unique_ptr<core::IndexBuffer> m_IB;
-		std::unique_ptr<core::VertexBufferLayout> m_VBLayout;
-		std::unique_ptr<core::VertexArray> m_VA;
+		std::unique_ptr<Core::VertexBuffer> m_VB;
+		std::unique_ptr<Core::IndexBuffer> m_IB;
+		std::unique_ptr<Core::VertexBufferLayout> m_VBLayout;
+		std::unique_ptr<Core::VertexArray> m_VA;
 
 		glm::mat4 m_MatProjection;
 		glm::mat4 m_MatView;
@@ -97,11 +97,11 @@ namespace GL::renderer {
 		unsigned int m_SamplerRangeLow;
 		unsigned int m_SamplerRangeHigh;
 
-		core::Shader* m_Shader;
+		Core::Shader* m_Shader;
 		size_t m_Triangles = 0;
 		int m_BindSlotStart = 0;
 
-		std::vector<texture::Texture*> m_Samplers;
+		std::vector<Texture::Texture*> m_Samplers;
 		std::map<unsigned int, SpriteBlueprint*> m_Sprites;
 		std::vector< SpriteBlueprint*> m_SpritesOnScreen;
 

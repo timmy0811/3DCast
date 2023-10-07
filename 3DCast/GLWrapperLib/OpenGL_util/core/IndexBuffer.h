@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../debug/Debug.hpp"
+#include "debug/Debug.hpp"
 
-namespace GL::core {
+namespace GL::Core {
 	class IndexBuffer {
 	private:
 		unsigned int m_RendererID;

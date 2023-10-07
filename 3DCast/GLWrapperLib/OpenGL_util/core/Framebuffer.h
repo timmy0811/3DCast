@@ -1,16 +1,14 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <iostream>
+#include "vendor/glm/glm.hpp"
+#include "dependencies.hpp"
+#include "debug/Debug.hpp"
 
-#include "../vendor/glm/glm.hpp"
-#include "../dependencies.hpp"
-#include "../debug/Debug.hpp"
+#include <vector>
 
 #define MAX_BUF 8
 
-namespace GL::buffer {
+namespace GL::Core {
 	enum BufferDataType {
 		_FLOAT = 0x1406,
 		_FLOAT16 = 1,

@@ -1,6 +1,7 @@
+#include "glpch.h"
 #include "Texture.h"
 
-GL::texture::Texture::Texture(const std::string& path, const bool flipUV)
+GL::Texture::Texture::Texture(const std::string& path, const bool flipUV)
 	:m_RendererID(0), m_Filepath(path), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -9,18 +10,17 @@ GL::texture::Texture::Texture(const std::string& path, const bool flipUV)
 	else stbi_set_flip_vertically_on_load(0);
 
 	m_LocalBuffer = stbi_load(path.c_str(), &m_Width, &m_Height, &m_BPP, 4);
-	if (!m_LocalBuffer) LOGC(("Could not load " + path), LOG_COLOR::FAULT);
+	if (!m_LocalBuffer) LOG_GL_ERROR("Could not load {}", path);
 
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 
-	// Use for High res textures
-	/*GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));*/
+	{
+		constexpr int filter = GL_NEAREST; // GL_LINEAR
 
-	// Use for Low res textures
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter));
+	}
 
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
@@ -31,12 +31,12 @@ GL::texture::Texture::Texture(const std::string& path, const bool flipUV)
 	if (m_LocalBuffer) stbi_image_free(m_LocalBuffer);
 }
 
-GL::texture::Texture::~Texture()
+GL::Texture::Texture::~Texture()
 {
 	GLCall(glDeleteTextures(1, &m_RendererID));
 }
 
-int GL::texture::Texture::Bind(const unsigned int slot)
+int GL::Texture::Texture::Bind(const unsigned int slot)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
@@ -44,7 +44,7 @@ int GL::texture::Texture::Bind(const unsigned int slot)
 	return m_BoundID;
 }
 
-void GL::texture::Texture::Unbind()
+void GL::Texture::Texture::Unbind()
 {
 	GLCall(glActiveTexture(m_BoundID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));

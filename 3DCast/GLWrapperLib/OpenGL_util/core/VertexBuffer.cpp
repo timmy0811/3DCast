@@ -1,6 +1,7 @@
+#include "glpch.h"
 #include "VertexBuffer.h"
 
-GL::core::VertexBuffer::VertexBuffer(const void* data, unsigned int size)
+GL::Core::VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 	:m_DataPtr(0)
 {
 	GLCall(glGenBuffers(1, &m_RendererID));
@@ -10,7 +11,7 @@ GL::core::VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 	m_BufferSize = (size_t)size;
 }
 
-GL::core::VertexBuffer::VertexBuffer(unsigned int count, size_t elementSize)
+GL::Core::VertexBuffer::VertexBuffer(unsigned int count, size_t elementSize)
 	:m_DataPtr(0)
 {
 	//void* mem = std::malloc(count * elementSize);
@@ -22,30 +23,30 @@ GL::core::VertexBuffer::VertexBuffer(unsigned int count, size_t elementSize)
 	m_BufferSize = (size_t)count * elementSize;
 }
 
-void GL::core::VertexBuffer::AddVertexData(const void* data, int size, int offset) {
+void GL::Core::VertexBuffer::AddVertexData(const void* data, int size, int offset) {
 	Bind();
 	GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data));
 }
 
-void GL::core::VertexBuffer::AddVertexData(const void* data, int size) {
+void GL::Core::VertexBuffer::AddVertexData(const void* data, int size) {
 	Bind();
 	GLCall(glBufferSubData(GL_ARRAY_BUFFER, m_DataPtr, size, data));
 	m_DataPtr += size;
 }
 
-void GL::core::VertexBuffer::Empty()
+void GL::Core::VertexBuffer::Empty()
 {
 	Bind();
 	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, m_BufferSize, nullptr));
 	m_DataPtr = 0;
 }
 
-GL::core::VertexBuffer::~VertexBuffer()
+GL::Core::VertexBuffer::~VertexBuffer()
 {
 	GLCall(glDeleteBuffers(1, &m_RendererID));
 }
 
-void GL::core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec4 color, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec4 color, VertexBuffer& vb)
 {
 	GL::primitive::vertex::TriangleLight t = GL::primitive::vertex::TriangleLight();
 
@@ -61,7 +62,7 @@ void GL::core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 p
 	vb.AddVertexData(&t, sizeof(GL::primitive::vertex::TriangleLight));
 }
 
-void GL::core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec2 texPos0, glm::vec2 texPos1, glm::vec2 texPos2, glm::vec4 color, float texId, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec2 texPos0, glm::vec2 texPos1, glm::vec2 texPos2, glm::vec4 color, float texId, VertexBuffer& vb)
 {
 	GL::primitive::vertex::Triangle t = GL::primitive::vertex::Triangle();
 
@@ -83,7 +84,7 @@ void GL::core::VertexBuffer::addPoly(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 p
 	vb.AddVertexData(&t, sizeof(GL::primitive::vertex::Triangle));
 }
 
-void GL::core::VertexBuffer::addPolyN(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec2 texPos0, glm::vec2 texPos1, glm::vec2 texPos2, glm::vec4 color, float texId, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addPolyN(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos2, glm::vec2 texPos0, glm::vec2 texPos1, glm::vec2 texPos2, glm::vec4 color, float texId, VertexBuffer& vb)
 {
 	GL::primitive::vertex::TriangleN t = GL::primitive::vertex::TriangleN();
 	// Calculate Normal
@@ -110,7 +111,7 @@ void GL::core::VertexBuffer::addPolyN(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 
 	vb.AddVertexData(&t, sizeof(GL::primitive::vertex::TriangleN));
 }
 
-void GL::core::VertexBuffer::addLightSource(glm::vec3 position, float sideLength, glm::vec4 color, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addLightSource(glm::vec3 position, float sideLength, glm::vec4 color, VertexBuffer& vb)
 {
 	addPoly(glm::vec3(position.x - (sideLength / 2.f), position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z - (sideLength / 2.f)), color, vb);
 	addPoly(glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y + sideLength, position.z - (sideLength / 2.f)), color, vb);
@@ -131,7 +132,7 @@ void GL::core::VertexBuffer::addLightSource(glm::vec3 position, float sideLength
 	addPoly(glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z + sideLength), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z + sideLength), glm::vec3(position.x + sideLength, position.y + sideLength, position.z + sideLength), color, vb);
 }
 
-void GL::core::VertexBuffer::addCube(glm::vec3 position, float sideLength, glm::vec4 color, float texId, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addCube(glm::vec3 position, float sideLength, glm::vec4 color, float texId, VertexBuffer& vb)
 {
 	addPoly(glm::vec3(position.x - (sideLength / 2.f), position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z - (sideLength / 2.f)), glm::vec2(0.f, 0.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f), color, texId, vb);
 	addPoly(glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y + sideLength, position.z - (sideLength / 2.f)), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec2(1.f, 1.f), color, texId, vb);
@@ -152,7 +153,7 @@ void GL::core::VertexBuffer::addCube(glm::vec3 position, float sideLength, glm::
 	addPoly(glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z + sideLength), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z + sideLength), glm::vec3(position.x + sideLength, position.y + sideLength, position.z + sideLength), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 1.f), color, texId, vb);
 }
 
-void GL::core::VertexBuffer::addCubeN(glm::vec3 position, float sideLength, glm::vec4 color, float texId, VertexBuffer& vb)
+void GL::Core::VertexBuffer::addCubeN(glm::vec3 position, float sideLength, glm::vec4 color, float texId, VertexBuffer& vb)
 {
 	// Front
 	addPolyN(glm::vec3(position.x - (sideLength / 2.f), position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z - (sideLength / 2.f)), glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z - (sideLength / 2.f)), glm::vec2(0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f), color, texId, vb);
@@ -174,12 +175,12 @@ void GL::core::VertexBuffer::addCubeN(glm::vec3 position, float sideLength, glm:
 	addPolyN(glm::vec3(position.x + sideLength, position.y - (sideLength / 2.f), position.z + sideLength), glm::vec3(position.x + sideLength, position.y + sideLength, position.z + sideLength), glm::vec3(position.x - (sideLength / 2.f), position.y + sideLength, position.z + sideLength), glm::vec2(1.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 1.f), color, texId, vb);
 }
 
-void GL::core::VertexBuffer::Bind() const
+void GL::Core::VertexBuffer::Bind() const
 {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));
 }
 
-void GL::core::VertexBuffer::Unbind() const
+void GL::Core::VertexBuffer::Unbind() const
 {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }

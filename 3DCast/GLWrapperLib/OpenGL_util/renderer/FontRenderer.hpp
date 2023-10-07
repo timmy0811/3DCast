@@ -1,83 +1,25 @@
 #pragma once
 
+#include "core/Renderer.h"
+#include "misc/Helper.hpp"
+#include "misc/Primitive.hpp"
+
+#include "core/VertexBuffer.h"
+#include "core/VertexArray.h"
+#include "core/IndexBuffer.h"
+#include "core/VertexBufferLayout.h"
+#include "core/Shader.h"
+#include "texture/Texture.h"
+
 #include <memory>
 #include <map>
 #include <string>
 
-#include "../core/Renderer.h"
-#include "../misc/Helper.hpp"
-#include "../misc/Primitive.hpp"
-
-#include "../core/VertexBuffer.h"
-#include "../core/VertexArray.h"
-#include "../core/IndexBuffer.h"
-#include "../core/VertexBufferLayout.h"
-#include "../core/Shader.h"
-#include "../texture/Texture.h"
-
-namespace GL::renderer {
-	class FontRenderer {
-	private:
-		texture::Texture fontSheet;
-		static inline std::map<int, GL::Helper::SymbolInformation> symbolsUnicode;
-		static inline std::map<int, GL::Helper::SymbolInformation> symbolsGui;
-		std::map<int, GL::Helper::SymbolInformation>* symbols;
-
-		static inline bool m_SymbolsParsedGui;
-		static inline bool m_SymbolsParsedAscii;
-
-		unsigned int charHeight;
-		int sheetHeight;
-		int sheetWidth;
-		int characterWidth;
-
-		size_t count;
-		bool unicode;
-
-		std::unique_ptr<core::VertexBuffer> vb;
-		std::unique_ptr<core::IndexBuffer> ib;
-		std::unique_ptr<core::VertexBufferLayout> vbLayout;
-		std::unique_ptr<core::VertexArray> va;
-
-		glm::mat4 projection;
-		glm::mat4 view;
-		glm::vec3 translation;
-
-		core::Shader* shader;
-
-		Helper::SymbolInformation GatherSymbolInformation(int posX, int posY, int width) {
-			GL::Helper::SymbolInformation information{};
-
-			glm::ivec2 imgPosition;
-			imgPosition.x = posX * characterWidth + characterWidth / 2;
-			imgPosition.y = posY * charHeight;
-
-			if (unicode) {
-				information.uv.u0.x = (imgPosition.x - characterWidth / 2.f) / sheetWidth;
-				information.uv.u3.x = (imgPosition.x - characterWidth / 2.f) / sheetWidth;
-				information.uv.u1.x = (imgPosition.x - characterWidth / 2.f + width) / sheetWidth;
-				information.uv.u2.x = (imgPosition.x - characterWidth / 2.f + width) / sheetWidth;
-			}
-			else {
-				information.uv.u0.x = (imgPosition.x - width / 2.f) / sheetWidth;
-				information.uv.u3.x = (imgPosition.x - width / 2.f) / sheetWidth;
-				information.uv.u1.x = (imgPosition.x + width / 2.f) / sheetWidth;
-				information.uv.u2.x = (imgPosition.x + width / 2.f) / sheetWidth;
-			}
-
-			information.uv.u0.y = (float)imgPosition.y / (float)sheetHeight;
-			information.uv.u1.y = (float)imgPosition.y / (float)sheetHeight;
-			information.uv.u2.y = (imgPosition.y + charHeight) / (float)sheetHeight;
-			information.uv.u3.y = (imgPosition.y + charHeight) / (float)sheetHeight;
-
-			information.width = width;
-
-			return information;
-		}
-
+namespace GL::Renderer {
+	class FontRendererLegacy {
 	public:
-		explicit FontRenderer(const std::string& imgPath, const std::string& fontPath, int capacity, glm::vec2 winSize, const bool unicode = false, unsigned int sheetId = 0)
-			:fontSheet(imgPath, true), shader(new core::Shader("res/shaders/font/shader_font_stylized.vert", "res/shaders/font/shader_font_stylized.frag"))
+		explicit FontRendererLegacy(const std::string& imgPath, const std::string& fontPath, int capacity, glm::vec2 winSize, const bool unicode = false, unsigned int sheetId = 0)
+			:fontSheet(imgPath, true), shader(new Core::Shader("res/shaders/font/shader_font_stylized.vert", "res/shaders/font/shader_font_stylized.frag"))
 		{
 			projection = glm::ortho(0.0f, winSize.x, 0.0f, winSize.y, -1.0f, 1.0f);
 			translation = glm::vec3(0.f, 0.f, 0.f);
@@ -99,18 +41,18 @@ namespace GL::renderer {
 				offset += 4;
 			}
 
-			ib = std::make_unique<core::IndexBuffer>(indices, capacity * 6);
-			vb = std::make_unique<core::VertexBuffer>(capacity * 4, sizeof(primitive::vertex::Sprite2DVertex));
+			ib = std::make_unique<Core::IndexBuffer>(indices, capacity * 6);
+			vb = std::make_unique<Core::VertexBuffer>(capacity * 4, sizeof(primitive::vertex::Sprite2DVertex));
 
 			delete[] indices;
 
-			vbLayout = std::make_unique<core::VertexBufferLayout>();
+			vbLayout = std::make_unique<Core::VertexBufferLayout>();
 			vbLayout->Push<float>(2);	// Position
 			vbLayout->Push<float>(2);	// UVs
 			vbLayout->Push<float>(1);	// background
 			vbLayout->Push<float>(1);	// alpha
 
-			va = std::make_unique<core::VertexArray>();
+			va = std::make_unique<Core::VertexArray>();
 			va->AddBuffer(*vb, *vbLayout);
 
 			shader->Bind();
@@ -137,7 +79,7 @@ namespace GL::renderer {
 			}
 		}
 
-		~FontRenderer() {
+		~FontRendererLegacy() {
 			delete shader;
 		}
 
@@ -256,10 +198,68 @@ namespace GL::renderer {
 
 		inline void Draw() {
 			shader->Bind();
-			core::GLContext::Draw(*va, *ib, *shader, GL_TRIANGLES, (int)count * 6);
+			Core::GLContext::Draw(*va, *ib, *shader, GL_TRIANGLES, (int)count * 6);
 			shader->Unbind();
 		}
 
 		inline const size_t getCount() const { return count; }
+
+	private:
+		Texture::Texture fontSheet;
+		static inline std::map<int, GL::Helper::SymbolInformation> symbolsUnicode;
+		static inline std::map<int, GL::Helper::SymbolInformation> symbolsGui;
+		std::map<int, GL::Helper::SymbolInformation>* symbols;
+
+		static inline bool m_SymbolsParsedGui;
+		static inline bool m_SymbolsParsedAscii;
+
+		unsigned int charHeight;
+		int sheetHeight;
+		int sheetWidth;
+		int characterWidth;
+
+		size_t count;
+		bool unicode;
+
+		std::unique_ptr<Core::VertexBuffer> vb;
+		std::unique_ptr<Core::IndexBuffer> ib;
+		std::unique_ptr<Core::VertexBufferLayout> vbLayout;
+		std::unique_ptr<Core::VertexArray> va;
+
+		glm::mat4 projection;
+		glm::mat4 view;
+		glm::vec3 translation;
+
+		Core::Shader* shader;
+
+		Helper::SymbolInformation GatherSymbolInformation(int posX, int posY, int width) {
+			GL::Helper::SymbolInformation information{};
+
+			glm::ivec2 imgPosition;
+			imgPosition.x = posX * characterWidth + characterWidth / 2;
+			imgPosition.y = posY * charHeight;
+
+			if (unicode) {
+				information.uv.u0.x = (imgPosition.x - characterWidth / 2.f) / sheetWidth;
+				information.uv.u3.x = (imgPosition.x - characterWidth / 2.f) / sheetWidth;
+				information.uv.u1.x = (imgPosition.x - characterWidth / 2.f + width) / sheetWidth;
+				information.uv.u2.x = (imgPosition.x - characterWidth / 2.f + width) / sheetWidth;
+			}
+			else {
+				information.uv.u0.x = (imgPosition.x - width / 2.f) / sheetWidth;
+				information.uv.u3.x = (imgPosition.x - width / 2.f) / sheetWidth;
+				information.uv.u1.x = (imgPosition.x + width / 2.f) / sheetWidth;
+				information.uv.u2.x = (imgPosition.x + width / 2.f) / sheetWidth;
+			}
+
+			information.uv.u0.y = (float)imgPosition.y / (float)sheetHeight;
+			information.uv.u1.y = (float)imgPosition.y / (float)sheetHeight;
+			information.uv.u2.y = (imgPosition.y + charHeight) / (float)sheetHeight;
+			information.uv.u3.y = (imgPosition.y + charHeight) / (float)sheetHeight;
+
+			information.width = width;
+
+			return information;
+		}
 	};
 }

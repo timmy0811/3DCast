@@ -1,7 +1,8 @@
+#include "glpch.h"
 #include "SpriteRenderer.h"
 
-GL::renderer::SpriteRenderer::SpriteRenderer(int maxSprites, glm::uvec2 samplerSlotRange, const int slotDefault, glm::vec2 winSize, const std::string& shaderVert, const std::string& shaderFrag)
-	: m_Shader(new core::Shader(shaderVert, shaderFrag)), m_SamplerRangeLow(samplerSlotRange.x), m_SamplerRangeHigh(samplerSlotRange.y), m_BindSlotStart(slotDefault) {
+GL::Renderer::SpriteRenderer::SpriteRenderer(int maxSprites, glm::uvec2 samplerSlotRange, const int slotDefault, glm::vec2 winSize, const std::string& shaderVert, const std::string& shaderFrag)
+	: m_Shader(new Core::Shader(shaderVert, shaderFrag)), m_SamplerRangeLow(samplerSlotRange.x), m_SamplerRangeHigh(samplerSlotRange.y), m_BindSlotStart(slotDefault) {
 	m_MatProjection = glm::ortho(0.0f, winSize.x, 0.0f, winSize.y, -1.0f, 1.0f);
 	m_MatTranslation = glm::vec3(0.f, 0.f, 0.f);
 	m_MatView = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.f));
@@ -21,24 +22,24 @@ GL::renderer::SpriteRenderer::SpriteRenderer(int maxSprites, glm::uvec2 samplerS
 		offset += 4;
 	}
 
-	m_IB = std::make_unique<core::IndexBuffer>(indices, maxSprites * 6);
-	m_VB = std::make_unique<core::VertexBuffer>(maxSprites * 4, sizeof(primitive::vertex::Sprite2DVertex));
+	m_IB = std::make_unique<Core::IndexBuffer>(indices, maxSprites * 6);
+	m_VB = std::make_unique<Core::VertexBuffer>(maxSprites * 4, sizeof(primitive::vertex::Sprite2DVertex));
 
 	delete[] indices;
 
-	m_VBLayout = std::make_unique<core::VertexBufferLayout>();
+	m_VBLayout = std::make_unique<Core::VertexBufferLayout>();
 	m_VBLayout->Push<float>(2);	// Position
 	m_VBLayout->Push<float>(2);	// UVs
 	m_VBLayout->Push<float>(1);	// Texture Index
 
-	m_VA = std::make_unique<core::VertexArray>();
+	m_VA = std::make_unique<Core::VertexArray>();
 	m_VA->AddBuffer(*m_VB, *m_VBLayout);
 
 	m_Shader->Bind();
 	m_Shader->SetUniformMat4f("u_MVP", m_MatProjection * m_MatView * glm::translate(glm::mat4(1.f), m_MatTranslation));
 }
 
-GL::renderer::SpriteRenderer::~SpriteRenderer()
+GL::Renderer::SpriteRenderer::~SpriteRenderer()
 {
 	for (auto it = m_Sprites.begin(); it != m_Sprites.end(); it++)
 	{
@@ -46,13 +47,13 @@ GL::renderer::SpriteRenderer::~SpriteRenderer()
 	}
 }
 
-void GL::renderer::SpriteRenderer::Draw() const
+void GL::Renderer::SpriteRenderer::Draw() const
 {
-	GL::core::GLContext::Draw(*m_VA, *m_IB, *m_Shader, GL_TRIANGLES, (int)m_SpritesOnScreen.size() * 6);
+	GL::Core::GLContext::Draw(*m_VA, *m_IB, *m_Shader, GL_TRIANGLES, (int)m_SpritesOnScreen.size() * 6);
 	m_Shader->Unbind();
 }
 
-void GL::renderer::SpriteRenderer::PushAll()
+void GL::Renderer::SpriteRenderer::PushAll()
 {
 	m_VB->Bind();
 	m_VB->Empty();
@@ -64,7 +65,7 @@ void GL::renderer::SpriteRenderer::PushAll()
 	}
 }
 
-void GL::renderer::SpriteRenderer::PopAll()
+void GL::Renderer::SpriteRenderer::PopAll()
 {
 	m_VB->Bind();
 	m_VB->Empty();
@@ -74,7 +75,7 @@ void GL::renderer::SpriteRenderer::PopAll()
 	RefreshVertBuffer();
 }
 
-void GL::renderer::SpriteRenderer::PopSprite(unsigned int id)
+void GL::Renderer::SpriteRenderer::PopSprite(unsigned int id)
 {
 	for (int i = 0; i < m_SpritesOnScreen.size(); i++) {
 		if (m_SpritesOnScreen[i]->Id == id) {
@@ -85,7 +86,7 @@ void GL::renderer::SpriteRenderer::PopSprite(unsigned int id)
 	RefreshVertBuffer();
 }
 
-int GL::renderer::SpriteRenderer::PushSprite(unsigned int id)
+int GL::Renderer::SpriteRenderer::PushSprite(unsigned int id)
 {
 	if (m_Sprites.find(id) != m_Sprites.end()) {
 		m_SpritesOnScreen.push_back(m_Sprites[id]);
@@ -95,12 +96,12 @@ int GL::renderer::SpriteRenderer::PushSprite(unsigned int id)
 	else return -1;
 }
 
-unsigned int GL::renderer::SpriteRenderer::PushSprite(const Sprite& sprite)
+unsigned int GL::Renderer::SpriteRenderer::PushSprite(const Sprite& sprite)
 {
 	return PushSprite(sprite.Path, sprite.Position, sprite.Size, sprite.Uvs, sprite.FlipUvs);
 }
 
-unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, const glm::vec2& position, const glm::vec2& size, Helper::Vec2_4 uvs, const bool flipUV)
+unsigned int GL::Renderer::SpriteRenderer::PushSprite(const std::string& path, const glm::vec2& position, const glm::vec2& size, Helper::Vec2_4 uvs, const bool flipUV)
 {
 	float index = -1.f;
 	for (int i = 0; i < m_Samplers.size(); i++) {
@@ -110,7 +111,7 @@ unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, c
 	}
 
 	if (index == -1.f) {
-		m_Samplers.push_back(new texture::Texture(path, flipUV));
+		m_Samplers.push_back(new Texture::Texture(path, flipUV));
 		index = m_Samplers.size() - 1.f;
 	}
 
@@ -136,7 +137,7 @@ unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, c
 	return n_IdPtr++;
 }
 
-unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, const glm::vec2& position, const glm::vec2& size, const bool flipUV)
+unsigned int GL::Renderer::SpriteRenderer::PushSprite(const std::string& path, const glm::vec2& position, const glm::vec2& size, const bool flipUV)
 {
 	float index = -1.f;
 	for (int i = 0; i < m_Samplers.size(); i++) {
@@ -146,7 +147,7 @@ unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, c
 	}
 
 	if (index == -1.f) {
-		m_Samplers.push_back(new texture::Texture(path, flipUV));
+		m_Samplers.push_back(new Texture::Texture(path, flipUV));
 		index = m_Samplers.size() - 1.f;
 	}
 
@@ -172,7 +173,7 @@ unsigned int GL::renderer::SpriteRenderer::PushSprite(const std::string& path, c
 	return n_IdPtr++;
 }
 
-void GL::renderer::SpriteRenderer::TransformSprite(const Helper::Vec2_4& transform, unsigned int id)
+void GL::Renderer::SpriteRenderer::TransformSprite(const Helper::Vec2_4& transform, unsigned int id)
 {
 	SpriteBlueprint* bp = m_Sprites[id];
 	bp->vertices[0].Position = transform.u0;
@@ -183,7 +184,7 @@ void GL::renderer::SpriteRenderer::TransformSprite(const Helper::Vec2_4& transfo
 	RefreshVertBuffer();
 }
 
-void GL::renderer::SpriteRenderer::TransformSprite(const glm::vec2& direction, unsigned int id)
+void GL::Renderer::SpriteRenderer::TransformSprite(const glm::vec2& direction, unsigned int id)
 {
 	SpriteBlueprint* bp = m_Sprites[id];
 	bp->vertices[0].Position += direction;
@@ -194,7 +195,7 @@ void GL::renderer::SpriteRenderer::TransformSprite(const glm::vec2& direction, u
 	RefreshVertBuffer();
 }
 
-void GL::renderer::SpriteRenderer::SetSpritePosition(const glm::vec2& position, unsigned int id)
+void GL::Renderer::SpriteRenderer::SetSpritePosition(const glm::vec2& position, unsigned int id)
 {
 	SpriteBlueprint* bp = m_Sprites[id];
 
@@ -208,13 +209,13 @@ void GL::renderer::SpriteRenderer::SetSpritePosition(const glm::vec2& position, 
 	RefreshVertBuffer();
 }
 
-void GL::renderer::SpriteRenderer::DeleteSprite(unsigned int id)
+void GL::Renderer::SpriteRenderer::DeleteSprite(unsigned int id)
 {
 	PopSprite(id);
 	delete m_Sprites[id];
 }
 
-void GL::renderer::SpriteRenderer::DeleteAll()
+void GL::Renderer::SpriteRenderer::DeleteAll()
 {
 	PopAll();
 	for (auto it = m_Sprites.begin(); it != m_Sprites.end(); it++)
@@ -224,7 +225,7 @@ void GL::renderer::SpriteRenderer::DeleteAll()
 	m_Sprites.clear();
 }
 
-void GL::renderer::SpriteRenderer::BindTextures()
+void GL::Renderer::SpriteRenderer::BindTextures()
 {
 	for (int i = 0; i < m_Samplers.size(); i++) {
 		m_Samplers[i]->Bind(m_BindSlotStart + i);
@@ -233,7 +234,7 @@ void GL::renderer::SpriteRenderer::BindTextures()
 	UpdateSamplerArray();
 }
 
-void GL::renderer::SpriteRenderer::RefreshVertBuffer()
+void GL::Renderer::SpriteRenderer::RefreshVertBuffer()
 {
 	m_VB->Bind();
 	m_VB->Empty();
@@ -246,7 +247,7 @@ void GL::renderer::SpriteRenderer::RefreshVertBuffer()
 	UpdateSamplerArray();
 }
 
-void GL::renderer::SpriteRenderer::UpdateSamplerArray()
+void GL::Renderer::SpriteRenderer::UpdateSamplerArray()
 {
 	int sampler[8]{};
 	for (int i = 0; i < m_Samplers.size(); i++) {

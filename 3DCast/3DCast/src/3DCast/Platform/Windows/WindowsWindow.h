@@ -1,9 +1,10 @@
 #pragma once
 
-#include "3DCast/Window.h"
 #include <GLEW/glew.h>
-
 #include <GLFW/glfw3.h>
+
+#include "3DCast/Window.h"
+#include "3DCast/Renderer/GraphicsContext.h"
 
 namespace Cast {
 	static bool s_GLFWInitialized = false;
@@ -45,5 +46,6 @@ namespace Cast {
 		};
 
 		WindowData m_Data;
+		GraphicsContext* m_Context;
 	};
 }

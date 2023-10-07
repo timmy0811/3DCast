@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../dependencies.hpp"
+#include "dependencies.hpp"
 
 namespace GL::light {
 	struct ConstantLight {

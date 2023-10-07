@@ -1,14 +1,13 @@
 #pragma once
 
-#include "../dependencies.hpp"
-
-#include "../debug/Debug.hpp"
+#include "dependencies.hpp"
+#include "debug/Debug.hpp"
 
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 #include "Shader.h"
 
-namespace GL::core {
+namespace GL::Core {
 	class GLContext {
 	public:
 		static void Init();

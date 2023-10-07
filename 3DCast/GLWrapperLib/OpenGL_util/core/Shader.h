@@ -1,18 +1,12 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
+#include "vendor/glm/glm.hpp"
+#include "debug/Debug.hpp"
 
-#include <unordered_map>
-#include "../vendor/glm/glm.hpp"
+#include "misc/Material.hpp"
+#include "misc/Light.hpp"
 
-#include "../debug/Debug.hpp"
-#include "../misc/Material.hpp"
-#include "../misc/Light.hpp"
-
-namespace GL::core {
+namespace GL::Core {
 	struct ShaderProgramSource {
 		std::string VertexSource;
 		std::string FragmentSource;
@@ -20,20 +14,6 @@ namespace GL::core {
 
 	class Shader
 	{
-	private:
-		unsigned int m_RendererID;
-		const std::string& m_PathVert;
-		const std::string& m_PathFrag;
-
-		mutable std::unordered_map<std::string, int> m_UniformLacationCache{};
-
-		int GetUniformLocation(const std::string& name) const;
-
-		const std::string StringFromPath(const std::string& path);
-		unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
-		unsigned int CompileShader(unsigned int type, const std::string& source);
-		ShaderProgramSource ParseShader(const std::string path_vertex, const std::string path_frag);
-
 	public:
 		Shader(const std::string& path_vert, const std::string& path_frag);
 		~Shader();
@@ -67,5 +47,19 @@ namespace GL::core {
 		void SetUniformDirectionalLight(const std::string& name, light::DirectionalLight& m, unsigned int index);
 
 		void SetUniformMat4f(const std::string& name, const glm::mat4& mat);
+
+	private:
+		unsigned int m_RendererID;
+		const std::string& m_PathVert;
+		const std::string& m_PathFrag;
+
+		mutable std::unordered_map<std::string, int> m_UniformLacationCache{};
+
+		int GetUniformLocation(const std::string& name) const;
+
+		const std::string StringFromPath(const std::string& path);
+		unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
+		unsigned int CompileShader(unsigned int type, const std::string& source);
+		ShaderProgramSource ParseShader(const std::string path_vertex, const std::string path_frag);
 	};
 }

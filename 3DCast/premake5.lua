@@ -17,6 +17,7 @@ IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
 IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
 IncludeDirs["ImGui"] = "3DCast/vendor/imgui"
 IncludeDirs["glm"] = "3DCast/vendor/glm"
+IncludeDirs["spdlog"] = "3DCast/vendor/spdlog/include"
 
 include "3DCast/vendor/GLFW"
 include "3DCast/vendor/GLEW"
@@ -39,19 +40,24 @@ project "3DCast"
 	files{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
-		"%{prj.name}/OpenGL_util/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl"
 	}
 
 	includedirs{
-		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/src",
+
 		"GLWrapperLib",
+		"GLWrapperLib/OpenGL_util",
+
+		"GLWrapperLib/dependencies/assimp-5.2.5/include",
+		"GLWrapperLib/dependencies/yaml-cpp/include",
+
 		"%{IncludeDirs.GLFW}",
 		"%{IncludeDirs.GLEW}",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.ImGui}"
+		"%{IncludeDirs.ImGui}",
+		"%{IncludeDirs.spdlog}",
 	}
 
 	links{
@@ -121,6 +127,10 @@ project "3DCast_Runtime"
 			"CAST_PLATFORM_WINDOWS",
 		}
 
+		linkoptions {
+			"/ignore:4217"
+		}
+
 	filter "configurations:Debug"
 		defines "CAST_DEBUG"
 		symbols "On"
@@ -148,6 +158,9 @@ project "GLWrapperLib"
 	targetdir (outputdirBIN)
 	objdir (outputdirOBJ)
 
+	pchheader "glpch.h"
+	pchsource "GLWrapperLib/OpenGL_util/glpch.cpp"
+
 	files{
 		"%{prj.name}/OpenGL_util/**.h",
 		"%{prj.name}/OpenGL_util/**.cpp",
@@ -157,16 +170,15 @@ project "GLWrapperLib"
 	includedirs{
 		"%{prj.name}/dependencies/assimp-5.2.5/include",
 		"%{prj.name}/dependencies/yaml-cpp/include",
-		"%{IncludeDirs.GLEW}",
 		"%{prj.name}/OpenGL_util",
-		"%{prj.name}/OpenGL_util/vendor"
+		"%{IncludeDirs.GLEW}",
+		"%{IncludeDirs.spdlog}"
 	}
 
 	filter "system:windows"
 		systemversion "latest"
 
 	filter "configurations:Debug"
-		defines "CAST_DEBUG"
 		symbols "On"
 		runtime "Debug"
 
@@ -183,9 +195,12 @@ project "GLWrapperLib"
 		}
 
 	filter {"configurations:Release", "configurations:Dist"}
-		defines "CAST_RELEASE"
 		optimize "On"
-		buildoptions "/MD"
+		runtime "Release"
+
+		linkoptions {
+			"/OPT:NOREF",  -- Disable removal of unreferenced COMDAT data
+		}
 
 		links{
 			"assimp-vc142-mt.lib",
