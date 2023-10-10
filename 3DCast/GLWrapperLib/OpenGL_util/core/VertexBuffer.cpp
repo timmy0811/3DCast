@@ -1,6 +1,8 @@
 #include "glpch.h"
 #include "VertexBuffer.h"
 
+#include <GLEW/glew.h>
+
 GL::Core::VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 	:m_DataPtr(0)
 {

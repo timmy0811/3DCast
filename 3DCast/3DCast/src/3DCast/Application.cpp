@@ -6,8 +6,7 @@
 
 #include <GLEW/glew.h>
 
-#include "OpenGL_util/core/Shader.h"
-#include "OpenGL_util/core/Framebuffer.h"
+#include "OpenGL_util/core/Renderer.h"
 
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
@@ -26,10 +25,37 @@ Cast::Application::Application()
 	m_ImGuiLayer = new ImGuiLayer();
 	PushOverlay(m_ImGuiLayer);
 
-	GL::Core::Framebuffer fb({ 10.f, 10.f });
+	// Test Graphics
+	shader.reset(new GL::Core::Shader("C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.vert",
+		"C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.frag"));
 
-	GL::Core::Shader myShader("C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.vert",
-		"C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.frag");
+	unsigned int* indices = new unsigned int[3];
+
+	for (int i = 0; i < 3; i++) {
+		indices[i] = i;
+	}
+
+	float vertices[3 * 3] = {
+			-0.5f, -0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			 0.0f,  0.5f, 0.0f
+	};
+
+	ib = std::make_unique<GL::Core::IndexBuffer>(indices, 3);
+	vb = std::make_unique<GL::Core::VertexBuffer>(3, sizeof(float) * 3);
+
+	vb->AddVertexData(vertices, sizeof(float) * 9);
+
+	delete[] indices;
+
+	vbLayout = std::make_unique<GL::Core::VertexBufferLayout>();
+	vbLayout->Push<float>(3);	// Position
+
+	va = std::make_unique<GL::Core::VertexArray>();
+	va->AddBuffer(*vb, *vbLayout);
+
+	shader->Bind();
+	shader->SetUniform4f("u_Color", 0.8, 0.1, 0.5, 1.0);
 }
 
 Cast::Application::~Application()
@@ -39,12 +65,17 @@ Cast::Application::~Application()
 void Cast::Application::Run()
 {
 	while (m_Running) {
-		glClearColor(1.0, 0, 1.0, 1.0);
+		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
+
+		shader->Bind();
+		va->Bind();
+		ib->Bind();
+		GL::Core::GLContext::Draw(*va, *ib, *shader, GL_TRIANGLES);
 
 		m_ImGuiLayer->Begin();
 		for (Layer* layer : m_LayerStack) {

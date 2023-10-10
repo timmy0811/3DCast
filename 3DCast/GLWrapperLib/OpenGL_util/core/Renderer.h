@@ -1,11 +1,12 @@
 #pragma once
 
-#include "dependencies.hpp"
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 #include "Shader.h"
+
+#include <GLEW/glew.h>
 
 namespace GL::Core {
 	class GLContext {

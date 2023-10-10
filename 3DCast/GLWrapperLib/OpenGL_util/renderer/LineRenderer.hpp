@@ -9,6 +9,8 @@
 #include "core/VertexBufferLayout.h"
 #include "core/Shader.h"
 
+#include <GLEW/glew.h>
+
 #include <memory>
 #include <string>
 

@@ -1,6 +1,8 @@
 #include "glpch.h"
 #include "Shader.h"
 
+#include <GLEW/glew.h>
+
 GL::Core::Shader::Shader(const std::string& path_vert, const std::string& path_frag)
 	:m_RendererID(0), m_PathVert(path_vert), m_PathFrag(path_frag)
 {
@@ -201,7 +203,7 @@ unsigned int GL::Core::Shader::CompileShader(unsigned int type, const std::strin
 		char* message = (char*)alloca(length * sizeof(char));
 		GLCall(glGetShaderInfoLog(id, length, &length, message));
 		std::string msg = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
-		LOG_GL_ERROR("Failed to compile {} shader!",msg);
+		LOG_GL_ERROR("Failed to compile {} shader!", msg);
 		LOG_GL_ERROR("{}", message);
 		GLCall(glDeleteShader(id));
 	}

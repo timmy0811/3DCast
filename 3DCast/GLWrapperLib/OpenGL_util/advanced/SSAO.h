@@ -2,7 +2,7 @@
 
 #include "vendor/glm/glm.hpp"
 #include "dependencies.hpp"
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 #include <vector>
 

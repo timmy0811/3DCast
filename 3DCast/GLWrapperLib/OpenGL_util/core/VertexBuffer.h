@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 #include "vendor/glm/glm.hpp"
 #include "vendor/glm/gtx/normal.hpp"
 

@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "Renderer.h"
+#include <GLEW/glew.h>
 #include <iostream>
 
 void GL::Core::GLContext::Init()

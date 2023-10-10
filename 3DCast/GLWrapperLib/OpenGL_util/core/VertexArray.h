@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
