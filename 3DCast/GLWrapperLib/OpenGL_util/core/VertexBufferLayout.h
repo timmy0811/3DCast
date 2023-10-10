@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dependencies.hpp"
-#include "debug/Debug.hpp"
+#include <GLEW/glew.h>
+#include "debug/Debug.h"
 
 #include <vector>
 
@@ -17,8 +17,9 @@ namespace GL::Core {
 			case GL_UNSIGNED_INT: return 4;
 			case GL_INT: return 4;
 			case GL_UNSIGNED_BYTE: return 1;
+			case GL_BOOL: return 1;
 			}
-			//ASSERT(false);
+			GL_ASSERT(false, "Unknown Buffer Element Type.");
 			return 0;
 		}
 	};
@@ -63,6 +64,13 @@ namespace GL::Core {
 			VertexBufferElement element{ GL_UNSIGNED_BYTE, count, GL_TRUE };
 			m_Elements.push_back(element);
 			m_Stride += VertexBufferElement::GetSize(GL_UNSIGNED_BYTE) * count;
+		}
+
+		template<>
+		void Push<bool>(unsigned int count) {
+			VertexBufferElement element{ GL_BOOL, count, GL_TRUE };
+			m_Elements.push_back(element);
+			m_Stride += VertexBufferElement::GetSize(GL_BOOL) * count;
 		}
 
 		inline const std::vector<VertexBufferElement>& GetElements() const { return m_Elements; }

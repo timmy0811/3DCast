@@ -1,6 +1,12 @@
 #pragma once
 
-#include "dependencies.hpp"
+#define _AMD64_
+#define NOMINMAX
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "Mesh.h"
 
 namespace GL::Model {

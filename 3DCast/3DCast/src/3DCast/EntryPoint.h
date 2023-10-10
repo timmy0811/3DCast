@@ -2,14 +2,9 @@
 
 #ifdef CAST_PLATFORM_WINDOWS
 
-extern Cast::Application* Cast::CreatApplication();
+#include <OpenGL_util/debug/Log.h>
 
-namespace GL {
-	class LogGL {
-		public:
-		static void Init();
-	};
-}
+extern Cast::Application* Cast::CreatApplication();
 
 int main(int argc, char** argv) {
 	GL::LogGL::Init();

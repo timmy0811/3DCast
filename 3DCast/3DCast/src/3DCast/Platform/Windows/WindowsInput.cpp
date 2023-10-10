@@ -1,8 +1,8 @@
 #include "castpch.h"
 #include "WindowsInput.h"
 
-#include <GLFW/glfw3.h>
 #include "3DCast/Application.h"
+#include <GLFW/glfw3.h>
 
 namespace Cast {
 	Input* Input::s_Instance = new WindowsInput();

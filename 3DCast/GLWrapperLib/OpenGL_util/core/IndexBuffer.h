@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 namespace GL::Core {
 	class IndexBuffer {

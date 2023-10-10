@@ -8,6 +8,11 @@
 #include "3DCast/Layer/LayerStack.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
 
+#include "OpenGL_util/core/Shader.h"
+#include "OpenGL_util/core/Framebuffer.h"
+#include "OpenGL_util/core/VertexArray.h"
+#include "OpenGL_util/core/IndexBuffer.h"
+
 namespace Cast {
 	class Application
 	{
@@ -36,6 +41,13 @@ namespace Cast {
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running;
 		LayerStack m_LayerStack;
+
+		// Rendering Context
+		std::unique_ptr<GL::Core::Shader> shader;
+		std::unique_ptr<GL::Core::VertexBuffer> vb;
+		std::unique_ptr<GL::Core::IndexBuffer> ib;
+		std::unique_ptr<GL::Core::VertexBufferLayout> vbLayout;
+		std::unique_ptr<GL::Core::VertexArray> va;
 	};
 
 	Application* CreatApplication();

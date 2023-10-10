@@ -1,8 +1,8 @@
 #pragma once
 
 #include "vendor/glm/glm.hpp"
-#include "dependencies.hpp"
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
+#include <GLEW/glew.h>
 
 #include <vector>
 

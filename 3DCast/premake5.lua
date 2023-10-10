@@ -110,14 +110,21 @@ project "3DCast_Runtime"
 	}
 
 	includedirs{
+		"GLWrapperLib",
+		"GLWrapperLib/OpenGL_util",
+		"GLWrapperLib/dependencies/assimp-5.2.5/include",
+		"GLWrapperLib/dependencies/yaml-cpp/include",
+
 		"3DCast/vendor/spdlog/include",
 		"3DCast/src",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.ImGui}"
+		"%{IncludeDirs.ImGui}",
+		"%{IncludeDirs.GLEW}"
 	}
 
 	links{
-		"3DCast"
+		"3DCast",
+		"GLWrapperLib"
 	}
 
 	filter "system:windows"

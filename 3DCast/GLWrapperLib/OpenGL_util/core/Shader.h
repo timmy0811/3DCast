@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vendor/glm/glm.hpp"
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 #include "misc/Material.hpp"
 #include "misc/Light.hpp"

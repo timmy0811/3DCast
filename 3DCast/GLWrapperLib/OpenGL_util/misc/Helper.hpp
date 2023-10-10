@@ -6,6 +6,8 @@
 #include "core/Shader.h"
 #include "core/Renderer.h"
 
+#include <GLEW/glew.h>
+
 namespace GL::Helper {
 	struct Vec2_4 {
 		glm::vec2 u0;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>
-
-#include "debug/Debug.hpp"
+#include "debug/Debug.h"
 
 #include "core/VertexBuffer.h"
 #include "core/VertexArray.h"
@@ -12,6 +10,8 @@
 
 #include "texture/Texture.h"
 #include "misc/Primitive.hpp"
+
+#include <vector>
 
 namespace GL::Model {
 	class Mesh
