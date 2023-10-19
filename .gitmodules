@@ -10,3 +10,6 @@
 [submodule "3DCast\\3DCast\\vendor\\glm"]
 	path = 3DCast\\3DCast\\vendor\\glm
 	url = https://github.com/g-truc/glm.git
+[submodule "3DCast\\GraphicsAPI"]
+	path = 3DCast\\GraphicsAPI
+	url = https://github.com/timmy0811/GraphicsAPIAbstraction.git

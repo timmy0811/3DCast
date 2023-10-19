@@ -4,9 +4,9 @@
 #include "3DCast/Log.h"
 #include "Input.h"
 
-#include <GLEW/glew.h>
+#include "API/core/Renderer.h"
 
-#include "OpenGL_util/core/Renderer.h"
+#include <GLEW/glew.h>
 
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
@@ -26,8 +26,8 @@ Cast::Application::Application()
 	PushOverlay(m_ImGuiLayer);
 
 	// Test Graphics
-	shader.reset(new GL::Core::Shader("C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.vert",
-		"C:/Git/3DCast/3DCast/GLWrapperLib/OpenGL_util/shader/universal/shader_single_color.frag"));
+	shader.reset(API::Core::Shader::Create("C:/Git/3DCast/3DCast/GraphicsAPI/src/Misc/samples/shader/universal/shader_single_color.vert",
+		"C:/Git/3DCast/3DCast/GraphicsAPI/src/Misc/samples/shader/universal/shader_single_color.frag"));
 
 	unsigned int* indices = new unsigned int[3];
 
@@ -41,17 +41,17 @@ Cast::Application::Application()
 			 0.0f,  0.5f, 0.0f
 	};
 
-	ib = std::make_unique<GL::Core::IndexBuffer>(indices, 3);
-	vb = std::make_unique<GL::Core::VertexBuffer>(3, sizeof(float) * 3);
+	ib.reset(API::Core::IndexBuffer::Create(indices, 3));
+	vb.reset(API::Core::VertexBuffer::Create(3, sizeof(float) * 3));
 
 	vb->AddVertexData(vertices, sizeof(float) * 9);
 
 	delete[] indices;
 
-	vbLayout = std::make_unique<GL::Core::VertexBufferLayout>();
-	vbLayout->Push<float>(3);	// Position
+	vbLayout.reset(API::Core::VertexBufferLayout::Create());
+	vbLayout->Push(API::Core::ShaderDataType::Float3);
 
-	va = std::make_unique<GL::Core::VertexArray>();
+	va.reset(API::Core::VertexArray::Create());
 	va->AddBuffer(*vb, *vbLayout);
 
 	shader->Bind();
@@ -59,23 +59,20 @@ Cast::Application::Application()
 }
 
 Cast::Application::~Application()
-{
-}
+{ }
 
 void Cast::Application::Run()
 {
 	while (m_Running) {
-		glClearColor(0.1, 0.1, 0.1, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+		API::Core::RenderCommand::Clear();
 
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
 
 		shader->Bind();
-		va->Bind();
-		ib->Bind();
-		GL::Core::GLContext::Draw(*va, *ib, *shader, GL_TRIANGLES);
+		API::Core::RendererContext::Submit(va, ib);
 
 		m_ImGuiLayer->Begin();
 		for (Layer* layer : m_LayerStack) {
