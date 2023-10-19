@@ -8,10 +8,10 @@
 #include "3DCast/Layer/LayerStack.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
 
-#include "OpenGL_util/core/Shader.h"
-#include "OpenGL_util/core/Framebuffer.h"
-#include "OpenGL_util/core/VertexArray.h"
-#include "OpenGL_util/core/IndexBuffer.h"
+#include "API/core/Shader.h"
+#include "API/core/Framebuffer.h"
+#include "API/core/VertexArray.h"
+#include "API/core/IndexBuffer.h"
 
 namespace Cast {
 	class Application
@@ -39,15 +39,15 @@ namespace Cast {
 
 		std::unique_ptr<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;
-		bool m_Running;
+		bool m_Running = true;
 		LayerStack m_LayerStack;
 
 		// Rendering Context
-		std::unique_ptr<GL::Core::Shader> shader;
-		std::unique_ptr<GL::Core::VertexBuffer> vb;
-		std::unique_ptr<GL::Core::IndexBuffer> ib;
-		std::unique_ptr<GL::Core::VertexBufferLayout> vbLayout;
-		std::unique_ptr<GL::Core::VertexArray> va;
+		std::shared_ptr<API::Core::Shader> shader;
+		std::shared_ptr<API::Core::VertexBuffer> vb;
+		std::shared_ptr<API::Core::IndexBuffer> ib;
+		std::shared_ptr<API::Core::VertexBufferLayout> vbLayout;
+		std::shared_ptr<API::Core::VertexArray> va;
 	};
 
 	Application* CreatApplication();

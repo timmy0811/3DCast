@@ -18,10 +18,12 @@ IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
 IncludeDirs["ImGui"] = "3DCast/vendor/imgui"
 IncludeDirs["glm"] = "3DCast/vendor/glm"
 IncludeDirs["spdlog"] = "3DCast/vendor/spdlog/include"
+IncludeDirs["GraphicsAPI"] = "GraphicsAPI/src"
 
 include "3DCast/vendor/GLFW"
 include "3DCast/vendor/GLEW"
 include "3DCast/vendor/imgui"
+include "GraphicsAPI"
 ----------------------------------------
 
 project "3DCast"
@@ -47,11 +49,9 @@ project "3DCast"
 	includedirs{
 		"%{prj.name}/src",
 
-		"GLWrapperLib",
-		"GLWrapperLib/OpenGL_util",
-
-		"GLWrapperLib/dependencies/assimp-5.2.5/include",
-		"GLWrapperLib/dependencies/yaml-cpp/include",
+		"%{IncludeDirs.GraphicsAPI}",
+		"GraphicsAPI/dependencies/assimp-5.2.5/include",
+		"GraphicsAPI/dependencies/yaml-cpp/include",
 
 		"%{IncludeDirs.GLFW}",
 		"%{IncludeDirs.GLEW}",
@@ -61,7 +61,7 @@ project "3DCast"
 	}
 
 	links{
-		"GLWrapperLib",
+		"GraphicsAPI",
 		"GLFW",
 		"GLEW",
 		"ImGui",
@@ -110,10 +110,9 @@ project "3DCast_Runtime"
 	}
 
 	includedirs{
-		"GLWrapperLib",
-		"GLWrapperLib/OpenGL_util",
-		"GLWrapperLib/dependencies/assimp-5.2.5/include",
-		"GLWrapperLib/dependencies/yaml-cpp/include",
+		"%{IncludeDirs.GraphicsAPI}",
+		"GraphicsAPI/dependencies/assimp-5.2.5/include",
+		"GraphicsAPI/dependencies/yaml-cpp/include",
 
 		"3DCast/vendor/spdlog/include",
 		"3DCast/src",
@@ -124,7 +123,7 @@ project "3DCast_Runtime"
 
 	links{
 		"3DCast",
-		"GLWrapperLib"
+		"GraphicsAPI"
 	}
 
 	filter "system:windows"
@@ -153,70 +152,3 @@ project "3DCast_Runtime"
 		defines "CAST_DIST"
 		optimize "On"
 		buildoptions "/MD"
-
-
-project "GLWrapperLib"
-	location "GLWrapperLib"
-	kind "StaticLib"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "On"
-
-	targetdir (outputdirBIN)
-	objdir (outputdirOBJ)
-
-	pchheader "glpch.h"
-	pchsource "GLWrapperLib/OpenGL_util/glpch.cpp"
-
-	files{
-		"%{prj.name}/OpenGL_util/**.h",
-		"%{prj.name}/OpenGL_util/**.cpp",
-		"%{prj.name}/OpenGL_util/**.hpp"
-	}
-
-	includedirs{
-		"%{prj.name}/dependencies/assimp-5.2.5/include",
-		"%{prj.name}/dependencies/yaml-cpp/include",
-		"%{prj.name}/OpenGL_util",
-		"%{IncludeDirs.GLEW}",
-		"%{IncludeDirs.spdlog}"
-	}
-
-	filter "system:windows"
-		systemversion "latest"
-
-	filter "configurations:Debug"
-		symbols "On"
-		runtime "Debug"
-
-		links{
-			"assimp-vc142-mtd.lib",
-			"yaml-cppd.lib",
-			"opengl32.lib",
-			"GLEW"
-		}
-
-		libdirs{
-			"%{prj.name}/dependencies/assimp-5.2.5/lib/Debug",
-			"%{prj.name}/dependencies/yaml-cpp/lib/Debug"
-		}
-
-	filter {"configurations:Release", "configurations:Dist"}
-		optimize "On"
-		runtime "Release"
-
-		linkoptions {
-			"/OPT:NOREF",  -- Disable removal of unreferenced COMDAT data
-		}
-
-		links{
-			"assimp-vc142-mt.lib",
-			"yaml-cpp.lib",
-			"opengl32.lib",
-			"GLEW"
-		}
-
-		libdirs{
-			"%{prj.name}/dependencies/assimp-5.2.5/lib/Release",
-			"%{prj.name}/dependencies/yaml-cpp/lib/Release"
-		}
