@@ -4,7 +4,7 @@
 #include "3DCast/Log.h"
 #include "Input.h"
 
-#include "API/core/Renderer.h"
+#include "Renderer/Renderer.h"
 
 #include <GLEW/glew.h>
 
@@ -15,6 +15,7 @@ namespace Cast {
 }
 
 Cast::Application::Application()
+	:m_Camera(-1.f, 1.f, -1.f, 1.f)
 {
 	CAST_CORE_ASSERT(!s_Instance, "Application is a singleton and cannot be instanced multiple times!");
 	s_Instance = this;
@@ -26,8 +27,8 @@ Cast::Application::Application()
 	PushOverlay(m_ImGuiLayer);
 
 	// Test Graphics
-	shader.reset(API::Core::Shader::Create("C:/Git/3DCast/3DCast/GraphicsAPI/src/Misc/samples/shader/universal/shader_single_color.vert",
-		"C:/Git/3DCast/3DCast/GraphicsAPI/src/Misc/samples/shader/universal/shader_single_color.frag"));
+	shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert",
+		"../3DCast/ressources/shader/common/shader_single_color.frag"));
 
 	unsigned int* indices = new unsigned int[3];
 
@@ -55,7 +56,8 @@ Cast::Application::Application()
 	va->AddBuffer(*vb, *vbLayout);
 
 	shader->Bind();
-	shader->SetUniform4f("u_Color", 0.8, 0.1, 0.5, 1.0);
+	shader->SetUniformMat4f("u_ViewProjection", m_Camera.GetViewProjectionMat());
+	shader->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
 }
 
 Cast::Application::~Application()
@@ -67,12 +69,19 @@ void Cast::Application::Run()
 		API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 		API::Core::RenderCommand::Clear();
 
+		Renderer::RendererContext::BeginScene(m_Camera);
+
+		static float angle = 0.5;
+		angle += 0.5;
+		m_Camera.SetZRotation(angle);
+
+		Renderer::RendererContext::Submit(va, ib, shader);
+
+		Renderer::RendererContext::EndScene();
+
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
-
-		shader->Bind();
-		API::Core::RendererContext::Submit(va, ib);
 
 		m_ImGuiLayer->Begin();
 		for (Layer* layer : m_LayerStack) {
