@@ -7,6 +7,7 @@
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Layer/LayerStack.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
+#include "Renderer/Camera/OrthographicCamera.h"
 
 #include "API/core/Shader.h"
 #include "API/core/Framebuffer.h"
@@ -48,6 +49,8 @@ namespace Cast {
 		std::shared_ptr<API::Core::IndexBuffer> ib;
 		std::shared_ptr<API::Core::VertexBufferLayout> vbLayout;
 		std::shared_ptr<API::Core::VertexArray> va;
+
+		Renderer::OrthographicCamera m_Camera;
 	};
 
 	Application* CreatApplication();
