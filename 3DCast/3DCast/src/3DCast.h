@@ -10,6 +10,8 @@
 #include "3DCast/MousebuttonCodes.h"
 #include "3DCast/KeyCodes.h"
 
+#include "3DCast/Renderer/Renderer.h"
+
 // --- Entry Point ---
 #include "3DCast/EntryPoint.h"
 // -------------------
