@@ -15,7 +15,6 @@ namespace Cast {
 }
 
 Cast::Application::Application()
-	:m_Camera(-1.f, 1.f, -1.f, 1.f)
 {
 	CAST_CORE_ASSERT(!s_Instance, "Application is a singleton and cannot be instanced multiple times!");
 	s_Instance = this;
@@ -25,60 +24,11 @@ Cast::Application::Application()
 
 	m_ImGuiLayer = new ImGuiLayer();
 	PushOverlay(m_ImGuiLayer);
-
-	// Test Graphics
-	shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert",
-		"../3DCast/ressources/shader/common/shader_single_color.frag"));
-
-	unsigned int* indices = new unsigned int[3];
-
-	for (int i = 0; i < 3; i++) {
-		indices[i] = i;
-	}
-
-	float vertices[3 * 3] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.0f,  0.5f, 0.0f
-	};
-
-	ib.reset(API::Core::IndexBuffer::Create(indices, 3));
-	vb.reset(API::Core::VertexBuffer::Create(3, sizeof(float) * 3));
-
-	vb->AddVertexData(vertices, sizeof(float) * 9);
-
-	delete[] indices;
-
-	vbLayout.reset(API::Core::VertexBufferLayout::Create());
-	vbLayout->Push(API::Core::ShaderDataType::Float3);
-
-	va.reset(API::Core::VertexArray::Create());
-	va->AddBuffer(*vb, *vbLayout);
-
-	shader->Bind();
-	shader->SetUniformMat4f("u_ViewProjection", m_Camera.GetViewProjectionMat());
-	shader->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
 }
-
-Cast::Application::~Application()
-{ }
 
 void Cast::Application::Run()
 {
 	while (m_Running) {
-		API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-		API::Core::RenderCommand::Clear();
-
-		Renderer::RendererContext::BeginScene(m_Camera);
-
-		static float angle = 0.5;
-		angle += 0.5;
-		m_Camera.SetZRotation(angle);
-
-		Renderer::RendererContext::Submit(va, ib, shader);
-
-		Renderer::RendererContext::EndScene();
-
 		for (Layer* layer : m_LayerStack) {
 			layer->OnUpdate();
 		}
