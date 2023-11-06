@@ -11,7 +11,10 @@
 #include "3DCast/KeyCodes.h"
 
 #include "3DCast/Renderer/Renderer.h"
+#include "3DCast/Renderer/Camera/Camera.h"
+#include "3DCast/Renderer/Camera/OrthographicCamera.h"
+#include "3DCast/Renderer/Camera/PerspectiveCamera.h"
 
 // --- Entry Point ---
-#include "3DCast/EntryPoint.h"
+//#include "3DCast/EntryPoint.h"
 // -------------------

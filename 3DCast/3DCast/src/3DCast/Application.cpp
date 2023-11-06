@@ -14,12 +14,12 @@ namespace Cast {
 	Application* Application::s_Instance = nullptr;
 }
 
-Cast::Application::Application()
+Cast::Application::Application(const WindowProperties& properties)
 {
 	CAST_CORE_ASSERT(!s_Instance, "Application is a singleton and cannot be instanced multiple times!");
 	s_Instance = this;
 
-	m_Window = std::unique_ptr<Window>(Window::Create());
+	m_Window = std::unique_ptr<Window>(Window::Create(properties));
 	m_Window->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
 
 	m_ImGuiLayer = new ImGuiLayer();

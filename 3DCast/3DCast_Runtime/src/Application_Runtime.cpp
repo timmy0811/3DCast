@@ -1,5 +1,8 @@
 #include <3DCast.h>
+#include <3DCast/EntryPoint.h>
 #include <imgui.h>
+
+#include "Config.h"
 
 class ExampleLayer : public Cast::Layer
 {
@@ -93,7 +96,9 @@ private:
 
 class Application_Runtime : public Cast::Application {
 public:
-	Application_Runtime() {
+	Application_Runtime() 
+		:Application(Cast::WindowProperties("3DCast Rendering Engine", Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT))
+	{
 		PushLayer(new ExampleLayer());
 	}
 	~Application_Runtime() {}
