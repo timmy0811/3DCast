@@ -12,7 +12,7 @@ namespace Cast {
 	class Application
 	{
 	public:
-		Application();
+		Application(const WindowProperties& properties);
 		~Application() = default;
 
 		void Run();

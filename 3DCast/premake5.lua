@@ -17,6 +17,7 @@ IncludeDirs["GLFW"] = "3DCast/vendor/GLFW/include"
 IncludeDirs["GLEW"] = "3DCast/vendor/GLEW/include"
 IncludeDirs["ImGui"] = "3DCast/vendor/imgui"
 IncludeDirs["glm"] = "3DCast/vendor/glm"
+IncludeDirs["yaml_cpp"] = "3DCast/vendor/yaml-cpp/include"
 IncludeDirs["spdlog"] = "3DCast/vendor/spdlog/include"
 IncludeDirs["GraphicsAPI"] = "GraphicsAPI/src"
 
@@ -57,7 +58,7 @@ project "3DCast"
 		"%{IncludeDirs.GLEW}",
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.ImGui}",
-		"%{IncludeDirs.spdlog}",
+		"%{IncludeDirs.spdlog}"
 	}
 
 	links{
@@ -118,7 +119,8 @@ project "3DCast_Runtime"
 		"3DCast/src",
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.ImGui}",
-		"%{IncludeDirs.GLEW}"
+		"%{IncludeDirs.GLEW}",
+		"%{IncludeDirs.yaml_cpp}"
 	}
 
 	links{
@@ -131,6 +133,7 @@ project "3DCast_Runtime"
 
 		defines{
 			"CAST_PLATFORM_WINDOWS",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 
 		linkoptions {
@@ -143,12 +146,39 @@ project "3DCast_Runtime"
 		runtime "Debug"
 
 
+		-- Precompiled Binaries
+		libdirs{
+			"3DCast/vendor/yaml-cpp/lib/Debug"
+		}
+
+		links{
+			"yaml-cppd.lib"
+		}
+
 	filter "configurations:Release"
 		defines "CAST_RELEASE"
 		optimize "On"
 		runtime "Release"
 
+		-- Precompiled Binaries
+		libdirs{
+			"3DCast/vendor/yaml-cpp/lib/Release"
+		}
+
+		links{
+			"yaml-cpp.lib"
+		}
+
 	filter "configurations:Dist"
 		defines "CAST_DIST"
 		optimize "On"
 		buildoptions "/MD"
+
+		-- Precompiled Binaries
+		libdirs{
+			"3DCast/vendor/yaml-cpp/lib/Release"
+		}
+
+		links{
+			"yaml-cpp.lib"
+		}
