@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3DCast/Event/Event.h"
+#include "3DCast/Core/Timestep.h"
 
 namespace Cast {
 	static int s_LayerIdentifier = 0;
@@ -13,7 +14,7 @@ namespace Cast {
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(Timestep ts) {}
 
 		virtual void OnImGuiRender() {}
 

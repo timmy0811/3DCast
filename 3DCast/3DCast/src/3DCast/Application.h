@@ -8,6 +8,8 @@
 #include "3DCast/Layer/LayerStack.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
 
+#include "3DCast/Core/Timestep.h"
+
 namespace Cast {
 	class Application
 	{
@@ -36,6 +38,8 @@ namespace Cast {
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
+
+		float m_LastFrameTime = 0.f;
 	};
 
 	Application* CreatApplication();
