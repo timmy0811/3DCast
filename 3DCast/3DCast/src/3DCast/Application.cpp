@@ -7,6 +7,7 @@
 #include "Renderer/Renderer.h"
 
 #include <GLEW/glew.h>
+#include <GLFW/glfw3.h>
 
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
@@ -29,8 +30,12 @@ Cast::Application::Application(const WindowProperties& properties)
 void Cast::Application::Run()
 {
 	while (m_Running) {
+		float time = (float)glfwGetTime();
+		Timestep timestep = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+
 		for (Layer* layer : m_LayerStack) {
-			layer->OnUpdate();
+			layer->OnUpdate(timestep);
 		}
 
 		m_ImGuiLayer->Begin();

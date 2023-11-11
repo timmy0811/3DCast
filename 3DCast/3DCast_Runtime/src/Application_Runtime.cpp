@@ -44,7 +44,7 @@ public:
 		shader->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
 	}
 
-	void OnUpdate() override {
+	void OnUpdate(Cast::Timestep ts) override {
 		if (Cast::Input::IsKeyPressed(CAST_KEY_LEFT)) {
 			m_CameraPosition.x -= 0.05f;
 		}
