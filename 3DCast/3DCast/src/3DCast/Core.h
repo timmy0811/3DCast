@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #ifdef CAST_PLATFORM_WINDOWS
 // Other defines
 #else
@@ -17,3 +19,11 @@
 #define BIT(x) (1 << x)
 
 #define CAST_BIND_EVENT_FUNC(fn) std::bind(&fn, this, std::placeholders::_1)
+
+namespace Cast {
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+}

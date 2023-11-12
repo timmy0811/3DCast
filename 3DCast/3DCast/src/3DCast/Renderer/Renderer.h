@@ -5,14 +5,15 @@
 
 #include "Camera/Camera.h"
 
-namespace Cast::Renderer{
+namespace Cast::Renderer {
 	class RendererContext {
 	public:
 		static void BeginScene(Camera& camera);
 		static void EndScene();
 
-		static void Submit(const std::shared_ptr<API::Core::VertexArray>& va, const std::shared_ptr<API::Core::Shader>& shader);
-		static void Submit(const std::shared_ptr<API::Core::VertexArray>& va, const std::shared_ptr<API::Core::IndexBuffer>& ib, const std::shared_ptr<API::Core::Shader>& shader);
+		static void Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::Shader>& shader, const glm::mat4& transform = glm::mat4(1.f));
+		static void Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::IndexBuffer>& ib, const Ref<API::Core::Shader>& shader,
+			const glm::mat4& transform = glm::mat4(1.f));
 
 		inline static API::Core::RendererAPI::API_ENUM GetAPI() { return API::Core::RendererAPI::GetAPI(); }
 

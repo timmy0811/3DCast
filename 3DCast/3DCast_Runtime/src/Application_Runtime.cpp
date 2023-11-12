@@ -2,13 +2,15 @@
 #include <3DCast/EntryPoint.h>
 #include <imgui.h>
 
+#include <vendor/glm/glm.hpp>
+
 #include "Config.h"
 
 class ExampleLayer : public Cast::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example"), m_Camera(-1.f, 1.f, -1.f, 1.f) 
+		: Layer("Example"), m_Camera(-1.f, 1.f, -1.f, 1.f)
 	{
 		// Test Graphics
 		shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert",
@@ -60,7 +62,7 @@ public:
 
 		m_Camera.SetPosition(m_CameraPosition);
 
-		API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+		API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
 		API::Core::RenderCommand::Clear();
 
 		Cast::Renderer::RendererContext::BeginScene(m_Camera);
@@ -71,7 +73,6 @@ public:
 	}
 
 	virtual void OnImGuiRender() override {
-		
 	}
 
 	void OnEvent(Cast::Event& e) override {
@@ -84,19 +85,20 @@ public:
 	}
 
 private:
-	std::shared_ptr<API::Core::Shader> shader;
-	std::shared_ptr<API::Core::VertexBuffer> vb;
-	std::shared_ptr<API::Core::IndexBuffer> ib;
-	std::shared_ptr<API::Core::VertexBufferLayout> vbLayout;
-	std::shared_ptr<API::Core::VertexArray> va;
+	Cast::Ref<API::Core::Shader> shader;
+	Cast::Ref<API::Core::VertexBuffer> vb;
+	Cast::Ref<API::Core::IndexBuffer> ib;
+	Cast::Ref<API::Core::VertexBufferLayout> vbLayout;
+	Cast::Ref<API::Core::VertexArray> va;
 
 	Cast::Renderer::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition = { 0.f, 0.f, 0.f };
+	glm::vec3 m_TrianglePosition = { 0.f, 0.f, 0.f };
 };
 
 class Application_Runtime : public Cast::Application {
 public:
-	Application_Runtime() 
+	Application_Runtime()
 		:Application(Cast::WindowProperties("3DCast Rendering Engine", Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT))
 	{
 		PushLayer(new ExampleLayer());
