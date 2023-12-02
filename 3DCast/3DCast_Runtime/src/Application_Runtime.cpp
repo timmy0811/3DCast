@@ -2,6 +2,8 @@
 #include <3DCast/EntryPoint.h>
 #include <imgui.h>
 
+#include <API/texture/Texture2D.h>
+
 #include <vendor/glm/glm.hpp>
 
 #include "Config.h"
@@ -13,37 +15,54 @@ public:
 		: Layer("Example"), m_Camera(-1.f, 1.f, -1.f, 1.f)
 	{
 		// Test Graphics
-		shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert",
-			"../3DCast/ressources/shader/common/shader_single_color.frag"));
+		shaderTexture.reset(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_texture.vert",
+			"../3DCast/ressources/shader/common/shader_texture.frag"));
 
-		unsigned int* indices = new unsigned int[3];
+		texture.reset(API::Texture::Texture2D::Create("img/test.png"));
 
-		for (int i = 0; i < 3; i++) {
-			indices[i] = i;
-		}
-
-		float vertices[3 * 3] = {
-				-0.5f, -0.5f, 0.0f,
-				 0.5f, -0.5f, 0.0f,
-				 0.0f,  0.5f, 0.0f
+		float vertices[5 * 4] = {
+				-0.5f, -0.5f, 0.0f, 0.f, 0.f,
+				 0.5f, -0.5f, 0.0f, 0.f, 1.f,
+				 0.5f, 0.5f, 0.0f, 1.f, 1.f,
+				 -0.5f, 0.5f, 0.0f, 1.f, 0.f
 		};
 
-		ib.reset(API::Core::IndexBuffer::Create(indices, 3));
-		vb.reset(API::Core::VertexBuffer::Create(3, sizeof(float) * 3));
+		constexpr int faces = 1;
+		unsigned int offset = 0;
+		unsigned int* indices = new unsigned int[6];
 
-		vb->AddVertexData(vertices, sizeof(float) * 9);
+		for (size_t i = 0; i < faces * 6; i += 6) {
+			indices[i + 0] = 0 + offset;
+			indices[i + 1] = 1 + offset;
+			indices[i + 2] = 2 + offset;
+
+			indices[i + 3] = 2 + offset;
+			indices[i + 4] = 3 + offset;
+			indices[i + 5] = 0 + offset;
+
+			offset += 4;
+		}
+
+		ib.reset(API::Core::IndexBuffer::Create(indices, faces * 6));
+		vb.reset(API::Core::VertexBuffer::Create(4, sizeof(float) * 5));
+
+		vb->AddVertexData(vertices, sizeof(vertices));
 
 		delete[] indices;
 
 		vbLayout.reset(API::Core::VertexBufferLayout::Create());
 		vbLayout->Push(API::Core::ShaderDataType::Float3);
+		vbLayout->Push(API::Core::ShaderDataType::Float2);
 
 		va.reset(API::Core::VertexArray::Create());
 		va->AddBuffer(*vb, *vbLayout);
 
-		shader->Bind();
-		shader->SetUniformMat4f("u_ViewProjection", m_Camera.GetViewProjectionMat());
-		shader->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
+		texture->Bind();
+
+		shaderTexture->Bind();
+		shaderTexture->SetUniformMat4f("u_ViewProjection", m_Camera.GetViewProjectionMat());
+		shaderTexture->SetUniform1i("u_Texture", texture->GetBoundPort());
+		shaderTexture->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
 	}
 
 	void OnUpdate(Cast::Timestep ts) override {
@@ -67,7 +86,7 @@ public:
 
 		Cast::Renderer::RendererContext::BeginScene(m_Camera);
 
-		Cast::Renderer::RendererContext::Submit(va, ib, shader);
+		Cast::Renderer::RendererContext::Submit(va, ib, shaderTexture);
 
 		Cast::Renderer::RendererContext::EndScene();
 	}
@@ -85,7 +104,8 @@ public:
 	}
 
 private:
-	Cast::Ref<API::Core::Shader> shader;
+	Cast::Ref<API::Texture::Texture2D> texture;
+	Cast::Ref<API::Core::Shader> shaderTexture;
 	Cast::Ref<API::Core::VertexBuffer> vb;
 	Cast::Ref<API::Core::IndexBuffer> ib;
 	Cast::Ref<API::Core::VertexBufferLayout> vbLayout;
