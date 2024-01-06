@@ -1,3 +1,4 @@
+This project is heavily under construction!
 # 3DCast
 A 3D Rendering Engine supporting rasterization as well as raytracing
 
