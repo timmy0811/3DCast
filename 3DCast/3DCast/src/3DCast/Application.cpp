@@ -23,6 +23,8 @@ Cast::Application::Application(const WindowProperties& properties)
 	m_Window = std::unique_ptr<Window>(Window::Create(properties));
 	m_Window->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
 
+	Renderer::RendererContext::Init();
+
 	m_ImGuiLayer = new ImGuiLayer();
 	PushOverlay(m_ImGuiLayer);
 }

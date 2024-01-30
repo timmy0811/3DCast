@@ -5,6 +5,11 @@ namespace Cast::Renderer {
 	RendererContext::SceneData* RendererContext::m_SceneData = new SceneData;
 }
 
+void Cast::Renderer::RendererContext::Init()
+{
+	API::Core::RenderCommand::Init();
+}
+
 void Cast::Renderer::RendererContext::BeginScene(Camera& camera)
 {
 	m_SceneData->ViewProjectionMat = camera.GetViewProjectionMat();

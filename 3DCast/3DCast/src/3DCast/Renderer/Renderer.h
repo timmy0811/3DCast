@@ -8,6 +8,8 @@
 namespace Cast::Renderer {
 	class RendererContext {
 	public:
+		static void Init();
+
 		static void BeginScene(Camera& camera);
 		static void EndScene();
 
