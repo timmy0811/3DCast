@@ -20,6 +20,7 @@ public:
 			"../3DCast/ressources/shader/common/shader_texture.frag"));
 
 		texture.reset(API::Texture::Texture2D::Create("img/test.png"));
+		texture2.reset(API::Texture::Texture2D::Create("img/test2.png"));
 
 		float vertices[5 * 4] = {
 				-0.5f, -0.5f, 0.0f, 0.f, 0.f,
@@ -59,10 +60,10 @@ public:
 		va->AddBuffer(*vb, *vbLayout);
 
 		texture->Bind();
+		texture2->Bind(1);
 
 		shaderTexture->Bind();
 		shaderTexture->SetUniformMat4f("u_ViewProjection", m_Camera.GetViewProjectionMat());
-		shaderTexture->SetUniform1i("u_Texture", texture->GetBoundPort());
 		shaderTexture->SetUniform4f("u_Color", 0.8f, 0.1f, 0.5f, 1.0f);
 	}
 
@@ -87,6 +88,11 @@ public:
 
 		Cast::Renderer::RendererContext::BeginScene(m_Camera);
 
+		shaderTexture->Bind();
+		shaderTexture->SetUniform1i("u_Texture", texture->GetBoundPort());
+		Cast::Renderer::RendererContext::Submit(va, ib, shaderTexture);
+
+		shaderTexture->SetUniform1i("u_Texture", texture2->GetBoundPort());
 		Cast::Renderer::RendererContext::Submit(va, ib, shaderTexture);
 
 		Cast::Renderer::RendererContext::EndScene();
@@ -106,6 +112,7 @@ public:
 
 private:
 	Cast::Ref<API::Texture::Texture2D> texture;
+	Cast::Ref<API::Texture::Texture2D> texture2;
 	Cast::Ref<API::Core::Shader> shaderTexture;
 	Cast::Ref<API::Core::VertexBuffer> vb;
 	Cast::Ref<API::Core::IndexBuffer> ib;
