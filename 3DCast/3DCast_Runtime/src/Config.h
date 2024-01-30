@@ -6,12 +6,12 @@
 namespace Runtime {
 	class Config {
 	private:
-		const std::string m_Path; 
+		const std::string m_Path;
 	public:
 		Config(const std::string& path)
 			:m_Path(path)
 		{
-			Parse(); 
+			Parse();
 		}
 
 		void Parse() {

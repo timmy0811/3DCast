@@ -10,5 +10,4 @@ uniform sampler2D u_Texture;
 
 void main(){
     o_Color = texture(u_Texture, v_UV);
-    o_Color = vec4(v_UV.y, 0.0, 0.0, 1.0);
 }
