@@ -1,18 +1,18 @@
-[submodule "3DCast/3DCast\\vendor\\spdlog"]
-	path = 3DCast/3DCast\\vendor\\spdlog
+[submodule "Dependencies/spdlog"]
+	path = Dependencies/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "3DCast\\3DCast\\vendor\\imgui"]
-	path = 3DCast\\3DCast\\vendor\\imgui
+[submodule "Dependencies/imgui"]
+	path = Dependencies/imgui
 	url = https://github.com/timmy0811/imgui
-[submodule "3DCast\\3DCast\\vendor\\glm"]
-	path = 3DCast\\3DCast\\vendor\\glm
+[submodule "Dependencies/glm"]
+	path = Dependencies/glm
 	url = https://github.com/g-truc/glm
-[submodule "3DCast\\GraphicsAPI"]
-	path = 3DCast\\GraphicsAPI
+[submodule "GLWrapper"]
+	path = GLWrapper
 	url = https://github.com/timmy0811/GraphicsAPI-Abstraction
-[submodule "3DCast\\3DCast\\vendor\\spdlog"]
-	path = 3DCast\\3DCast\\vendor\\spdlog
-	url = https://github.com/gabime/spdlog
-[submodule "3DCast\\3DCast\\vendor\\glfw"]
-	path = 3DCast\\3DCast\\vendor\\glfw
+[submodule "Dependencies/glfw"]
+	path = Dependencies/glfw
 	url = https://github.com/glfw/glfw
+[submodule "Dependencies/yaml-cpp"]
+	path = Dependencies/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
