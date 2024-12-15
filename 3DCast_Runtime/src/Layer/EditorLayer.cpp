@@ -15,12 +15,12 @@ void EditorLayer::OnAttach()
 {
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
-	ActiveCamera = ActiveScene->CreateEntity("Camera");
+	Cast::Entity cameraEntity = ActiveScene->CreateEntity("Camera");
 
-	Cast::Renderer::PerspectiveCamera camera(70.f, 1.5f, 0.1f, 100.f);
-	camera.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-	camera.LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
-	ActiveCamera.AddComponents<Cast::Component::CameraComponent>(camera);
+	ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
+	ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+	ActiveCamera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*ActiveCamera);
 
 	// Exsample Content
 	CubeEntity = ActiveScene->CreateEntity("Cube");
@@ -85,7 +85,7 @@ void EditorLayer::OnAttach()
 
 	Cast::Ref<API::Core::Shader> cubeShader = CubeEntity.GetComponent<Cast::Component::ShaderComponent>().Shader;
 	cubeShader->Bind();
-	cubeShader->SetUniformMat4f("u_ViewProjection", camera.GetViewProjectionMat());
+	cubeShader->SetUniformMat4f("u_ViewProjection", ActiveCamera->GetViewProjectionMat());
 }
 
 void EditorLayer::OnDetach()
@@ -94,8 +94,7 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate(Cast::Timestep ts)
 {
-	Cast::Renderer::Camera& camera = ActiveCamera.GetComponent<Cast::Component::CameraComponent>().Camera;
-	glm::vec3 cameraPosition = camera.GetPosition();
+	glm::vec3 cameraPosition = ActiveCamera->GetPosition();
 	if (Cast::Input::IsKeyPressed(CAST_KEY_LEFT)) {
 		cameraPosition.x -= 0.05f;
 	}
@@ -115,7 +114,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 		cameraPosition.z += 0.05f;
 	}
 
-	camera.SetPosition(cameraPosition);
+	ActiveCamera->SetPosition(cameraPosition);
 
 	Cast::Ref<API::Core::Shader> cubeShader = CubeEntity.GetComponent<Cast::Component::ShaderComponent>().Shader;
 	cubeShader->Bind();
@@ -124,7 +123,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	API::Core::RenderCommand::Clear();
 	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 
-	Cast::Renderer::RendererContext::BeginScene(camera);
+	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
 
 	ActiveScene->OnUpdate();
 
@@ -140,4 +139,19 @@ void EditorLayer::OnImGuiRender()
 
 void EditorLayer::OnEvent(Cast::Event& e)
 {
+	Cast::EventDispatcher dispatcher(e);
+	dispatcher.Dispatch<Cast::WindowResizeEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnWindowResize));
+}
+
+bool EditorLayer::OnWindowResize(Cast::WindowResizeEvent& e)
+{
+	switch (ActiveCamera->GetType()) {
+	case Cast::Renderer::Camera::Type::Orthographic:
+		((Cast::Renderer::OrthographicCamera*)ActiveCamera.get())->SetFrustumOnResized((float)e.GetWidth(), (float)e.GetHeight());
+		break;
+	case Cast::Renderer::Camera::Type::Perspective:
+		((Cast::Renderer::PerspectiveCamera*)ActiveCamera.get())->SetAspectRatio(static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight()));
+	}
+
+	return false;
 }

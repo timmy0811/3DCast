@@ -3,6 +3,8 @@
 #include "3DCast/Scene/Scene.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Layer/Layer.h"
+#include "3DCast/Event/ApplicationEvent.h"
+#include "3DCast/Renderer/Camera/Camera.h"
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
 
@@ -22,8 +24,11 @@ public:
 	virtual void OnEvent(Cast::Event& e) override;
 
 private:
+	bool OnWindowResize(Cast::WindowResizeEvent& e);
+
+private:
 	Cast::Ref<Cast::Scene> ActiveScene;
-	Cast::Entity ActiveCamera;
+	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
 	Cast::Entity CubeEntity;
 
 	bool ViewportFocused = false;

@@ -25,21 +25,23 @@ namespace Cast {
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
 
-		inline static Application& Get() { return *instance; }
-		inline Window& GetWindow() { return *window; }
+		inline static Application& Get() { return *Instance; }
+		inline Window& GetWindow() { return *AppWindow; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 
 	private:
-		static Application* instance;
+		static Application* Instance;
 
-		std::unique_ptr<Window> window;
-		ImGuiLayer* imGuiLayer;
-		bool running = true;
-		LayerStack layerStack;
+		std::unique_ptr<Window> AppWindow;
+		ImGuiLayer* GuiLayer;
+		bool Running = true;
+		bool Minimized = false;
+		LayerStack LayerStack;
 
-		float lastFrameTime = 0.f;
+		float LastFrameTime = 0.f;
 	};
 
 	Application* CreatApplication();

@@ -12,41 +12,43 @@
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
 namespace Cast {
-	Application* Application::instance = nullptr;
+	Application* Application::Instance = nullptr;
 }
 
 Cast::Application::Application(const WindowProperties& properties)
 {
-	CAST_CORE_ASSERT(!instance, "Application is a singleton and cannot be instanced multiple times!");
-	instance = this;
+	CAST_CORE_ASSERT(!Instance, "Application is a singleton and cannot be instanced multiple times!");
+	Instance = this;
 
-	window = std::unique_ptr<Window>(Window::Create(properties));
-	window->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
+	AppWindow = std::unique_ptr<Window>(Window::Create(properties));
+	AppWindow->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
 
 	Renderer::RendererContext::Init();
 
-	imGuiLayer = new ImGuiLayer();
-	PushOverlay(imGuiLayer);
+	GuiLayer = new ImGuiLayer();
+	PushOverlay(GuiLayer);
 }
 
 void Cast::Application::Run()
 {
-	while (running) {
+	while (Running) {
 		float time = (float)glfwGetTime();
-		Timestep timestep = time - lastFrameTime;
-		lastFrameTime = time;
+		Timestep timestep = time - LastFrameTime;
+		LastFrameTime = time;
 
-		for (Layer* layer : layerStack) {
-			layer->OnUpdate(timestep);
+		if (!Minimized) {
+			for (Layer* layer : LayerStack) {
+				layer->OnUpdate(timestep);
+			}
 		}
 
-		imGuiLayer->Begin();
-		for (Layer* layer : layerStack) {
+		GuiLayer->Begin();
+		for (Layer* layer : LayerStack) {
 			layer->OnImGuiRender();
 		}
-		imGuiLayer->End();
+		GuiLayer->End();
 
-		window->OnUpdate();
+		AppWindow->OnUpdate();
 	}
 
 	LOG_INFO("Terminating Application");
@@ -56,9 +58,9 @@ void Cast::Application::OnEvent(Event& e)
 {
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(OnWindowClose));
+	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(OnWindowResize));
 
-	// LOG_CORE_TRACE("{0}", e.ToString());
-	for (auto iter = layerStack.end(); iter != layerStack.begin();) {
+	for (auto iter = LayerStack.end(); iter != LayerStack.begin();) {
 		(*--iter)->OnEvent(e);
 		if (e.handled)
 			break;
@@ -67,30 +69,43 @@ void Cast::Application::OnEvent(Event& e)
 
 void Cast::Application::PushLayer(Layer* layer)
 {
-	layerStack.PushLayer(layer);
+	LayerStack.PushLayer(layer);
 	layer->OnAttach();
 }
 
 void Cast::Application::PushOverlay(Layer* overlay)
 {
-	layerStack.PushOverlay(overlay);
+	LayerStack.PushOverlay(overlay);
 	overlay->OnAttach();
 }
 
 void Cast::Application::PopLayer(Layer* layer)
 {
-	layerStack.PopLayer(layer);
+	LayerStack.PopLayer(layer);
 	layer->OnDetach();
 }
 
 void Cast::Application::PopOverlay(Layer* overlay)
 {
-	layerStack.PopOverlay(overlay);
+	LayerStack.PopOverlay(overlay);
 	overlay->OnDetach();
 }
 
 bool Cast::Application::OnWindowClose(WindowCloseEvent& e)
 {
-	running = false;
+	Running = false;
 	return true;
+}
+
+bool Cast::Application::OnWindowResize(WindowResizeEvent& e)
+{
+	if (e.GetWidth() == 0 || e.GetHeight() == 0) {
+		Minimized = true;
+		return false;
+	}
+
+	Minimized = false;
+	Renderer::RendererContext::OnWindowResize(e.GetWidth(), e.GetHeight());
+
+	return false;
 }
