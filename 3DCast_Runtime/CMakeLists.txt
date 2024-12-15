@@ -12,6 +12,8 @@ target_compile_features(Runtime PUBLIC cxx_std_17)
 
 create_source_groups(${CMAKE_CURRENT_SOURCE_DIR})
 
+target_include_directories(Runtime PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 target_link_libraries(Runtime PUBLIC 
     3DCast
     glfw

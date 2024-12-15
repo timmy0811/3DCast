@@ -14,19 +14,41 @@
 
 #include <string>
 
+#include "imgui.h"
+
+#define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3
+
 namespace Cast::Component {
-	struct TagComponent
+	struct Component
+	{
+		virtual ~Component() = default;
+		virtual void OnImGuiRender() {};
+		virtual void Print() {};
+	};
+
+	struct TagComponent : public Component
 	{
 		std::string Tag;
 
-		TagComponent() = default;
+		TagComponent() { Tag.reserve(MAX_TAG_SIZE); };
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag) {
 			Tag = tag.empty() ? "Untagged" : tag;
+			Tag.reserve(MAX_TAG_SIZE);
 		}
+
+		virtual void OnImGuiRender() override
+		{
+			ImGui::Text("Name:");
+			ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+			ImGui::InputText("##Tag", Tag.data(), MAX_TAG_SIZE);
+		}
+
+	private:
+		constexpr static size_t MAX_TAG_SIZE = 96;
 	};
 
-	struct TransformComponent
+	struct TransformComponent : public Component
 	{
 		glm::mat4 Transform{ 1.0f };
 
@@ -68,9 +90,31 @@ namespace Cast::Component {
 
 			return glm::degrees(eulerAngles);
 		}
+
+		virtual void OnImGuiRender() override
+		{
+			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+				glm::vec3 translation = GetTranslation();
+				glm::vec3 scale = GetScale();
+				glm::vec3 rotation = { 0.f, 0.f, 0.f };
+
+				ImGui::Text("Transform:");
+				ImGui::Text("Translation:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat3("##Translation", &translation.x, 0.1f);
+				ImGui::Text("Scale:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat3("##Scale", &scale.x, 0.1f);
+				ImGui::Text("Rotation:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f);
+
+				Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+			}
+		}
 	};
 
-	struct LightComponent
+	struct LightComponent : public Component
 	{
 		enum class Type
 		{
@@ -88,9 +132,25 @@ namespace Cast::Component {
 		LightComponent(const LightComponent&) = default;
 		LightComponent(Type type, const glm::vec3& color, float intensity)
 			: LightType(type), Color(color), Intensity(intensity) {}
+
+		virtual void OnImGuiRender() override {
+			if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+				ImGui::Text("Type:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::Combo("##LightType", (int*)&LightType, "Directional\0Point\0Spot\0Area\0");
+
+				ImGui::Text("Color:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::ColorEdit3("##Color", &Color.x);
+
+				ImGui::Text("Intensity:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat("##Intensity", &Intensity, 0.1f);
+			}
+		}
 	};
 
-	struct MeshComponent
+	struct MeshComponent : public Component
 	{
 		std::string MeshPath;
 
@@ -98,9 +158,25 @@ namespace Cast::Component {
 		MeshComponent(const MeshComponent&) = default;
 		MeshComponent(const std::string& path)
 			: MeshPath(path) {}
+
+		virtual void OnImGuiRender() override {
+			if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
+				ImGui::Text("Path:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+
+				char buffer[256];
+				memset(buffer, 0, sizeof(buffer));
+				strcpy_s(buffer, sizeof(buffer), MeshPath.c_str());
+
+				if (ImGui::InputText("##MeshPath", buffer, sizeof(buffer)))
+				{
+					MeshPath = std::string(buffer);
+				}
+			}
+		}
 	};
 
-	struct CustomMeshComponent
+	struct CustomMeshComponent : public Component
 	{
 		Cast::Ref<API::Core::VertexBuffer> vb;
 		Cast::Ref<API::Core::IndexBuffer> ib;
@@ -123,7 +199,7 @@ namespace Cast::Component {
 		}
 	};
 
-	struct MaterialComponent
+	struct MaterialComponent : public Component
 	{
 		std::string MaterialPath;
 
@@ -133,7 +209,7 @@ namespace Cast::Component {
 			: MaterialPath(path) {}
 	};
 
-	struct ShaderComponent
+	struct ShaderComponent : public Component
 	{
 		std::string Identifier;
 		Cast::Ref<API::Core::Shader> Shader;
@@ -146,7 +222,7 @@ namespace Cast::Component {
 		}
 	};
 
-	struct CameraComponent
+	struct CameraComponent : public Component
 	{
 		Renderer::Camera Camera;
 
@@ -154,9 +230,27 @@ namespace Cast::Component {
 		CameraComponent(const CameraComponent&) = default;
 		CameraComponent(const Renderer::Camera& camera)
 			: Camera(camera) {}
+
+		virtual void OnImGuiRender() override {
+			if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+				glm::vec3 position = Camera.GetPosition();
+				glm::vec3 rotation = Camera.GetRotation();
+
+				ImGui::Text("Position:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat3("##Position", &position.x, 0.1f);
+
+				ImGui::Text("Rotation:");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f);
+
+				Camera.SetPosition(position);
+				Camera.SetRotation(rotation);
+			}
+		}
 	};
 
-	struct RasterizableComponent
+	struct RasterizableComponent : public Component
 	{
 		bool Renderable{ true };
 
@@ -166,7 +260,7 @@ namespace Cast::Component {
 			: Renderable(enable) {}
 	};
 
-	struct PBRComponent
+	struct PBRComponent : public Component
 	{
 		bool Renderable{ true };
 
@@ -176,7 +270,7 @@ namespace Cast::Component {
 			: Renderable(enable) {}
 	};
 
-	struct TextureComponent
+	struct TextureComponent : public Component
 	{
 		Cast::Ref<API::Texture::Texture> texture;
 

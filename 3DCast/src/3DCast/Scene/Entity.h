@@ -12,6 +12,8 @@ namespace Cast {
 		Entity(entt::entity handle, Scene* scene);
 		Entity(const Entity& other) = default;
 
+		inline const entt::entity GetEntityHandle() const { return EntityHandle; }
+
 		template<typename T, typename... Args>
 		T& AddComponents(Args&&... args)
 		{
@@ -41,6 +43,18 @@ namespace Cast {
 		}
 
 		operator bool() const { return EntityHandle != entt::null; }
+		operator uint32_t() const { return (uint32_t)EntityHandle; }
+
+		bool operator==(const Entity& other) const
+		{
+			return EntityHandle == other.EntityHandle && Scene == other.Scene;
+		}
+
+		bool operator!=(const Entity& other) const
+		{
+			return !(*this == other);
+		}
+
 	private:
 		entt::entity EntityHandle{ entt::null };
 		Scene* Scene = nullptr;

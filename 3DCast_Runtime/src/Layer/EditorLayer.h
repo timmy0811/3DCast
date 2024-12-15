@@ -4,6 +4,8 @@
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Layer/Layer.h"
 
+#include "GUI/Panels/SceneHierarchyPanel.h"
+
 #include "vendor/glm/glm.hpp"
 
 class EditorLayer : public Cast::Layer
@@ -27,4 +29,7 @@ private:
 	bool ViewportFocused = false;
 	bool ViewportHovered = false;
 	glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+
+	// Panels
+	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
 };

@@ -11,39 +11,15 @@
 
 Cast::Scene::Scene()
 {
-#ifdef sample
-	struct TransformComponent {
-		glm::mat4 transform;
-
-		TransformComponent() = default;
-		TransformComponent(const glm::mat4& transform)
-			:transform(transform) {}
-	};
-
-	struct StringComponent {
-		std::string name;
-
-		StringComponent() = default;
-		StringComponent(const std::string& name)
-			:name(name) {}
-	};
-
-	entt::entity entity = registry.create();
-	registry.emplace<StringComponent>(entity, "Test");
-
-	auto& col = registry.get<StringComponent>(entity).name = "Hello!";
-
-	registry.view<StringComponent>().each([](auto entity, auto& stringComponent) {
-		CAST_CORE_TRACE("Entity {0} has a string component: {1}", entity, stringComponent.name);
-		});
-
-	auto group = registry.group<StringComponent>(entt::get<TransformComponent>);
-
-	for (auto entity : group)
-		auto& [string, transform] = group.get<StringComponent, TransformComponent>(entity);
-
-	registry.remove<StringComponent>(entity);
-#endif
+	RegisterComponentImGuiRenderCallback<Component::TagComponent>();
+	RegisterComponentImGuiRenderCallback<Component::TransformComponent>();
+	RegisterComponentImGuiRenderCallback<Component::LightComponent>();
+	RegisterComponentImGuiRenderCallback<Component::MeshComponent>();
+	RegisterComponentImGuiRenderCallback<Component::CustomMeshComponent>();
+	RegisterComponentImGuiRenderCallback<Component::MaterialComponent>();
+	RegisterComponentImGuiRenderCallback<Component::CameraComponent>();
+	RegisterComponentImGuiRenderCallback<Component::TextureComponent>();
+	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)

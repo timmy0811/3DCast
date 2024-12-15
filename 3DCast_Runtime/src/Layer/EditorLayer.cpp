@@ -4,6 +4,7 @@
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
 
 #include <3DCast.h>
+#include <imgui.h>
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -26,6 +27,8 @@ void EditorLayer::OnAttach()
 	CubeEntity.AddComponents<Cast::Component::CustomMeshComponent>();
 	CubeEntity.AddComponents<Cast::Component::RasterizableComponent>();
 	CubeEntity.AddComponents<Cast::Component::ShaderComponent>("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag", "single_color");
+	CubeEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Point, glm::vec3(1.f), 3.f);
+	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
 
 	float vertices[3 * 8] = {
 				-0.5f, -0.5f, -0.5f,
@@ -94,16 +97,16 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	Cast::Renderer::Camera& camera = ActiveCamera.GetComponent<Cast::Component::CameraComponent>().Camera;
 	glm::vec3 cameraPosition = camera.GetPosition();
 	if (Cast::Input::IsKeyPressed(CAST_KEY_LEFT)) {
-		cameraPosition.x += 0.05f;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_RIGHT)) {
 		cameraPosition.x -= 0.05f;
 	}
+	if (Cast::Input::IsKeyPressed(CAST_KEY_RIGHT)) {
+		cameraPosition.x += 0.05f;
+	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_UP)) {
-		cameraPosition.y -= 0.05f;
+		cameraPosition.y += 0.05f;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN)) {
-		cameraPosition.y += 0.05f;
+		cameraPosition.y -= 0.05f;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_W)) {
 		cameraPosition.z -= 0.05f;
@@ -126,10 +129,13 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	ActiveScene->OnUpdate();
 
 	Cast::Renderer::RendererContext::EndScene();
+
+	SceneHierarchyPanel.SetContext(ActiveScene);
 }
 
 void EditorLayer::OnImGuiRender()
 {
+	SceneHierarchyPanel.OnImGuiRender();
 }
 
 void EditorLayer::OnEvent(Cast::Event& e)
