@@ -61,7 +61,6 @@ void Cast::ImGuiLayer::OnDetach()
 
 void Cast::ImGuiLayer::OnImGuiRender()
 {
-	//ImGui::ShowDemoWindow();
 }
 
 void Cast::ImGuiLayer::Begin()

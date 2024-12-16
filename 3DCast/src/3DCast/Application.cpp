@@ -67,6 +67,11 @@ void Cast::Application::OnEvent(Event& e)
 	}
 }
 
+void Cast::Application::Close()
+{
+	Running = false;
+}
+
 void Cast::Application::PushLayer(Layer* layer)
 {
 	LayerStack.PushLayer(layer);
