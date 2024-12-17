@@ -3,8 +3,8 @@
 #include "3DCast/Scene/Components.h"
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
 
+#include "GUI/ImGuiStyle.h"
 #include <3DCast.h>
-#include <imgui.h>
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -13,6 +13,8 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnAttach()
 {
+	Runtime::SetupImGuiStyle(true, 0.3f);
+
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
 	Cast::Entity cameraEntity = ActiveScene->CreateEntity("Camera");
