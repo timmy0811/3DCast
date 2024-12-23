@@ -66,7 +66,7 @@ set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dep
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
 set(BUILD_UTILS OFF CACHE INTERNAL "" FORCE)
 
-add_subdirectory(dependencies/glew-2.2.0/build/cmake)
+add_subdirectory(dependencies/glew/build/cmake)
 
 set_target_properties(glew PROPERTIES FOLDER "Dependencies/glew")
 set_target_properties(glew_s PROPERTIES FOLDER "Dependencies/glew")
