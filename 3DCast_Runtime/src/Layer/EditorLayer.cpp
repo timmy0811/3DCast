@@ -3,6 +3,7 @@
 #include "3DCast/Scene/Components.h"
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
 
+#include "Config.h"
 #include "GUI/ImGuiStyle.h"
 #include <3DCast.h>
 
@@ -14,6 +15,8 @@ EditorLayer::EditorLayer()
 void EditorLayer::OnAttach()
 {
 	Runtime::SetupImGuiStyle(true, 0.3f);
+
+	Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
 
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
@@ -122,92 +125,112 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	cubeShader->Bind();
 	cubeShader->SetUniform4f("u_Color", 0.4f, 0.2f, 0.4f, 1.f);
 
-	API::Core::RenderCommand::Clear();
-	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
-
-	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
-
-	ActiveScene->OnUpdate();
-
-	Cast::Renderer::RendererContext::EndScene();
+	Render();
 
 	SceneHierarchyPanel.SetContext(ActiveScene);
 }
 
 void EditorLayer::OnImGuiRender()
 {
-	static bool dockingEnabled = true;
-	if (dockingEnabled)
+	static bool dockspaceOpen = true;
+	static bool opt_fullscreen_persistant = true;
+	bool opt_fullscreen = opt_fullscreen_persistant;
+	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+	if (opt_fullscreen)
 	{
-		static bool dockspaceOpen = true;
-		static bool opt_fullscreen_persistant = true;
-		bool opt_fullscreen = opt_fullscreen_persistant;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-		if (opt_fullscreen)
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-		}
-
-		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-			window_flags |= ImGuiWindowFlags_NoBackground;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-		ImGui::PopStyleVar();
-
-		if (opt_fullscreen)
-			ImGui::PopStyleVar(2);
-
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		}
-
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-
-				if (ImGui::MenuItem("Exit")) Cast::Application::Get().Close();
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-
-		ImGui::End();
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 	}
+
+	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+		window_flags |= ImGuiWindowFlags_NoBackground;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+	ImGui::PopStyleVar();
+
+	if (opt_fullscreen)
+		ImGui::PopStyleVar(2);
+
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+	}
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+
+			if (ImGui::MenuItem("Exit")) Cast::Application::Get().Close();
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
+
+	ImGui::End();
+
+	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoTitleBar);
+	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+	static ImVec2 lastViewportSize = ImVec2(0, 0);
+	if (viewportSize.x != lastViewportSize.x || viewportSize.y != lastViewportSize.y)
+	{
+		lastViewportSize = viewportSize;
+
+		//Framebuffer->Resize({ static_cast<uint32_t>(viewportSize.x), static_cast<uint32_t>(viewportSize.y) });
+
+		switch (ActiveCamera->GetType()) {
+		case Cast::Renderer::Camera::Type::Orthographic:
+			((Cast::Renderer::OrthographicCamera*)ActiveCamera.get())->SetFrustumOnResized(lastViewportSize.x, lastViewportSize.y);
+			break;
+		case Cast::Renderer::Camera::Type::Perspective:
+			((Cast::Renderer::PerspectiveCamera*)ActiveCamera.get())->SetAspectRatio(lastViewportSize.x / lastViewportSize.y);
+		}
+	}
+
+	uint32_t textureID = Framebuffer->GetColorAttachmentTextureID(0);
+	ImGui::Image((unsigned long long)textureID, lastViewportSize);
+	ImGui::End();
 
 	SceneHierarchyPanel.OnImGuiRender();
 }
 
 void EditorLayer::OnEvent(Cast::Event& e)
 {
-	Cast::EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<Cast::WindowResizeEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnWindowResize));
+	// Cast::EventDispatcher dispatcher(e);
+	// dispatcher.Dispatch<Cast::WindowResizeEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnWindowResize));
 }
 
 bool EditorLayer::OnWindowResize(Cast::WindowResizeEvent& e)
 {
-	switch (ActiveCamera->GetType()) {
-	case Cast::Renderer::Camera::Type::Orthographic:
-		((Cast::Renderer::OrthographicCamera*)ActiveCamera.get())->SetFrustumOnResized((float)e.GetWidth(), (float)e.GetHeight());
-		break;
-	case Cast::Renderer::Camera::Type::Perspective:
-		((Cast::Renderer::PerspectiveCamera*)ActiveCamera.get())->SetAspectRatio(static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight()));
-	}
-
 	return false;
+}
+
+void EditorLayer::Render()
+{
+	API::Core::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+	API::Core::RenderCommand::Clear();
+
+	Framebuffer->Bind();
+	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
+	API::Core::RenderCommand::Clear();
+
+	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
+
+	ActiveScene->OnUpdate();
+
+	Cast::Renderer::RendererContext::EndScene();
+	Framebuffer->Unbind();
 }

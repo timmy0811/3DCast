@@ -6,6 +6,8 @@
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Renderer/Camera/Camera.h"
 
+#include "API/core/Framebuffer.h"
+
 #include "GUI/Panels/SceneHierarchyPanel.h"
 
 #include "vendor/glm/glm.hpp"
@@ -25,8 +27,10 @@ public:
 
 private:
 	bool OnWindowResize(Cast::WindowResizeEvent& e);
+	void Render();
 
 private:
+	Cast::Ref<API::Core::Framebuffer> Framebuffer;
 	Cast::Ref<Cast::Scene> ActiveScene;
 	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
 	Cast::Entity CubeEntity;
