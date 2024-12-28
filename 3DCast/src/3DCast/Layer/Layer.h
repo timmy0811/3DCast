@@ -2,6 +2,7 @@
 
 #include "3DCast/Event/Event.h"
 #include "3DCast/Core/Timestep.h"
+#include "3DCast/Window.h"
 
 namespace Cast {
 	static int s_LayerIdentifier = 0;
@@ -11,6 +12,8 @@ namespace Cast {
 	public:
 		Layer(const std::string& name = "Layer_" + std::to_string(s_LayerIdentifier));
 		virtual ~Layer();
+
+		inline void SetParentWindow(Ref<Cast::Window> window) { ParentWindow = window; }
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
@@ -24,5 +27,6 @@ namespace Cast {
 
 	protected:
 		std::string debugName;
+		Ref<Cast::Window> ParentWindow;
 	};
 }

@@ -3,6 +3,8 @@
 #include <3DCast.h>
 #include <yaml-cpp/yaml.h>
 
+#include <iostream>
+
 namespace Runtime {
 	class Config {
 	private:
@@ -11,7 +13,13 @@ namespace Runtime {
 		Config(const std::string& path)
 			:m_Path(path)
 		{
-			Parse();
+			try {
+				Parse();
+			}
+			catch (...) {
+				std::cout << "Preinit Message: Failed to parse config file\n";
+				exit(-1);
+			}
 		}
 
 		void Parse() {
@@ -19,11 +27,14 @@ namespace Runtime {
 
 			WIN_WIDTH = mainNode["Config"]["Application"]["WindowWidth"].as<unsigned int>();
 			WIN_HEIGHT = mainNode["Config"]["Application"]["WindowHeight"].as<unsigned int>();
+
+			MOUSE_SENSITIVITY = mainNode["Config"]["Application"]["MouseSens"].as<float>();
 		}
 
 		// Window
 		unsigned int WIN_WIDTH = 0;
 		unsigned int WIN_HEIGHT = 0;
+		float MOUSE_SENSITIVITY = 0.1f;
 	};
 
 	extern Config conf;

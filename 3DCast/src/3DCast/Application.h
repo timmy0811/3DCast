@@ -37,7 +37,7 @@ namespace Cast {
 	private:
 		static Application* Instance;
 
-		std::unique_ptr<Window> AppWindow;
+		std::shared_ptr<Window> AppWindow;
 		ImGuiLayer* GuiLayer;
 		bool Running = true;
 		bool Minimized = false;

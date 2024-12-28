@@ -4,6 +4,7 @@
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Layer/Layer.h"
 #include "3DCast/Event/ApplicationEvent.h"
+#include "3DCast/Event/MouseEvent.h"
 #include "3DCast/Renderer/Camera/Camera.h"
 
 #include "API/core/Framebuffer.h"
@@ -27,6 +28,8 @@ public:
 
 private:
 	bool OnWindowResize(Cast::WindowResizeEvent& e);
+	bool OnMouseMoved(Cast::MouseMovedEvent& e);
+	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
 	void Render();
 
 private:
@@ -37,8 +40,17 @@ private:
 
 	bool ViewportFocused = false;
 	bool ViewportHovered = false;
-	glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+	glm::vec2 ViewportSize = { 0.0f, 0.0f };
+	glm::vec2 LastMousePosition = { 0.0f, 0.f };
+	bool IsInitFrame = true;
+
+	float CameraSpeed = 0.03f;
 
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
+
+	struct KeyState
+	{
+		bool isLMBPressed = false;
+	} CurrentKeyState;
 };

@@ -74,6 +74,7 @@ void Cast::Application::Close()
 
 void Cast::Application::PushLayer(Layer* layer)
 {
+	layer->SetParentWindow(AppWindow);
 	LayerStack.PushLayer(layer);
 	layer->OnAttach();
 }

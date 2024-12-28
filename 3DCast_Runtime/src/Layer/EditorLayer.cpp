@@ -1,7 +1,8 @@
 #include "EditorLayer.h"
 
-#include "3DCast/Scene/Components.h"
+#include <3DCast/Scene/Components.h>
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
+#include <3DCast/Log.h>
 
 #include "Config.h"
 #include "GUI/ImGuiStyle.h"
@@ -24,7 +25,7 @@ void EditorLayer::OnAttach()
 
 	ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
 	ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-	ActiveCamera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+	//ActiveCamera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*ActiveCamera);
 
 	// Exsample Content
@@ -100,23 +101,32 @@ void EditorLayer::OnDetach()
 void EditorLayer::OnUpdate(Cast::Timestep ts)
 {
 	glm::vec3 cameraPosition = ActiveCamera->GetPosition();
-	if (Cast::Input::IsKeyPressed(CAST_KEY_LEFT)) {
-		cameraPosition.x -= 0.05f;
+	if (Cast::Input::IsKeyPressed(CAST_KEY_A)) {
+		cameraPosition -= ActiveCamera->GetRight() * CameraSpeed;
 	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_RIGHT)) {
-		cameraPosition.x += 0.05f;
+	if (Cast::Input::IsKeyPressed(CAST_KEY_D)) {
+		cameraPosition += ActiveCamera->GetRight() * CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_UP)) {
-		cameraPosition.y += 0.05f;
+		cameraPosition.y += CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN)) {
-		cameraPosition.y -= 0.05f;
+		cameraPosition.y -= CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_W)) {
-		cameraPosition.z -= 0.05f;
+		cameraPosition += ActiveCamera->GetForward() * CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_S)) {
-		cameraPosition.z += 0.05f;
+		cameraPosition -= ActiveCamera->GetForward() * CameraSpeed;
+	}
+
+	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT)) {
+		ParentWindow->SetInputModeDisabled();
+		CurrentKeyState.isLMBPressed = true;
+	}
+	else {
+		ParentWindow->SetInputModeNormal();
+		CurrentKeyState.isLMBPressed = false;
 	}
 
 	ActiveCamera->SetPosition(cameraPosition);
@@ -209,12 +219,45 @@ void EditorLayer::OnImGuiRender()
 
 void EditorLayer::OnEvent(Cast::Event& e)
 {
-	// Cast::EventDispatcher dispatcher(e);
-	// dispatcher.Dispatch<Cast::WindowResizeEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnWindowResize));
+	Cast::EventDispatcher dispatcher(e);
+	dispatcher.Dispatch<Cast::MouseMovedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseMoved));
+	dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
 }
 
 bool EditorLayer::OnWindowResize(Cast::WindowResizeEvent& e)
 {
+	return false;
+}
+
+bool EditorLayer::OnMouseMoved(Cast::MouseMovedEvent& e)
+{
+	if (CurrentKeyState.isLMBPressed && !IsInitFrame) {
+		glm::vec3 cameraRotation = (ActiveCamera->GetRotation());
+
+		glm::vec2 offset = {
+			e.GetX() - LastMousePosition.x,
+			e.GetY() - LastMousePosition.y
+		};
+
+		offset *= Runtime::conf.MOUSE_SENSITIVITY;
+
+		float yaw = ActiveCamera->GetYaw() + offset.x;
+		float pitch = ActiveCamera->GetPitch() + offset.y;
+
+		ActiveCamera->SetRotation({ pitch, yaw, cameraRotation.z });
+	}
+
+	LastMousePosition = glm::vec2(e.GetX(), e.GetY());
+	IsInitFrame = false;
+
+	return false;
+}
+
+bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
+{
+	if (e.GetYOffset() < 0.f) CameraSpeed *= 0.9f;
+	else if (e.GetYOffset() > 0.f) CameraSpeed *= 1.1f;
+
 	return false;
 }
 

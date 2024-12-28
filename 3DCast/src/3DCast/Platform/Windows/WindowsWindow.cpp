@@ -31,6 +31,16 @@ inline bool Cast::WindowsWindow::IsVSync() const
 	return data.VSync;
 }
 
+void Cast::WindowsWindow::SetInputModeDisabled() const
+{
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void Cast::WindowsWindow::SetInputModeNormal() const
+{
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
 void Cast::WindowsWindow::Init(const WindowProperties& props)
 {
 	data.Title = props.Title;

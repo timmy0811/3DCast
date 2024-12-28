@@ -28,6 +28,9 @@ namespace Cast {
 		void SetVSync(bool enabled) override;
 		inline bool IsVSync() const override;
 
+		virtual void SetInputModeDisabled() const override;
+		virtual void SetInputModeNormal() const override;
+
 	private:
 		virtual void Init(const WindowProperties& props);
 		virtual void Destroy();

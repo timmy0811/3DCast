@@ -2,3 +2,4 @@ Config:
   Application:
     WindowWidth: 1620
     WindowHeight: 1080
+    MouseSens: 0.1
