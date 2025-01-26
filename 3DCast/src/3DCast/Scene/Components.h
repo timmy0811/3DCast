@@ -15,6 +15,7 @@
 #include <string>
 
 #include "imgui.h"
+#include "3DCast/Misc/Helper.h"
 
 #define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3
 
@@ -199,16 +200,6 @@ namespace Cast::Component {
 		}
 	};
 
-	struct MaterialComponent : public Component
-	{
-		std::string MaterialPath;
-
-		MaterialComponent() = default;
-		MaterialComponent(const MaterialComponent&) = default;
-		MaterialComponent(const std::string& path)
-			: MaterialPath(path) {}
-	};
-
 	struct ShaderComponent : public Component
 	{
 		std::string Identifier;
@@ -258,6 +249,112 @@ namespace Cast::Component {
 		RasterizableComponent(const RasterizableComponent&) = default;
 		RasterizableComponent(bool enable)
 			: Renderable(enable) {}
+	};
+
+	struct MaterialComponent : public Component
+	{
+		unsigned int Shader;
+
+		/* Bitmask:
+		0: Diffuse
+		1: Specular
+		2: Ambient
+		3: Emmissive
+		4: Shine
+		5: Opacity
+		6: Reflectance
+		*/
+		uint16_t textureEnabled;
+
+		glm::vec3 ambient{ 1.f };
+		glm::vec3 diffuse{ 1.f };
+		glm::vec3 specular{ 1.f };
+		float shine;
+
+		MaterialComponent() = default;
+		MaterialComponent(const MaterialComponent&) = default;
+		MaterialComponent(const unsigned int shaderId)
+			: Shader(shaderId) {}
+
+		virtual void OnImGuiRender() override {
+			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+				// Ambient
+				bool textureBitEnabled = Helper::isBitSet(textureEnabled, 2);
+
+				if (!textureBitEnabled) {
+					ImGui::Text("Ambient:");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+					ImGui::DragFloat3("##Ambient", &ambient.x, 1.f);
+				}
+				else {
+					ImGui::Button("Load Ambient Texture");
+				}
+
+				ImGui::Checkbox("Use Ambient-Map", &textureBitEnabled);
+				Helper::setBit(textureEnabled, 2, textureBitEnabled);
+
+				ImGui::Separator();
+
+				// Diffuse
+				textureBitEnabled = Helper::isBitSet(textureEnabled, 0);
+
+				if (!textureBitEnabled) {
+					ImGui::Text("Diffuse:");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+					ImGui::DragFloat3("##Diffuse", &diffuse.x, 1.f);
+				}
+				else {
+					ImGui::Button("Load Diffuse Texture");
+				}
+
+				ImGui::Checkbox("Use Diffuse-Map", &textureBitEnabled);
+				Helper::setBit(textureEnabled, 0, textureBitEnabled);
+
+				ImGui::Separator();
+
+				// Specular
+				textureBitEnabled = Helper::isBitSet(textureEnabled, 1);
+
+				if (!textureBitEnabled) {
+					ImGui::Text("Specular:");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+					ImGui::DragFloat3("##Specular", &specular.x, 1.f);
+				}
+				else {
+					ImGui::Button("Load Specular Texture");
+				}
+
+				ImGui::Checkbox("Use Specular-Map", &textureBitEnabled);
+				Helper::setBit(textureEnabled, 1, textureBitEnabled);
+
+				ImGui::Separator();
+
+				// Shine
+				textureBitEnabled = Helper::isBitSet(textureEnabled, 4);
+
+				if (!textureBitEnabled) {
+					ImGui::Text("Shininess:");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+					ImGui::DragFloat("##Shininess", &shine, 0.1f);
+				}
+				else {
+					ImGui::Button("Load Shine Texture");
+				}
+
+				ImGui::Checkbox("Use Shine-Map", &textureBitEnabled);
+				Helper::setBit(textureEnabled, 4, textureBitEnabled);
+
+				ImGui::Separator();
+			}
+		}
+	};
+
+	struct PBRMaterialComponent : public Component
+	{
+		bool temp;
+
+		PBRMaterialComponent() = default;
+		PBRMaterialComponent(const PBRMaterialComponent&) = default;
 	};
 
 	struct PBRComponent : public Component

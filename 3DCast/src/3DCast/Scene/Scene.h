@@ -17,6 +17,7 @@ namespace Cast {
 		Entity CreateEntity(const std::string& name = "Untagged");
 
 		void OnUpdate();
+		void SubmitShaderData();
 
 		inline entt::registry& GetRegistry() { return Registry; }
 		inline const std::vector<ComponentHandler>& GetComponentImGuiCallbacks() { return ComponentHandlers; }

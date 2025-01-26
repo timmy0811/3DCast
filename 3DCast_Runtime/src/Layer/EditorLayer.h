@@ -33,8 +33,10 @@ private:
 	void Render();
 
 private:
+	inline static float CameraSpeed = 0.03f;
 	Cast::Ref<API::Core::Framebuffer> Framebuffer;
 	Cast::Ref<Cast::Scene> ActiveScene;
+
 	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
 	Cast::Entity CubeEntity;
 
@@ -43,8 +45,6 @@ private:
 	glm::vec2 ViewportSize = { 0.0f, 0.0f };
 	glm::vec2 LastMousePosition = { 0.0f, 0.f };
 	bool IsInitFrame = true;
-
-	float CameraSpeed = 0.03f;
 
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;

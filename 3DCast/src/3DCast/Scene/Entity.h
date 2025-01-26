@@ -17,22 +17,22 @@ namespace Cast {
 		template<typename T, typename... Args>
 		T& AddComponents(Args&&... args)
 		{
-			CAST_ASSERT(!HasComponent<T>(), "Entity already has component!");
+			CAST_ASSERT(HasComponent<T>(), "Entity already has component!");
 			return Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
 		}
 
 		template <typename T>
 		T& GetComponent()
 		{
-			CAST_ASSERT(!HasComponent<T>(), "Entity does not have component!");
+			CAST_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			return Scene->Registry.get<T>(EntityHandle);
 		}
 
 		template <typename T>
 		bool HasComponent()
 		{
-			// return Scene->Registry.has<T>(EntityHandle);
-			return false;
+			//return Scene->Registry.has<T>(EntityHandle);
+			return true;
 		}
 
 		template <typename T>

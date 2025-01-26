@@ -3,6 +3,7 @@
 #include <3DCast/Scene/Components.h>
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
 #include <3DCast/Log.h>
+#include "3DCast/Scene/SceneShaderCache.h"
 
 #include "Config.h"
 #include "GUI/ImGuiStyle.h"
@@ -25,16 +26,21 @@ void EditorLayer::OnAttach()
 
 	ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
 	ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-	//ActiveCamera->LookAt(glm::vec3(0.0f, 0.0f, 0.0f));
 	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*ActiveCamera);
 
-	// Exsample Content
+	// Example Content
+	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag"));
+
+	// Light
+	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
+	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
+
+	// Cube
 	CubeEntity = ActiveScene->CreateEntity("Cube");
 	CubeEntity.AddComponents<Cast::Component::CustomMeshComponent>();
 	CubeEntity.AddComponents<Cast::Component::RasterizableComponent>();
-	CubeEntity.AddComponents<Cast::Component::ShaderComponent>("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag", "single_color");
-	CubeEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Point, glm::vec3(1.f), 3.f);
 	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
+	CubeEntity.AddComponents<Cast::Component::MaterialComponent>(id);
 
 	float vertices[3 * 8] = {
 				-0.5f, -0.5f, -0.5f,
@@ -84,12 +90,13 @@ void EditorLayer::OnAttach()
 
 	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
 	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
+	//cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
 
 	cubeMesh.va.reset(API::Core::VertexArray::Create());
 	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
 	cubeMesh.va->SetVBCount(4);
 
-	Cast::Ref<API::Core::Shader> cubeShader = CubeEntity.GetComponent<Cast::Component::ShaderComponent>().Shader;
+	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(id);
 	cubeShader->Bind();
 	cubeShader->SetUniformMat4f("u_ViewProjection", ActiveCamera->GetViewProjectionMat());
 }
@@ -131,7 +138,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 
 	ActiveCamera->SetPosition(cameraPosition);
 
-	Cast::Ref<API::Core::Shader> cubeShader = CubeEntity.GetComponent<Cast::Component::ShaderComponent>().Shader;
+	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(CubeEntity.GetComponent<Cast::Component::MaterialComponent>().Shader);
 	cubeShader->Bind();
 	cubeShader->SetUniform4f("u_Color", 0.4f, 0.2f, 0.4f, 1.f);
 

@@ -6,6 +6,7 @@
 #include "3DCast/Scene/Components.h"
 
 #include "3DCast/Renderer/Renderer.h"
+#include "3DCast/Scene/SceneShaderCache.h"
 
 #include <Vendor/glm/glm.hpp>
 
@@ -35,10 +36,10 @@ void Cast::Scene::OnUpdate()
 {
 	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::RasterizableComponent>);
 	for (auto entity : group) {
-		auto& shader = Registry.get<Component::ShaderComponent>(entity);
+		auto& shader = Cast::AssetCache.GetShaderHandle(Registry.get<Component::MaterialComponent>(entity).Shader);
 		auto& transform = Registry.get<Component::TransformComponent>(entity);
 		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
-		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader.Shader, transform.GetTransform());
+		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader, transform.GetTransform());
 	}
 }
