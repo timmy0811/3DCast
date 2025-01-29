@@ -20,6 +20,8 @@ void EditorLayer::OnAttach()
 
 	Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
 
+	GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
 	Cast::Entity cameraEntity = ActiveScene->CreateEntity("Camera");
@@ -28,77 +30,8 @@ void EditorLayer::OnAttach()
 	ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*ActiveCamera);
 
-	// Example Content
-	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag"));
-
-	// Light
-	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
-	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
-
-	// Cube
-	CubeEntity = ActiveScene->CreateEntity("Cube");
-	CubeEntity.AddComponents<Cast::Component::CustomMeshComponent>();
-	CubeEntity.AddComponents<Cast::Component::RasterizableComponent>();
-	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
-	CubeEntity.AddComponents<Cast::Component::MaterialComponent>(id);
-
-	float vertices[3 * 8] = {
-				-0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f, 0.5f, -0.5f,
-				 -0.5f, 0.5f, -0.5f,
-				 -0.5f, -0.5f, 0.5f,
-				 0.5f, -0.5f, 0.5f,
-				 0.5f, 0.5f, 0.5f,
-				 -0.5f, 0.5f, 0.5f,
-	};
-
-	unsigned int* indices = new unsigned int[36];
-
-	// Front face
-	indices[0] = 4; indices[1] = 5; indices[2] = 6;
-	indices[3] = 6; indices[4] = 7; indices[5] = 4;
-
-	// Back face
-	indices[6] = 0; indices[7] = 1; indices[8] = 2;
-	indices[9] = 2; indices[10] = 3; indices[11] = 0;
-
-	// Left face
-	indices[12] = 0; indices[13] = 4; indices[14] = 7;
-	indices[15] = 7; indices[16] = 3; indices[17] = 0;
-
-	// Right face
-	indices[18] = 1; indices[19] = 5; indices[20] = 6;
-	indices[21] = 6; indices[22] = 2; indices[23] = 1;
-
-	// Top face
-	indices[24] = 3; indices[25] = 2; indices[26] = 6;
-	indices[27] = 6; indices[28] = 7; indices[29] = 3;
-
-	// Bottom face
-	indices[30] = 0; indices[31] = 1; indices[32] = 5;
-	indices[33] = 5; indices[34] = 4; indices[35] = 0;
-
-	Cast::Component::CustomMeshComponent& cubeMesh = CubeEntity.GetComponent<Cast::Component::CustomMeshComponent>();
-
-	cubeMesh.ib.reset(API::Core::IndexBuffer::Create(indices, 36));
-	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(8, sizeof(float) * 3));
-
-	cubeMesh.vb->AddVertexData(vertices, sizeof(vertices));
-
-	delete[] indices;
-
-	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	//cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-
-	cubeMesh.va.reset(API::Core::VertexArray::Create());
-	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
-	cubeMesh.va->SetVBCount(4);
-
-	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(id);
-	cubeShader->Bind();
-	cubeShader->SetUniformMat4f("u_ViewProjection", ActiveCamera->GetViewProjectionMat());
+	// Sample Content
+	SampleContent();
 }
 
 void EditorLayer::OnDetach()
@@ -270,6 +203,20 @@ bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
 
 void EditorLayer::Render()
 {
+	RenderGeometryPass();
+	RenderLightingPass();
+}
+
+void EditorLayer::RenderGeometryPass()
+{
+	GBuffer->BindAndClear();
+
+	GBuffer->Unbind();
+}
+
+void EditorLayer::RenderLightingPass()
+{
+	// GUI Background Color
 	API::Core::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
@@ -283,4 +230,79 @@ void EditorLayer::Render()
 
 	Cast::Renderer::RendererContext::EndScene();
 	Framebuffer->Unbind();
+}
+
+void EditorLayer::SampleContent()
+{
+	// Example Content
+	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag"));
+
+	// Light
+	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
+	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
+
+	// Cube
+	CubeEntity = ActiveScene->CreateEntity("Cube");
+	CubeEntity.AddComponents<Cast::Component::CustomMeshComponent>();
+	CubeEntity.AddComponents<Cast::Component::RasterizableComponent>();
+	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
+	CubeEntity.AddComponents<Cast::Component::MaterialComponent>(id);
+
+	float vertices[3 * 8] = {
+				-0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f, 0.5f, -0.5f,
+				 -0.5f, 0.5f, -0.5f,
+				 -0.5f, -0.5f, 0.5f,
+				 0.5f, -0.5f, 0.5f,
+				 0.5f, 0.5f, 0.5f,
+				 -0.5f, 0.5f, 0.5f,
+	};
+
+	unsigned int* indices = new unsigned int[36];
+
+	// Front face
+	indices[0] = 4; indices[1] = 5; indices[2] = 6;
+	indices[3] = 6; indices[4] = 7; indices[5] = 4;
+
+	// Back face
+	indices[6] = 0; indices[7] = 1; indices[8] = 2;
+	indices[9] = 2; indices[10] = 3; indices[11] = 0;
+
+	// Left face
+	indices[12] = 0; indices[13] = 4; indices[14] = 7;
+	indices[15] = 7; indices[16] = 3; indices[17] = 0;
+
+	// Right face
+	indices[18] = 1; indices[19] = 5; indices[20] = 6;
+	indices[21] = 6; indices[22] = 2; indices[23] = 1;
+
+	// Top face
+	indices[24] = 3; indices[25] = 2; indices[26] = 6;
+	indices[27] = 6; indices[28] = 7; indices[29] = 3;
+
+	// Bottom face
+	indices[30] = 0; indices[31] = 1; indices[32] = 5;
+	indices[33] = 5; indices[34] = 4; indices[35] = 0;
+
+	Cast::Component::CustomMeshComponent& cubeMesh = CubeEntity.GetComponent<Cast::Component::CustomMeshComponent>();
+
+	cubeMesh.ib.reset(API::Core::IndexBuffer::Create(indices, 36));
+	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(8, sizeof(float) * 3));
+
+	cubeMesh.vb->AddVertexData(vertices, sizeof(vertices));
+
+	delete[] indices;
+
+	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
+	//cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
+
+	cubeMesh.va.reset(API::Core::VertexArray::Create());
+	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
+	cubeMesh.va->SetVBCount(4);
+
+	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(id);
+	cubeShader->Bind();
+	cubeShader->SetUniformMat4f("u_ViewProjection", ActiveCamera->GetViewProjectionMat());
 }

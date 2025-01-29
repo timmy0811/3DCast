@@ -8,6 +8,7 @@
 #include "3DCast/Renderer/Camera/Camera.h"
 
 #include "API/core/Framebuffer.h"
+#include "API/advanced/Gbuffer.h"
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
 
@@ -30,11 +31,18 @@ private:
 	bool OnWindowResize(Cast::WindowResizeEvent& e);
 	bool OnMouseMoved(Cast::MouseMovedEvent& e);
 	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
+
 	void Render();
+	void RenderGeometryPass();
+	void RenderLightingPass();
+
+	// Temporary
+	void SampleContent();
 
 private:
 	inline static float CameraSpeed = 0.03f;
 	Cast::Ref<API::Core::Framebuffer> Framebuffer;
+	Cast::Ref<API::Advanced::GBuffer> GBuffer;
 	Cast::Ref<Cast::Scene> ActiveScene;
 
 	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
