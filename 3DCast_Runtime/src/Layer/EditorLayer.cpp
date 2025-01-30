@@ -22,6 +22,15 @@ void EditorLayer::OnAttach()
 
 	GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
 
+	GBuffer->Bind();
+	GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_READ);
+	GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	GBuffer->Validate();
+
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
 	Cast::Entity cameraEntity = ActiveScene->CreateEntity("Camera");
@@ -73,7 +82,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 
 	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(CubeEntity.GetComponent<Cast::Component::MaterialComponent>().Shader);
 	cubeShader->Bind();
-	cubeShader->SetUniform4f("u_Color", 0.4f, 0.2f, 0.4f, 1.f);
+	cubeShader->SetUniform3f("u_Color", 0.9f, 0.2f, 0.9f);
 
 	Render();
 
@@ -204,38 +213,37 @@ bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
 void EditorLayer::Render()
 {
 	RenderGeometryPass();
-	RenderLightingPass();
+	//RenderLightingPass();
 }
 
 void EditorLayer::RenderGeometryPass()
 {
 	GBuffer->BindAndClear();
+	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
 
+	ActiveScene->OnUpdate();
+
+	Cast::Renderer::RendererContext::EndScene();
 	GBuffer->Unbind();
 }
 
 void EditorLayer::RenderLightingPass()
 {
 	// GUI Background Color
-	API::Core::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+	//API::Core::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
 	Framebuffer->Bind();
-	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
+	//API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
-	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
-
-	ActiveScene->OnUpdate();
-
-	Cast::Renderer::RendererContext::EndScene();
 	Framebuffer->Unbind();
 }
 
 void EditorLayer::SampleContent()
 {
 	// Example Content
-	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/shader_single_color.vert", "../3DCast/ressources/shader/common/shader_single_color.frag"));
+	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/deferred/gbuffer_gen.vert", "../3DCast/ressources/shader/common/deferred/gbuffer_gen.frag"));
 
 	// Light
 	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
@@ -248,15 +256,17 @@ void EditorLayer::SampleContent()
 	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
 	CubeEntity.AddComponents<Cast::Component::MaterialComponent>(id);
 
-	float vertices[3 * 8] = {
-				-0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f, 0.5f, -0.5f,
-				 -0.5f, 0.5f, -0.5f,
-				 -0.5f, -0.5f, 0.5f,
-				 0.5f, -0.5f, 0.5f,
-				 0.5f, 0.5f, 0.5f,
-				 -0.5f, 0.5f, 0.5f,
+	float vertices[8 * 12] = {
+		// Position        // UVs       // Normals      // TexIndex // TransformIndex // Shine & Reflectance
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
 	};
 
 	unsigned int* indices = new unsigned int[36];
@@ -288,7 +298,7 @@ void EditorLayer::SampleContent()
 	Cast::Component::CustomMeshComponent& cubeMesh = CubeEntity.GetComponent<Cast::Component::CustomMeshComponent>();
 
 	cubeMesh.ib.reset(API::Core::IndexBuffer::Create(indices, 36));
-	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(8, sizeof(float) * 3));
+	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(8, sizeof(float) * 12));
 
 	cubeMesh.vb->AddVertexData(vertices, sizeof(vertices));
 
@@ -296,13 +306,15 @@ void EditorLayer::SampleContent()
 
 	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
 	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	//cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Int);
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Int);
+	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
 
 	cubeMesh.va.reset(API::Core::VertexArray::Create());
 	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
 	cubeMesh.va->SetVBCount(4);
 
 	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(id);
-	cubeShader->Bind();
-	cubeShader->SetUniformMat4f("u_ViewProjection", ActiveCamera->GetViewProjectionMat());
 }

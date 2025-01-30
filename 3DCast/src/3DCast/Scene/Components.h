@@ -51,6 +51,8 @@ namespace Cast::Component {
 
 	struct TransformComponent : public Component
 	{
+		bool isValid;
+		size_t bufferPosition;
 		glm::mat4 Transform{ 1.0f };
 
 		TransformComponent() = default;
@@ -60,6 +62,17 @@ namespace Cast::Component {
 		TransformComponent(const glm::vec3& translation, const glm::vec3& scale, const glm::vec3& rotation)
 		{
 			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+		}
+
+		bool Register(Cast::Ref<API::Core::Buffer> transformRegistry)
+		{
+			if (transformRegistry) {
+				bufferPosition = transformRegistry->AddData(&Transform, sizeof(glm::mat4));
+				isValid = true;
+				return true;
+			}
+
+			return false;
 		}
 
 		inline glm::mat4 GetTransform() const

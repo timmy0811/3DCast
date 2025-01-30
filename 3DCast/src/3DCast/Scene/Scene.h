@@ -4,6 +4,10 @@
 #include <vector>
 #include <entt/entt.hpp>
 
+#include "3DCast/Core.h"
+
+#include <API/core/Buffer.h>
+
 namespace Cast {
 	class Entity;
 
@@ -17,8 +21,9 @@ namespace Cast {
 		Entity CreateEntity(const std::string& name = "Untagged");
 
 		void OnUpdate();
-		void SubmitShaderData();
+		// void SubmitShaderData();
 
+		inline Cast::Ref<API::Core::Buffer> GetTransformRegistry() { return TransformSSBO; }
 		inline entt::registry& GetRegistry() { return Registry; }
 		inline const std::vector<ComponentHandler>& GetComponentImGuiCallbacks() { return ComponentHandlers; }
 
@@ -35,6 +40,7 @@ namespace Cast {
 	private:
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
+		Cast::Ref<API::Core::Buffer> TransformSSBO;
 
 		friend class Entity;
 	};

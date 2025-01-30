@@ -44,7 +44,7 @@ namespace Cast::Renderer {
 	protected:
 		Type ProjectionType;
 		glm::mat4 ProjectionMat{ 1.f };
-		glm::mat4 ViewMat;
+		glm::mat4 ViewMat{ 1.f };
 		glm::mat4 ViewProjectionMat{ 1.f };
 
 		glm::vec3 Position;

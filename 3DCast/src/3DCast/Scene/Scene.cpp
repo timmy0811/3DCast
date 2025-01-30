@@ -21,12 +21,18 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::CameraComponent>();
 	RegisterComponentImGuiRenderCallback<Component::TextureComponent>();
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
+
+	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, 1024, sizeof(glm::mat4)));
+	TransformSSBO->BindBase(1);
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
 {
 	Entity entity = { Registry.create(), this };
 	entity.AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
+	if (!entity.GetComponent<Component::TransformComponent>().Register(TransformSSBO))
+		LOG_CORE_ERROR("Could not register transform component in registry.");
+
 	entity.AddComponents<Component::TagComponent>(name);
 
 	return entity;
@@ -40,6 +46,9 @@ void Cast::Scene::OnUpdate()
 		auto& transform = Registry.get<Component::TransformComponent>(entity);
 		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
-		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader, transform.GetTransform());
+		TransformSSBO->Bind();
+		TransformSSBO->AddData(&transform.Transform, sizeof(glm::mat4), transform.bufferPosition);
+
+		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
 	}
 }
