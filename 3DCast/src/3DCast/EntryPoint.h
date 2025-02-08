@@ -4,7 +4,7 @@
 
 #include <Debug/Log.h>
 
-extern Cast::Application* Cast::CreatApplication();
+extern Cast::Application* Cast::CreateApplication();
 
 int main(int argc, char** argv) {
 	API::LogAPI::Init();
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	Cast::Log::Init();
 	Cast::Log::GetClientLogger()->info("Initialized Logging");
 
-	auto app = Cast::CreatApplication();
+	auto app = Cast::CreateApplication();
 	app->Run();
 
 	delete app;

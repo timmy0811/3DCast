@@ -22,5 +22,33 @@ Cast::SceneShaderCache::SceneShaderCache()
 
 Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(unsigned short id)
 {
-	return Shaders[id];
+	try {
+		return Shaders.at(id);
+	}
+	catch (...) {
+		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with id: " + std::to_string(id));
+	}
+	return nullptr;
+}
+
+Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(const std::string& identifier)
+{
+	try {
+		return Shaders.at(ShaderIdentifierMap.at(identifier));
+	}
+	catch (...) {
+		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
+	}
+	return nullptr;
+}
+
+unsigned int Cast::SceneShaderCache::GetShaderId(const std::string& identifier)
+{
+	try {
+		return ShaderIdentifierMap.at(identifier);
+	}
+	catch (...) {
+		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
+	}
+	return 0;
 }

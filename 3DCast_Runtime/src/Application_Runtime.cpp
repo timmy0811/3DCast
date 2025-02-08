@@ -17,6 +17,6 @@ public:
 	~Application_Runtime() {}
 };
 
-Cast::Application* Cast::CreatApplication() {
+Cast::Application* Cast::CreateApplication() {
 	return new Application_Runtime();
 }

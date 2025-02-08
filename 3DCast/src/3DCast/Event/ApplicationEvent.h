@@ -26,6 +26,27 @@ namespace Cast {
 		unsigned int m_Width, m_Height;
 	};
 
+	class WindowMovedEvent : public Event {
+	public:
+		WindowMovedEvent(int x, int y)
+			:xPos(x), yPos(y) {}
+
+		inline int GetxPos() const { return xPos; }
+		inline int GetyPos() const { return yPos; }
+
+		std::string ToString() const override {
+			std::stringstream ss;
+			ss << "WindowMovedEvent: " << xPos << ", " << yPos;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowResize);
+		EVENT_CLASS_CATEGORY(EventCategoryApplication);
+
+	private:
+		int xPos, yPos;
+	};
+
 	class WindowCloseEvent : public Event {
 	public:
 		WindowCloseEvent() {}

@@ -78,6 +78,13 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	SetVSync(true);
 
 	// GLFW Callbacks
+	glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPos, int yPos) {
+		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+		WindowMovedEvent event(xPos, yPos);
+		data.EventCallback(event);
+		});
+
 	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
 		WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 		data.Width = width;

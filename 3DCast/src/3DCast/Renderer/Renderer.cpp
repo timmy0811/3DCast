@@ -29,7 +29,7 @@ void Cast::Renderer::RendererContext::EndScene()
 void Cast::Renderer::RendererContext::Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::Shader>& shader)
 {
 	shader->Bind();
-	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat);
+	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat); // Muss hier raus
 	shader->SetUniformMat4f("u_Projection", sceneDataCache->projectionMat);
 
 	va->Bind();

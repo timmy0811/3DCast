@@ -21,7 +21,6 @@ namespace Cast {
 		Entity CreateEntity(const std::string& name = "Untagged");
 
 		void OnUpdate();
-		// void SubmitShaderData();
 
 		inline Cast::Ref<API::Core::Buffer> GetTransformRegistry() { return TransformSSBO; }
 		inline entt::registry& GetRegistry() { return Registry; }

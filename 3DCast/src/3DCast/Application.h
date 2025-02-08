@@ -46,5 +46,5 @@ namespace Cast {
 		float LastFrameTime = 0.f;
 	};
 
-	Application* CreatApplication();
+	Application* CreateApplication();
 }

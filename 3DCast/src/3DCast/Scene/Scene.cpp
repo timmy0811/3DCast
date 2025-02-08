@@ -22,8 +22,10 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::TextureComponent>();
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 
-	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, 1024, sizeof(glm::mat4)));
-	TransformSSBO->BindBase(1);
+	constexpr unsigned int maxTransforms = 32;
+
+	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxTransforms, sizeof(glm::mat4)));
+	TransformSSBO->BindBase(0);
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
@@ -42,13 +44,23 @@ void Cast::Scene::OnUpdate()
 {
 	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::RasterizableComponent>);
 	for (auto entity : group) {
-		auto& shader = Cast::AssetCache.GetShaderHandle(Registry.get<Component::MaterialComponent>(entity).Shader);
+		auto& material = Registry.get<Component::MaterialComponent>(entity);
 		auto& transform = Registry.get<Component::TransformComponent>(entity);
 		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
-		TransformSSBO->Bind();
-		TransformSSBO->AddData(&transform.Transform, sizeof(glm::mat4), transform.bufferPosition);
+		Cast::Ref<API::Core::Shader> shader;
+		if (material.isDeffered) {
+			shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+		}
+		else {
+			shader = Cast::AssetCache.GetShaderHandle(material.Shader);
+		}
 
-		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
+		if (mesh.ib) {
+			Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
+		}
+		else {
+			Renderer::RendererContext::Submit(mesh.va, shader);
+		}
 	}
 }

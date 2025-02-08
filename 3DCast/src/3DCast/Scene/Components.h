@@ -53,7 +53,12 @@ namespace Cast::Component {
 	{
 		bool isValid;
 		size_t bufferPosition;
+		unsigned int bufferIndex;
 		glm::mat4 Transform{ 1.0f };
+		glm::vec3 translation{ 0.0f };
+		glm::vec3 scale{ 1.0f };
+		glm::vec3 rotation{ 0.0f };
+		Cast::Ref<API::Core::Buffer> transformRegistry;
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -66,8 +71,12 @@ namespace Cast::Component {
 
 		bool Register(Cast::Ref<API::Core::Buffer> transformRegistry)
 		{
+			this->transformRegistry = transformRegistry;
+
 			if (transformRegistry) {
-				bufferPosition = transformRegistry->AddData(&Transform, sizeof(glm::mat4));
+				bufferPosition = transformRegistry->GetSize();
+				transformRegistry->AddData(&Transform, sizeof(glm::mat4));
+				bufferIndex = (unsigned int)(bufferPosition / sizeof(glm::mat4));
 				isValid = true;
 				return true;
 			}
@@ -85,45 +94,54 @@ namespace Cast::Component {
 			return glm::vec3(Transform[3]);
 		}
 
-		inline glm::vec3 GetScale() const
+		glm::vec3 GetScale() const
 		{
-			return glm::vec3(glm::length(Transform[0]), glm::length(Transform[1]), glm::length(Transform[2]));
+			return glm::vec3(glm::length(glm::vec3(Transform[0])),
+				glm::length(glm::vec3(Transform[1])),
+				glm::length(glm::vec3(Transform[2])));
 		}
 
-		inline glm::vec3 GetRotation() const
+		glm::vec3 GetRotation() const
 		{
-			const glm::vec3 scale = GetScale();
+			glm::vec3 scale = GetScale();
 
-			glm::highp_mat3 rotationMatrix = glm::mat3(
+			glm::mat3 rotationMatrix = glm::mat3(
 				Transform[0] / scale.x,
 				Transform[1] / scale.y,
 				Transform[2] / scale.z
 			);
 
-			glm::vec3 eulerAngles = glm::eulerAngles(glm::quat_cast(rotationMatrix));
+			return glm::degrees(glm::eulerAngles(glm::quat_cast(rotationMatrix)));
+		}
 
-			return glm::degrees(eulerAngles);
+		void UpdateTransformMatrix()
+		{
+			Transform = glm::translate(glm::mat4(1.0f), translation) *
+				glm::eulerAngleXYZ(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z)) *
+				glm::scale(glm::mat4(1.0f), scale);
 		}
 
 		virtual void OnImGuiRender() override
 		{
-			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-				glm::vec3 translation = GetTranslation();
-				glm::vec3 scale = GetScale();
-				glm::vec3 rotation = { 0.f, 0.f, 0.f };
-
-				ImGui::Text("Transform:");
+			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
 				ImGui::Text("Translation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				ImGui::DragFloat3("##Translation", &translation.x, 0.1f);
+				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
+					UpdateTransformMatrix();
+
 				ImGui::Text("Scale:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				ImGui::DragFloat3("##Scale", &scale.x, 0.1f);
+				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
+					UpdateTransformMatrix();
+
 				ImGui::Text("Rotation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f);
+				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
+					UpdateTransformMatrix();
 
-				Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+				if (transformRegistry)
+					transformRegistry->AddData(&Transform, sizeof(glm::mat4), bufferPosition);
 			}
 		}
 	};
@@ -278,6 +296,7 @@ namespace Cast::Component {
 		6: Reflectance
 		*/
 		uint16_t textureEnabled;
+		bool isDeffered = true;
 
 		glm::vec3 ambient{ 1.f };
 		glm::vec3 diffuse{ 1.f };
@@ -292,6 +311,8 @@ namespace Cast::Component {
 		virtual void OnImGuiRender() override {
 			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
 				// Ambient
+				ImGui::Checkbox("Use deferred Rendering", &isDeffered);
+
 				bool textureBitEnabled = Helper::isBitSet(textureEnabled, 2);
 
 				if (!textureBitEnabled) {

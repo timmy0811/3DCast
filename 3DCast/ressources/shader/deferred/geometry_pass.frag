@@ -9,19 +9,17 @@ layout (location = 4) out vec2 g_Shine_Reflectance;
 
 in vec3 v_FragPos;
 in vec2 v_UV;
-in vec3 v_Normal;
-in int v_TexIndex;
-in vec2 v_Shine_Reflectance;
-
-uniform vec3 u_Color;
+flat in vec3 v_Normal;
+flat in int v_TexIndex;
+flat in vec2 v_Shine_Reflectance;
 
 void main()
 {    
     g_Position = v_FragPos;
     g_Normal = v_Normal;
 
-    // Determin by Texture Sample
-    g_Albedo = u_Color;
+    // Determine by Texture Sample
+    g_Albedo = vec3(1.0, 0.1, 0.8);
     g_Specular = vec3(1.0);
 
     g_Shine_Reflectance = v_Shine_Reflectance;

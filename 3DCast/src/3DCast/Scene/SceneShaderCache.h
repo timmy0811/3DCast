@@ -65,7 +65,16 @@ namespace Cast {
 			return IdCounterShaders++;
 		}
 
+		unsigned short AddShader(const std::string identifier, API::Core::Shader* shader) {
+			Shaders[IdCounterShaders].reset(shader);
+			ShaderIdentifierMap[identifier] = IdCounterShaders;
+			return IdCounterShaders++;
+		}
+
 		Ref<API::Core::Shader> GetShaderHandle(unsigned short id);
+		Ref<API::Core::Shader> GetShaderHandle(const std::string& identifier);
+
+		unsigned int GetShaderId(const std::string& identifier);
 
 	private:
 		unsigned short IdCounterDiffuse = 0;
@@ -91,6 +100,7 @@ namespace Cast {
 		unsigned short IdCounterShaders = 0;
 
 		std::unordered_map<unsigned short, Ref<API::Core::Shader>> Shaders;
+		std::unordered_map<std::string, unsigned short> ShaderIdentifierMap;
 
 		Ref<API::Core::Buffer> PointLightBuffer;
 		Ref<API::Core::Buffer> DirectionalLightBuffer;

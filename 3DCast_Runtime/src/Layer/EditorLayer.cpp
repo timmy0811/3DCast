@@ -1,13 +1,15 @@
 #include "EditorLayer.h"
 
+#include <3DCast.h>
+#include <3DCast/Scene/ObjectCreator.h>
 #include <3DCast/Scene/Components.h>
 #include <3DCast/Renderer/Camera/PerspectiveCamera.h>
 #include <3DCast/Log.h>
-#include "3DCast/Scene/SceneShaderCache.h"
+#include <3DCast/Scene/SceneShaderCache.h>
 
 #include "Config.h"
 #include "GUI/ImGuiStyle.h"
-#include <3DCast.h>
+#include <imgui_internal.h>
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -18,18 +20,21 @@ void EditorLayer::OnAttach()
 {
 	Runtime::SetupImGuiStyle(true, 0.3f);
 
-	Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
+	RenderPipelineData.GBufferScreenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	RenderPipelineData.Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
+	RenderPipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
 
-	GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	RenderPipelineData.GBuffer->Bind();
+	RenderPipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	RenderPipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	RenderPipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	RenderPipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	RenderPipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
 
-	GBuffer->Bind();
-	GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_READ);
-	GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	GBuffer->Validate();
+	RenderPipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
+	RenderPipelineData.GBuffer->Validate();
+
+	CompileShaders();
 
 	ActiveScene = Cast::CreateRef<Cast::Scene>();
 
@@ -69,7 +74,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 		cameraPosition -= ActiveCamera->GetForward() * CameraSpeed;
 	}
 
-	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT)) {
+	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && ViewportHovered) {
 		ParentWindow->SetInputModeDisabled();
 		CurrentKeyState.isLMBPressed = true;
 	}
@@ -79,10 +84,6 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	}
 
 	ActiveCamera->SetPosition(cameraPosition);
-
-	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(CubeEntity.GetComponent<Cast::Component::MaterialComponent>().Shader);
-	cubeShader->Bind();
-	cubeShader->SetUniform3f("u_Color", 0.9f, 0.2f, 0.9f);
 
 	Render();
 
@@ -159,8 +160,12 @@ void EditorLayer::OnImGuiRender()
 		}
 	}
 
-	uint32_t textureID = Framebuffer->GetColorAttachmentTextureID(0);
+	uint32_t textureID = RenderPipelineData.Framebuffer->GetColorAttachmentTextureID(0);
 	ImGui::Image((unsigned long long)textureID, lastViewportSize);
+
+	ViewportHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+	GuiHovered != ViewportHovered;
+
 	ImGui::End();
 
 	SceneHierarchyPanel.OnImGuiRender();
@@ -171,11 +176,6 @@ void EditorLayer::OnEvent(Cast::Event& e)
 	Cast::EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<Cast::MouseMovedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseMoved));
 	dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
-}
-
-bool EditorLayer::OnWindowResize(Cast::WindowResizeEvent& e)
-{
-	return false;
 }
 
 bool EditorLayer::OnMouseMoved(Cast::MouseMovedEvent& e)
@@ -213,108 +213,69 @@ bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
 void EditorLayer::Render()
 {
 	RenderGeometryPass();
-	//RenderLightingPass();
+	RenderLightingPass();
 }
 
 void EditorLayer::RenderGeometryPass()
 {
-	GBuffer->BindAndClear();
+	API::Core::RenderCommand::SetDepthTest(true);
+	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
+
+	RenderPipelineData.GBuffer->BindAndClear();
 	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
 
 	ActiveScene->OnUpdate();
 
 	Cast::Renderer::RendererContext::EndScene();
-	GBuffer->Unbind();
+	RenderPipelineData.GBuffer->Unbind();
 }
 
 void EditorLayer::RenderLightingPass()
 {
+	API::Core::RenderCommand::SetBlend(true);
+	API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
+
+	RenderPipelineData.Framebuffer->BindAndClear();
+
+	RenderPipelineData.GBuffer->BindDepthTexture(0);
+	RenderPipelineData.GBuffer->BindTextures(1);
+
+	// Lighting Pass Uniforms
+	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	shader->Bind();
+	shader->SetUniform2f("u_Resolution", (float)Runtime::conf.WIN_WIDTH, (float)Runtime::conf.WIN_HEIGHT);
+
+	// TODO: Maybe only set those once on startup
+	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
+	shader->SetUniform1i("gBuf_Normal", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
+	shader->SetUniform1i("gBuf_Albedo", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
+	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
+	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
+
 	// GUI Background Color
-	//API::Core::RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
-	Framebuffer->Bind();
-	//API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
-	API::Core::RenderCommand::Clear();
+	RenderPipelineData.Framebuffer->Bind();
 
-	Framebuffer->Unbind();
+	RenderPipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
+
+	RenderPipelineData.Framebuffer->Unbind();
+
+	API::Core::RenderCommand::SetBlend(false);
+}
+
+void EditorLayer::CompileShaders()
+{
+	Cast::AssetCache.AddShader("shader_geometry_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/geometry_pass.vert", "../3DCast/ressources/shader/deferred/geometry_pass.frag"));
+	Cast::AssetCache.AddShader("shader_shading_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/shading_pass.vert", "../3DCast/ressources/shader/deferred/shading_pass.frag"));
 }
 
 void EditorLayer::SampleContent()
 {
-	// Example Content
-	unsigned short id = Cast::AssetCache.AddShader(API::Core::Shader::Create("../3DCast/ressources/shader/common/deferred/gbuffer_gen.vert", "../3DCast/ressources/shader/common/deferred/gbuffer_gen.frag"));
-
 	// Light
 	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
 	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
 
-	// Cube
-	CubeEntity = ActiveScene->CreateEntity("Cube");
-	CubeEntity.AddComponents<Cast::Component::CustomMeshComponent>();
-	CubeEntity.AddComponents<Cast::Component::RasterizableComponent>();
-	CubeEntity.AddComponents<Cast::Component::MeshComponent>("C:/Git/path/to/file");
-	CubeEntity.AddComponents<Cast::Component::MaterialComponent>(id);
-
-	float vertices[8 * 12] = {
-		// Position        // UVs       // Normals      // TexIndex // TransformIndex // Shine & Reflectance
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,   0,  0,  0.5f, 0.5f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.0f,  1.0f,   1,  1,  0.7f, 0.3f,
-	};
-
-	unsigned int* indices = new unsigned int[36];
-
-	// Front face
-	indices[0] = 4; indices[1] = 5; indices[2] = 6;
-	indices[3] = 6; indices[4] = 7; indices[5] = 4;
-
-	// Back face
-	indices[6] = 0; indices[7] = 1; indices[8] = 2;
-	indices[9] = 2; indices[10] = 3; indices[11] = 0;
-
-	// Left face
-	indices[12] = 0; indices[13] = 4; indices[14] = 7;
-	indices[15] = 7; indices[16] = 3; indices[17] = 0;
-
-	// Right face
-	indices[18] = 1; indices[19] = 5; indices[20] = 6;
-	indices[21] = 6; indices[22] = 2; indices[23] = 1;
-
-	// Top face
-	indices[24] = 3; indices[25] = 2; indices[26] = 6;
-	indices[27] = 6; indices[28] = 7; indices[29] = 3;
-
-	// Bottom face
-	indices[30] = 0; indices[31] = 1; indices[32] = 5;
-	indices[33] = 5; indices[34] = 4; indices[35] = 0;
-
-	Cast::Component::CustomMeshComponent& cubeMesh = CubeEntity.GetComponent<Cast::Component::CustomMeshComponent>();
-
-	cubeMesh.ib.reset(API::Core::IndexBuffer::Create(indices, 36));
-	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(8, sizeof(float) * 12));
-
-	cubeMesh.vb->AddVertexData(vertices, sizeof(vertices));
-
-	delete[] indices;
-
-	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Int);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Int);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
-
-	cubeMesh.va.reset(API::Core::VertexArray::Create());
-	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
-	cubeMesh.va->SetVBCount(4);
-
-	Cast::Ref<API::Core::Shader> cubeShader = Cast::AssetCache.GetShaderHandle(id);
+	CubeEntity = Cast::Create::Cube("Cube_1", ActiveScene.get());
 }

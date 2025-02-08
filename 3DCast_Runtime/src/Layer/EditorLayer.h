@@ -1,14 +1,12 @@
 #pragma once
 
-#include "3DCast/Scene/Scene.h"
-#include "3DCast/Scene/Entity.h"
-#include "3DCast/Layer/Layer.h"
-#include "3DCast/Event/ApplicationEvent.h"
-#include "3DCast/Event/MouseEvent.h"
-#include "3DCast/Renderer/Camera/Camera.h"
-
-#include "API/core/Framebuffer.h"
-#include "API/advanced/Gbuffer.h"
+#include <3DCast/Scene/Scene.h>
+#include <3DCast/Scene/Entity.h>
+#include <3DCast/Layer/Layer.h>
+#include <3DCast/Event/ApplicationEvent.h>
+#include <3DCast/Event/MouseEvent.h>
+#include <3DCast/Renderer/Camera/Camera.h>
+#include <3DCast/Renderer/Data/RenderPipelineObjectData.h>
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
 
@@ -28,7 +26,6 @@ public:
 	virtual void OnEvent(Cast::Event& e) override;
 
 private:
-	bool OnWindowResize(Cast::WindowResizeEvent& e);
 	bool OnMouseMoved(Cast::MouseMovedEvent& e);
 	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
 
@@ -36,13 +33,14 @@ private:
 	void RenderGeometryPass();
 	void RenderLightingPass();
 
+	void CompileShaders();
+
 	// Temporary
 	void SampleContent();
 
 private:
+	Cast::Renderer::RenderPipelineObjectData RenderPipelineData;
 	inline static float CameraSpeed = 0.03f;
-	Cast::Ref<API::Core::Framebuffer> Framebuffer;
-	Cast::Ref<API::Advanced::GBuffer> GBuffer;
 	Cast::Ref<Cast::Scene> ActiveScene;
 
 	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
@@ -50,6 +48,7 @@ private:
 
 	bool ViewportFocused = false;
 	bool ViewportHovered = false;
+	bool GuiHovered = false;
 	glm::vec2 ViewportSize = { 0.0f, 0.0f };
 	glm::vec2 LastMousePosition = { 0.0f, 0.f };
 	bool IsInitFrame = true;
