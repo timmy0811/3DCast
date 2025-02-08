@@ -1,14 +1,11 @@
 #pragma once
 
-#include <3DCast/Scene/Scene.h>
-#include <3DCast/Scene/Entity.h>
-#include <3DCast/Layer/Layer.h>
-#include <3DCast/Event/ApplicationEvent.h>
-#include <3DCast/Event/MouseEvent.h>
-#include <3DCast/Renderer/Camera/Camera.h>
-#include <3DCast/Renderer/Data/RenderPipelineObjectData.h>
+#include "3DCast.h"
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
+
+#include "Layer/Blocks/RasterizationViewport.h"
+#include "Layer/Blocks/PBRViewport.h"
 
 #include "vendor/glm/glm.hpp"
 
@@ -26,38 +23,22 @@ public:
 	virtual void OnEvent(Cast::Event& e) override;
 
 private:
-	bool OnMouseMoved(Cast::MouseMovedEvent& e);
-	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
-
 	void Render();
-	void RenderGeometryPass();
-	void RenderLightingPass();
-
-	void CompileShaders();
 
 	// Temporary
 	void SampleContent();
 
+	// Event Handlers
+	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
+
 private:
-	Cast::Renderer::RenderPipelineObjectData RenderPipelineData;
-	inline static float CameraSpeed = 0.03f;
-	Cast::Ref<Cast::Scene> ActiveScene;
+	Runtime::PBRViewport ViewportPbr;
+	Runtime::RasterizationViewport ViewportRasterization;
 
-	Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
+	float CameraSpeed = 0.03f;
+
 	Cast::Entity CubeEntity;
-
-	bool ViewportFocused = false;
-	bool ViewportHovered = false;
-	bool GuiHovered = false;
-	glm::vec2 ViewportSize = { 0.0f, 0.0f };
-	glm::vec2 LastMousePosition = { 0.0f, 0.f };
-	bool IsInitFrame = true;
 
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
-
-	struct KeyState
-	{
-		bool isLMBPressed = false;
-	} CurrentKeyState;
 };

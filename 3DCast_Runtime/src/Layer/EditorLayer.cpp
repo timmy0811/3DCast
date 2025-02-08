@@ -1,48 +1,31 @@
 #include "EditorLayer.h"
 
-#include <3DCast.h>
-#include <3DCast/Scene/ObjectCreator.h>
-#include <3DCast/Scene/Components.h>
-#include <3DCast/Renderer/Camera/PerspectiveCamera.h>
-#include <3DCast/Log.h>
-#include <3DCast/Scene/SceneShaderCache.h>
-
+#include "Data/SharedEditorData.h"
 #include "Config.h"
 #include "GUI/ImGuiStyle.h"
+
 #include <imgui_internal.h>
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
 {
+	ViewportPbr = Runtime::PBRViewport(this);
+	ViewportRasterization = Runtime::RasterizationViewport(this);
 }
 
 void EditorLayer::OnAttach()
 {
 	Runtime::SetupImGuiStyle(true, 0.3f);
 
-	RenderPipelineData.GBufferScreenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
-	RenderPipelineData.Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
-	RenderPipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	Runtime::EditorContext.ActiveScene = Cast::CreateRef<Cast::Scene>();
+	Cast::Entity cameraEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Camera");
 
-	RenderPipelineData.GBuffer->Bind();
-	RenderPipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	Runtime::EditorContext.ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
+	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
 
-	RenderPipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
-	RenderPipelineData.GBuffer->Validate();
-
-	CompileShaders();
-
-	ActiveScene = Cast::CreateRef<Cast::Scene>();
-
-	Cast::Entity cameraEntity = ActiveScene->CreateEntity("Camera");
-
-	ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
-	ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*ActiveCamera);
+	ViewportPbr.Init();
+	ViewportRasterization.Init();
 
 	// Sample Content
 	SampleContent();
@@ -54,12 +37,12 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate(Cast::Timestep ts)
 {
-	glm::vec3 cameraPosition = ActiveCamera->GetPosition();
+	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
 	if (Cast::Input::IsKeyPressed(CAST_KEY_A)) {
-		cameraPosition -= ActiveCamera->GetRight() * CameraSpeed;
+		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_D)) {
-		cameraPosition += ActiveCamera->GetRight() * CameraSpeed;
+		cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_UP)) {
 		cameraPosition.y += CameraSpeed;
@@ -68,26 +51,20 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 		cameraPosition.y -= CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_W)) {
-		cameraPosition += ActiveCamera->GetForward() * CameraSpeed;
+		cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeed;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_S)) {
-		cameraPosition -= ActiveCamera->GetForward() * CameraSpeed;
+		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeed;
 	}
 
-	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && ViewportHovered) {
-		ParentWindow->SetInputModeDisabled();
-		CurrentKeyState.isLMBPressed = true;
-	}
-	else {
-		ParentWindow->SetInputModeNormal();
-		CurrentKeyState.isLMBPressed = false;
-	}
+	Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
 
-	ActiveCamera->SetPosition(cameraPosition);
+	ViewportPbr.OnUpdate(ts);
+	ViewportRasterization.OnUpdate(ts);
 
 	Render();
 
-	SceneHierarchyPanel.SetContext(ActiveScene);
+	SceneHierarchyPanel.SetContext(Runtime::EditorContext.ActiveScene);
 }
 
 void EditorLayer::OnImGuiRender()
@@ -142,31 +119,8 @@ void EditorLayer::OnImGuiRender()
 
 	ImGui::End();
 
-	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoTitleBar);
-	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-	static ImVec2 lastViewportSize = ImVec2(0, 0);
-	if (viewportSize.x != lastViewportSize.x || viewportSize.y != lastViewportSize.y)
-	{
-		lastViewportSize = viewportSize;
-
-		//Framebuffer->Resize({ static_cast<uint32_t>(viewportSize.x), static_cast<uint32_t>(viewportSize.y) });
-
-		switch (ActiveCamera->GetType()) {
-		case Cast::Renderer::Camera::Type::Orthographic:
-			((Cast::Renderer::OrthographicCamera*)ActiveCamera.get())->SetFrustumOnResized(lastViewportSize.x, lastViewportSize.y);
-			break;
-		case Cast::Renderer::Camera::Type::Perspective:
-			((Cast::Renderer::PerspectiveCamera*)ActiveCamera.get())->SetAspectRatio(lastViewportSize.x / lastViewportSize.y);
-		}
-	}
-
-	uint32_t textureID = RenderPipelineData.Framebuffer->GetColorAttachmentTextureID(0);
-	ImGui::Image((unsigned long long)textureID, lastViewportSize);
-
-	ViewportHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
-	GuiHovered != ViewportHovered;
-
-	ImGui::End();
+	ViewportRasterization.OnImGuiRender();
+	ViewportPbr.OnImGuiRender();
 
 	SceneHierarchyPanel.OnImGuiRender();
 }
@@ -174,32 +128,10 @@ void EditorLayer::OnImGuiRender()
 void EditorLayer::OnEvent(Cast::Event& e)
 {
 	Cast::EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<Cast::MouseMovedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseMoved));
 	dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
-}
 
-bool EditorLayer::OnMouseMoved(Cast::MouseMovedEvent& e)
-{
-	if (CurrentKeyState.isLMBPressed && !IsInitFrame) {
-		glm::vec3 cameraRotation = (ActiveCamera->GetRotation());
-
-		glm::vec2 offset = {
-			e.GetX() - LastMousePosition.x,
-			e.GetY() - LastMousePosition.y
-		};
-
-		offset *= Runtime::conf.MOUSE_SENSITIVITY;
-
-		float yaw = ActiveCamera->GetYaw() + offset.x;
-		float pitch = ActiveCamera->GetPitch() + offset.y;
-
-		ActiveCamera->SetRotation({ pitch, yaw, cameraRotation.z });
-	}
-
-	LastMousePosition = glm::vec2(e.GetX(), e.GetY());
-	IsInitFrame = false;
-
-	return false;
+	ViewportPbr.OnEvent(e);
+	ViewportRasterization.OnEvent(e);
 }
 
 bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
@@ -212,70 +144,15 @@ bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
 
 void EditorLayer::Render()
 {
-	RenderGeometryPass();
-	RenderLightingPass();
-}
-
-void EditorLayer::RenderGeometryPass()
-{
-	API::Core::RenderCommand::SetDepthTest(true);
-	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
-
-	RenderPipelineData.GBuffer->BindAndClear();
-	Cast::Renderer::RendererContext::BeginScene(*ActiveCamera);
-
-	ActiveScene->OnUpdate();
-
-	Cast::Renderer::RendererContext::EndScene();
-	RenderPipelineData.GBuffer->Unbind();
-}
-
-void EditorLayer::RenderLightingPass()
-{
-	API::Core::RenderCommand::SetBlend(true);
-	API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
-
-	RenderPipelineData.Framebuffer->BindAndClear();
-
-	RenderPipelineData.GBuffer->BindDepthTexture(0);
-	RenderPipelineData.GBuffer->BindTextures(1);
-
-	// Lighting Pass Uniforms
-	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
-	shader->Bind();
-	shader->SetUniform2f("u_Resolution", (float)Runtime::conf.WIN_WIDTH, (float)Runtime::conf.WIN_HEIGHT);
-
-	// TODO: Maybe only set those once on startup
-	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	shader->SetUniform1i("gBuf_Normal", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	shader->SetUniform1i("gBuf_Albedo", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
-	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
-	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
-
-	// GUI Background Color
-	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
-	API::Core::RenderCommand::Clear();
-
-	RenderPipelineData.Framebuffer->Bind();
-
-	RenderPipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
-
-	RenderPipelineData.Framebuffer->Unbind();
-
-	API::Core::RenderCommand::SetBlend(false);
-}
-
-void EditorLayer::CompileShaders()
-{
-	Cast::AssetCache.AddShader("shader_geometry_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/geometry_pass.vert", "../3DCast/ressources/shader/deferred/geometry_pass.frag"));
-	Cast::AssetCache.AddShader("shader_shading_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/shading_pass.vert", "../3DCast/ressources/shader/deferred/shading_pass.frag"));
+	ViewportRasterization.OnRender();
+	// ViewportPbr.OnRender();
 }
 
 void EditorLayer::SampleContent()
 {
 	// Light
-	Cast::Entity lightEntity = ActiveScene->CreateEntity("Light");
+	Cast::Entity lightEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Light");
 	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
 
-	CubeEntity = Cast::Create::Cube("Cube_1", ActiveScene.get());
+	CubeEntity = Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 }

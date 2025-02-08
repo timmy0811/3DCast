@@ -14,6 +14,7 @@ namespace Cast {
 		virtual ~Layer();
 
 		inline void SetParentWindow(Ref<Cast::Window> window) { ParentWindow = window; }
+		inline Ref<Cast::Window> GetParentWindow() { return ParentWindow; }
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}

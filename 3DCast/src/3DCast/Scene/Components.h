@@ -141,7 +141,7 @@ namespace Cast::Component {
 					UpdateTransformMatrix();
 
 				if (transformRegistry)
-					transformRegistry->AddData(&Transform, sizeof(glm::mat4), bufferPosition);
+					transformRegistry->AddData(&Transform, sizeof(glm::mat4), (int)bufferPosition);
 			}
 		}
 	};
