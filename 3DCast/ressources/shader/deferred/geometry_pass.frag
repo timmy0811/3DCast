@@ -19,8 +19,8 @@ void main()
     g_Normal = v_Normal;
 
     // Determine by Texture Sample
-    g_Albedo = vec3(1.0, 0.1, 0.8);
-    g_Specular = vec3(1.0);
+    g_Albedo = vec3(0.8, 0.8, 0.8);
+    g_Specular = vec3(0.5);
 
     g_Shine_Reflectance = v_Shine_Reflectance;
 }

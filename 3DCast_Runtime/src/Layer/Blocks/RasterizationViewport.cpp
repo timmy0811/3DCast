@@ -34,13 +34,19 @@ void Runtime::RasterizationViewport::Destroy()
 
 void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 {
+	static bool initCameraRotation = true;
 	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsHovered) {
-		ParentLayer->GetParentWindow()->SetInputModeDisabled();
-		CurrentKeyState.isLMBPressed = true;
+		if (initCameraRotation) {
+			ParentLayer->GetParentWindow()->SetInputModeDisabled();
+			IsCameraRotating = true;
+			initCameraRotation = false;
+			IsInitFrame = true;
+		}
 	}
 	else {
 		ParentLayer->GetParentWindow()->SetInputModeNormal();
-		CurrentKeyState.isLMBPressed = false;
+		IsCameraRotating = false;
+		initCameraRotation = true;
 	}
 }
 
@@ -52,8 +58,12 @@ void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
 
 void Runtime::RasterizationViewport::OnRender()
 {
+	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
+
 	RenderGeometryPass();
 	RenderLightingPass();
+
+	Cast::Renderer::RendererContext::EndScene();
 }
 
 void Runtime::RasterizationViewport::OnImGuiRender()
@@ -82,6 +92,13 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 
+	Size = { viewportSize.x, viewportSize.y };
+	glm::vec2 viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+	glm::vec2 applicationAbsPos = (glm::vec2)ParentLayer->GetParentWindow()->GetPosition();
+	Position = viewportAbsPos - applicationAbsPos;
+
+	RelativeMousePosition = { ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y };
+
 	ImGui::End();
 }
 
@@ -91,11 +108,9 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
 
 	RenderPipelineData.GBuffer->BindAndClear();
-	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
 
 	Runtime::EditorContext.ActiveScene->OnUpdate();
 
-	Cast::Renderer::RendererContext::EndScene();
 	RenderPipelineData.GBuffer->Unbind();
 }
 
@@ -113,6 +128,8 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
 	shader->SetUniform2f("u_Resolution", (float)Runtime::conf.WIN_WIDTH, (float)Runtime::conf.WIN_HEIGHT);
+	const glm::vec3& pos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	shader->SetUniform3f("u_ViewPosition", pos.x, pos.y, pos.z);
 
 	// TODO: Maybe only set those once on startup
 	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
@@ -142,24 +159,26 @@ void Runtime::RasterizationViewport::CompileShaders()
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
-	if (CurrentKeyState.isLMBPressed && IsHovered && !IsInitFrame) {
-		glm::vec3 cameraRotation = (Runtime::EditorContext.ActiveCamera->GetRotation());
+	if (IsCameraRotating) {
+		glm::vec2 center = Position + Size * 0.5f;
 
-		glm::vec2 offset = {
-			e.GetX() - LastMousePosition.x,
-			e.GetY() - LastMousePosition.y
-		};
+		if (!IsInitFrame) {
+			glm::vec2 offset = {
+				e.GetX() - center.x,
+				e.GetY() - center.y
+			};
 
-		offset *= Runtime::conf.MOUSE_SENSITIVITY;
+			offset *= Runtime::conf.MOUSE_SENSITIVITY;
 
-		float yaw = Runtime::EditorContext.ActiveCamera->GetYaw() + offset.x;
-		float pitch = Runtime::EditorContext.ActiveCamera->GetPitch() + offset.y;
+			float yaw = Runtime::EditorContext.ActiveCamera->GetYaw() + offset.x;
+			float pitch = glm::clamp(Runtime::EditorContext.ActiveCamera->GetPitch() + offset.y, -89.99f, 89.99f);
 
-		Runtime::EditorContext.ActiveCamera->SetRotation({ pitch, yaw, cameraRotation.z });
+			Runtime::EditorContext.ActiveCamera->SetRotation({ pitch, yaw, Runtime::EditorContext.ActiveCamera->GetRoll() });
+		}
+
+		ParentLayer->GetParentWindow()->SetCursorPosition(center.x, center.y); // Relative to application window
+		IsInitFrame = false;
 	}
-
-	LastMousePosition = glm::vec2(e.GetX(), e.GetY());
-	IsInitFrame = false;
 
 	return false;
 }

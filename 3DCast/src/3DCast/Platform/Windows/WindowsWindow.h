@@ -24,12 +24,17 @@ namespace Cast {
 		inline unsigned int GetWidth() const override { return data.Width; };
 		inline unsigned int GetHeight() const override { return data.Height; };
 
+		inline glm::ivec2 GetPosition() const override;
+
 		inline void SetEventCallback(const EventCallbackFunc& callback) override { data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		inline bool IsVSync() const override;
 
+		inline void SetRawMouseInput(bool enabled) const override;
 		virtual void SetInputModeDisabled() const override;
 		virtual void SetInputModeNormal() const override;
+
+		virtual void SetCursorPosition(double xpos, double ypos) override;
 
 	private:
 		virtual void Init(const WindowProperties& props);

@@ -19,7 +19,7 @@ void Cast::Renderer::RendererContext::BeginScene(Camera& camera)
 {
 	sceneDataCache->viewProjectionMat = camera.GetViewProjectionMat();
 	sceneDataCache->viewMat = camera.GetViewMat();
-	sceneDataCache->projectionMat = camera.GetViewProjectionMat();
+	sceneDataCache->projectionMat = camera.GetProjectionMat();
 }
 
 void Cast::Renderer::RendererContext::EndScene()

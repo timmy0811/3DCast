@@ -15,22 +15,20 @@ void Cast::Renderer::Camera::LookAt(const glm::vec3& target, const glm::vec3& up
 	glm::vec3 targetVec = glm::normalize(target - Position);
 	glm::quat rotation = glm::quatLookAt(targetVec, up);
 
-	rotation = glm::degrees(glm::eulerAngles(rotation));
-
+	Rotation = glm::degrees(glm::eulerAngles(rotation));
 	UpdateViewMat();
 }
 
 void Cast::Renderer::Camera::UpdateViewMat() {
-	ViewMat = glm::lookAt(Position, Position + Forward, WorldUp);
-	ViewProjectionMat = ProjectionMat * ViewMat;
-
-	glm::vec3 fw{};
-
+	glm::vec3 fw;
 	fw.x = cos(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
 	fw.y = sin(glm::radians(Rotation.x));
 	fw.z = sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
-
 	Forward = glm::normalize(fw);
+
 	Right = glm::normalize(glm::cross(Forward, WorldUp));
 	Up = glm::normalize(glm::cross(Right, Forward));
+
+	ViewMat = glm::lookAt(Position, Position + Forward, Up);
+	ViewProjectionMat = ProjectionMat * ViewMat;
 }

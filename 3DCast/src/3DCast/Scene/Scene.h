@@ -5,6 +5,7 @@
 #include <entt/entt.hpp>
 
 #include "3DCast/Core.h"
+#include "3DCast/Scene/DataObjects/ShaderDataObjects.h"
 
 #include <API/core/Buffer.h>
 
@@ -21,6 +22,11 @@ namespace Cast {
 		Entity CreateEntity(const std::string& name = "Untagged");
 
 		void OnUpdate();
+		void ReallocateLights(int type);
+
+		inline Cast::Ref<API::Core::Buffer> GetDirLightsBuffer() { return DirLightsSSBO; }
+		inline Cast::Ref<API::Core::Buffer> GetSpotLightsBuffer() { return SpotLightsSSBO; }
+		inline Cast::Ref<API::Core::Buffer> GetPointLightsBuffer() { return PointLightsSSBO; }
 
 		inline Cast::Ref<API::Core::Buffer> GetTransformRegistry() { return TransformSSBO; }
 		inline entt::registry& GetRegistry() { return Registry; }
@@ -39,7 +45,11 @@ namespace Cast {
 	private:
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
+
 		Cast::Ref<API::Core::Buffer> TransformSSBO;
+		Cast::Ref<API::Core::Buffer> DirLightsSSBO;
+		Cast::Ref<API::Core::Buffer> SpotLightsSSBO;
+		Cast::Ref<API::Core::Buffer> PointLightsSSBO;
 
 		friend class Entity;
 	};

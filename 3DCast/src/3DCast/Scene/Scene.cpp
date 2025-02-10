@@ -23,9 +23,19 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 
 	constexpr unsigned int maxTransforms = 32;
+	constexpr unsigned int maxLightsPerType = 8;
 
 	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxTransforms, sizeof(glm::mat4)));
 	TransformSSBO->BindBase(0);
+
+	DirLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(DirectionalLight)));
+	DirLightsSSBO->BindBase(1);
+
+	SpotLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(SpotLight)));
+	SpotLightsSSBO->BindBase(2);
+
+	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
+	PointLightsSSBO->BindBase(3);
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
@@ -42,13 +52,18 @@ Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
 
 void Cast::Scene::OnUpdate()
 {
+	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	shader->Bind();
+	shader->SetUniform1i("BufferCountDirectionalLight", (int)(DirLightsSSBO->GetSize() / sizeof(DirectionalLight)));
+	shader->SetUniform1i("BufferCountPointLight", (int)(PointLightsSSBO->GetSize() / sizeof(PointLight)));
+	shader->SetUniform1i("BufferCountSpotLight", (int)(SpotLightsSSBO->GetSize() / sizeof(SpotLight)));
+
 	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::RasterizableComponent>);
 	for (auto entity : group) {
 		auto& material = Registry.get<Component::MaterialComponent>(entity);
 		auto& transform = Registry.get<Component::TransformComponent>(entity);
 		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
-		Cast::Ref<API::Core::Shader> shader;
 		if (material.isDeffered) {
 			shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
 		}
@@ -63,4 +78,21 @@ void Cast::Scene::OnUpdate()
 			Renderer::RendererContext::Submit(mesh.va, shader);
 		}
 	}
+}
+
+void Cast::Scene::ReallocateLights(int type)
+{
+	switch (type) {
+	case 0: DirLightsSSBO->Empty(); break;
+	case 1: PointLightsSSBO->Empty(); break;
+	case 2: SpotLightsSSBO->Empty(); break;
+	}
+
+	auto view = Registry.view<Component::LightComponent>();
+
+	view.each([&](entt::entity entity, Component::LightComponent& light) {
+		if ((int)light.LightType == type) {
+			light.Reallocate();
+		}
+		});
 }

@@ -18,6 +18,13 @@ void Cast::WindowsWindow::OnUpdate()
 	context->SwapBuffer();
 }
 
+inline glm::ivec2 Cast::WindowsWindow::GetPosition() const
+{
+	glm::ivec2 pos;
+	glfwGetWindowPos(window, &pos.x, &pos.y);
+	return pos;
+}
+
 void Cast::WindowsWindow::SetVSync(bool enabled)
 {
 	if (enabled) glfwSwapInterval(1);
@@ -31,6 +38,13 @@ inline bool Cast::WindowsWindow::IsVSync() const
 	return data.VSync;
 }
 
+inline void Cast::WindowsWindow::SetRawMouseInput(bool enabled) const
+{
+	if (glfwRawMouseMotionSupported()) {
+		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, enabled ? GLFW_TRUE : GLFW_FALSE);
+	}
+}
+
 void Cast::WindowsWindow::SetInputModeDisabled() const
 {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -39,6 +53,11 @@ void Cast::WindowsWindow::SetInputModeDisabled() const
 void Cast::WindowsWindow::SetInputModeNormal() const
 {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void Cast::WindowsWindow::SetCursorPosition(double xpos, double ypos)
+{
+	glfwSetCursorPos(window, xpos, ypos);
 }
 
 void Cast::WindowsWindow::Init(const WindowProperties& props)

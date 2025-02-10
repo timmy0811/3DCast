@@ -15,12 +15,14 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnAttach()
 {
+	Cast::Application::Get().GetWindow().SetRawMouseInput(true);
+
 	Runtime::SetupImGuiStyle(true, 0.3f);
 
 	Runtime::EditorContext.ActiveScene = Cast::CreateRef<Cast::Scene>();
 	Cast::Entity cameraEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Camera");
 
-	Runtime::EditorContext.ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(70.f, 1.5f, 0.1f, 100.f));
+	Runtime::EditorContext.ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(glm::radians(90.f), 1.5f, 0.1f, 100.f));
 	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
 
@@ -152,7 +154,7 @@ void EditorLayer::SampleContent()
 {
 	// Light
 	Cast::Entity lightEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Light");
-	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::Component::LightComponent::Type::Directional, glm::vec3(0.3f, -.3f, 0.3f), 1.f);
+	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Runtime::EditorContext.ActiveScene);
 
 	CubeEntity = Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 }

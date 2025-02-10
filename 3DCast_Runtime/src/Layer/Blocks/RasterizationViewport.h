@@ -33,11 +33,7 @@ namespace Runtime {
 		Cast::Renderer::RenderPipelineObjectData RenderPipelineData;
 
 		bool IsInitFrame = true;
-		glm::vec2 LastMousePosition = { 0.0f, 0.f };
-
-		struct KeyState
-		{
-			bool isLMBPressed = false;
-		} CurrentKeyState;
+		bool IsCameraRotating = false;
+		glm::vec2 RelativeMousePosition = { 0.0f, 0.f };
 	};
 }

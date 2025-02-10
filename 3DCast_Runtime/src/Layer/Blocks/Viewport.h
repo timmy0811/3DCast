@@ -36,5 +36,7 @@ namespace Runtime {
 		bool IsFocused = false;
 		bool IsHovered = false;
 		glm::vec2 Size = { 0.0f, 0.0f };
+		// Position relative to the parent window
+		glm::vec2 Position = { 0.0f, 0.0f };
 	};
 }
