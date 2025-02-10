@@ -39,24 +39,25 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate(Cast::Timestep ts)
 {
+	float CameraSpeedCorrected = CameraSpeed * ts;
 	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
 	if (Cast::Input::IsKeyPressed(CAST_KEY_A)) {
-		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeed;
+		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_D)) {
-		cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeed;
+		cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_UP)) {
-		cameraPosition.y += CameraSpeed;
+		cameraPosition.y += CameraSpeedCorrected;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN)) {
-		cameraPosition.y -= CameraSpeed;
+		cameraPosition.y -= CameraSpeedCorrected;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_W)) {
-		cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeed;
+		cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
 	}
 	if (Cast::Input::IsKeyPressed(CAST_KEY_S)) {
-		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeed;
+		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
 	}
 
 	Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
@@ -67,6 +68,8 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 	Render();
 
 	SceneHierarchyPanel.SetContext(Runtime::EditorContext.ActiveScene);
+
+	DeltaTime = ts.GetSeconds();
 }
 
 void EditorLayer::OnImGuiRender()
@@ -118,6 +121,14 @@ void EditorLayer::OnImGuiRender()
 
 		ImGui::EndMenuBar();
 	}
+
+	ImGui::End();
+
+	ImGui::Begin("Diagnostics");
+	ImGui::Text("FPS: %d", (int)(1.0f / DeltaTime));
+	ImGui::Text("Frametime: %.2f", DeltaTime * 1000.f);
+
+	ImGui::Text("Camera Position: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x, Runtime::EditorContext.ActiveCamera->GetPosition().y, Runtime::EditorContext.ActiveCamera->GetPosition().z);
 
 	ImGui::End();
 

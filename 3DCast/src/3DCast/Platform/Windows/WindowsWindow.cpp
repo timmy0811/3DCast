@@ -27,9 +27,7 @@ inline glm::ivec2 Cast::WindowsWindow::GetPosition() const
 
 void Cast::WindowsWindow::SetVSync(bool enabled)
 {
-	if (enabled) glfwSwapInterval(1);
-	else glfwSwapInterval(0);
-
+	glfwSwapInterval(enabled ? 1 : 0);
 	data.VSync = enabled;
 }
 
@@ -94,7 +92,7 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 	context->Init();
 
 	glfwSetWindowUserPointer(window, &data);
-	SetVSync(true);
+	SetVSync(false);
 
 	// GLFW Callbacks
 	glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPos, int yPos) {

@@ -32,10 +32,12 @@ private:
 	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
 
 private:
+	float DeltaTime = 0.0f;
+
 	Runtime::PBRViewport ViewportPbr;
 	Runtime::RasterizationViewport ViewportRasterization;
 
-	float CameraSpeed = 0.03f;
+	float CameraSpeed = 4.f;
 
 	Cast::Entity CubeEntity;
 
