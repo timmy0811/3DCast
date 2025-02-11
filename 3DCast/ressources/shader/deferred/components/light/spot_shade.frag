@@ -19,17 +19,8 @@ struct SpotLight {
 
 // shading
 vec3 AffectSpotlight(SpotLight SLight, vec3 normal, vec3 fragPos, vec3 viewDirection, vec3 albedo, float shine, vec3 pixelSpecular) {
-    vec3 lightDir = normalize(SLight.position - fragPos);
-
-    // Spotlight intensity (soft transition)
-    float theta = dot(lightDir, normalize(SLight.direction)); 
-    float intensity = smoothstep(SLight.outerCutOff, SLight.cutOff, theta);
-
-    // Distance-based attenuation
-    float dist = length(SLight.position - fragPos);
-    float attenuation = 1.0 / (SLight.constant + SLight.linear * dist + SLight.quadratic * (dist * dist));
-
     // Diffuse lighting
+    vec3 lightDir = normalize(SLight.position - fragPos);
     float diffAngle = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diffAngle * albedo * SLight.diffuse;
 
@@ -40,6 +31,17 @@ vec3 AffectSpotlight(SpotLight SLight, vec3 normal, vec3 fragPos, vec3 viewDirec
 
     // Ambient lighting
     vec3 ambient = albedo * SLight.ambient;
+
+    // Spotlight intensity
+    float theta = dot(lightDir, normalize(-SLight.direction)); 
+    float epsilon = (SLight.outerCutOff - SLight.cutOff);
+    float intensity = clamp((theta - SLight.cutOff) / epsilon, 0.0, 1.0);
+    diffuse  *= intensity;
+    specular *= intensity;
+
+    // Attenuation
+    float dist = length(SLight.position - fragPos);
+    float attenuation = 1.0 / (SLight.constant + SLight.linear * dist + SLight.quadratic * (dist * dist));
 
     // Apply attenuation and spotlight effect
     diffuse *= attenuation * intensity;

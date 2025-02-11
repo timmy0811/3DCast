@@ -226,7 +226,7 @@ namespace Cast::Component {
 					if (changed) {
 						Scene->ReallocateLights(oldType);
 						delete Light;
-						Light = new PointLight();
+						Light = new DirectionalLight();
 						SetupDirLight();
 					}
 
@@ -327,23 +327,27 @@ namespace Cast::Component {
 
 					ImGui::Text("Constant Factor:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat("##Constant", &spotLight->constant, 0.1f);
+					changed |= ImGui::DragFloat("##Constant", &spotLight->constant, 0.002f);
 
 					ImGui::Text("Linear Factor:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat("##Linear", &spotLight->linear, 0.1f);
+					changed |= ImGui::DragFloat("##Linear", &spotLight->linear, 0.002f);
 
 					ImGui::Text("Quadratic Factor:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat("##Quadratic", &spotLight->quadratic, 0.01f);
+					changed |= ImGui::DragFloat("##Quadratic", &spotLight->quadratic, 0.001f);
 
-					ImGui::Text("Cutoff:");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat("##Cutoff", &spotLight->cutOff, 0.01f);
-
+					static float cutOff = glm::degrees(spotLight->cutOff);
 					ImGui::Text("Outer Cutoff:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat("##Cutoff Out", &spotLight->outerCutOff, 0.02f);
+					changed |= ImGui::DragFloat("##Outer Cutoff", &cutOff, 0.2f);
+					spotLight->cutOff = glm::cos(glm::radians(cutOff));
+
+					static float outerCutOff = glm::degrees(spotLight->outerCutOff);
+					ImGui::Text("Cutoff:");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+					changed |= ImGui::DragFloat("##Cutoff Out", &outerCutOff, 0.2f);
+					spotLight->outerCutOff = glm::cos(glm::radians(outerCutOff));
 
 					if (changed) Scene->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
 

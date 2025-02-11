@@ -2,6 +2,7 @@
 
 // structure
 struct PointLight{
+    float affectedRadius;
     vec3 position;
 
     vec3 ambient;
@@ -30,7 +31,7 @@ vec3 AffectPointlight(PointLight PLight, vec3 normal, vec3 viewDirection, vec3 f
 
     // attenuation
     float dist = length(PLight.position - fragPos);
-    float attenuation = 1.0 / (PLight.constant + PLight.linear * dist + PLight.quadratic * (dist + dist));
+    float attenuation = 1.0 / (PLight.constant + PLight.linear * dist + PLight.quadratic * (dist * dist));
 
     ambient *= attenuation;
     diffuse *= attenuation;
