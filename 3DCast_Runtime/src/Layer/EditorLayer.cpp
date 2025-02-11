@@ -5,6 +5,7 @@
 #include "GUI/ImGuiStyle.h"
 
 #include <imgui_internal.h>
+#include <time.h>
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -125,7 +126,29 @@ void EditorLayer::OnImGuiRender()
 	ImGui::End();
 
 	ImGui::Begin("Diagnostics");
-	ImGui::Text("FPS: %d", (int)(1.0f / DeltaTime));
+
+	int fps = (int)(1.0f / DeltaTime);
+	static int maxFPS = 0;
+	static int minFPS = fps;
+	maxFPS = std::max(maxFPS, fps);
+	minFPS = std::min(minFPS, fps);
+
+	static int maxFPSDisplay = fps;
+	static int minFPSDisplay = fps;
+
+	static time_t startTime = time(0);
+	if (difftime(time(0), startTime) >= 1)
+	{
+		startTime = time(0);
+		maxFPSDisplay = maxFPS;
+		minFPSDisplay = minFPS;
+		maxFPS = 0;
+		minFPS = fps;
+	}
+
+	ImGui::Text("FPS: %d", fps);
+	ImGui::Text("Max FPS: %d", maxFPSDisplay);
+	ImGui::Text("Min FPS: %d", minFPSDisplay);
 	ImGui::Text("Frametime: %.2f", DeltaTime * 1000.f);
 
 	ImGui::Text("Camera Position: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x, Runtime::EditorContext.ActiveCamera->GetPosition().y, Runtime::EditorContext.ActiveCamera->GetPosition().z);

@@ -26,7 +26,19 @@ void Runtime::RasterizationViewport::Init()
 	RenderPipelineData.GBuffer->AddStencilTarget();
 	RenderPipelineData.GBuffer->Validate();
 
+	RenderPipelineData.GBuffer->BindDepthTexture(0);
+	RenderPipelineData.GBuffer->BindTextures(1);
+
 	CompileShaders();
+
+	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	shader->Bind();
+	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
+	shader->SetUniform1i("gBuf_Normal", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
+	shader->SetUniform1i("gBuf_Albedo", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
+	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
+	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
+	shader->Unbind();
 }
 
 void Runtime::RasterizationViewport::Destroy()
@@ -124,9 +136,6 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 {
 	RenderPipelineData.Framebuffer->BindAndClear();
 
-	RenderPipelineData.GBuffer->BindDepthTexture(0);
-	RenderPipelineData.GBuffer->BindTextures(1);
-
 	// Lighting Pass Uniforms
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
@@ -134,15 +143,6 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	const glm::vec3& pos = Runtime::EditorContext.ActiveCamera->GetPosition();
 	shader->SetUniform3f("u_ViewPosition", pos.x, pos.y, pos.z);
 
-	// TODO: Maybe only set those once on startup
-	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	shader->SetUniform1i("gBuf_Normal", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	shader->SetUniform1i("gBuf_Albedo", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
-	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
-	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
-
-	API::Core::RenderCommand::SetBlend(true);
-	API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
 	//GUI Background Color
