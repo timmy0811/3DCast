@@ -70,6 +70,7 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 		int result = glfwInit();
 
 		glfwWindowHint(GLFW_DEPTH_BITS, 24);
+		glfwWindowHint(GLFW_STENCIL_BITS, 8);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

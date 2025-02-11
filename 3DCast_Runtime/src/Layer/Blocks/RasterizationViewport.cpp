@@ -23,6 +23,7 @@ void Runtime::RasterizationViewport::Init()
 	RenderPipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
 
 	RenderPipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
+	RenderPipelineData.GBuffer->AddStencilTarget();
 	RenderPipelineData.GBuffer->Validate();
 
 	CompileShaders();
@@ -61,6 +62,7 @@ void Runtime::RasterizationViewport::OnRender()
 	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
 
 	RenderGeometryPass();
+	API::Core::RenderCommand::CopyStencilBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
 	RenderLightingPass();
 
 	Cast::Renderer::RendererContext::EndScene();
@@ -105,20 +107,21 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 void Runtime::RasterizationViewport::RenderGeometryPass()
 {
 	API::Core::RenderCommand::SetDepthTest(true);
+	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
 
 	RenderPipelineData.GBuffer->BindAndClear();
+	API::Core::RenderCommand::ClearStencilBuffer();
+	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
 	Runtime::EditorContext.ActiveScene->OnUpdate();
 
+	API::Core::RenderCommand::SetDefaultStencilTest();
 	RenderPipelineData.GBuffer->Unbind();
 }
 
 void Runtime::RasterizationViewport::RenderLightingPass()
 {
-	API::Core::RenderCommand::SetBlend(true);
-	API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
-
 	RenderPipelineData.Framebuffer->BindAndClear();
 
 	RenderPipelineData.GBuffer->BindDepthTexture(0);
@@ -138,16 +141,22 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
 	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
 
-	// GUI Background Color
+	API::Core::RenderCommand::SetBlend(true);
+	API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
+	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
+
+	//GUI Background Color
 	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
 	RenderPipelineData.Framebuffer->Bind();
+	API::Core::RenderCommand::SetDefaultStencilTest();
 
 	RenderPipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
 
 	RenderPipelineData.Framebuffer->Unbind();
 
+	API::Core::RenderCommand::SetDepthTest(false);
 	API::Core::RenderCommand::SetBlend(false);
 }
 
