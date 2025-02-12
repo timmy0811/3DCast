@@ -18,7 +18,7 @@ namespace Cast {
 	{
 		alignas(16) float affectedRadius = 1.f;
 
-		alignas(16) glm::vec3 position = { 0.f, 0.f, 0.f };
+		alignas(16) glm::vec3 position = { 0.f, 2.f, 0.f };
 		alignas(16) glm::vec3 ambient = { 0.1f, 0.1f, 0.1f };
 		alignas(16) glm::vec3 diffuse = { 0.5f, 0.5f, 0.5f };
 		alignas(16) glm::vec3 specular = { 1.f, 1.0f, 1.0f };
@@ -30,7 +30,7 @@ namespace Cast {
 
 	struct SpotLight : public AbstractLight
 	{
-		alignas(16) glm::vec3 position = { 0.f, 0.f, 0.f };
+		alignas(16) glm::vec3 position = { 0.f, 2.f, 0.f };
 		alignas(16) glm::vec3 direction = { -0.2f, -1.0f, -0.3f };
 
 		alignas(16) glm::vec3 ambient = { 0.05f, 0.05f, 0.05f };

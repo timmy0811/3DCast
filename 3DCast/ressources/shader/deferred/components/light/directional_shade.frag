@@ -11,7 +11,6 @@ struct DirectionalLight{
 // shading
 vec3 AffectDirectionallight(DirectionalLight DirLight, vec3 normal, vec3 viewDirection, float shine, vec3 albedo, vec3 pixelSpecular){
     // specular
-    DirLight.direction.y *= -1.0;
     vec3 lightDir = normalize(-DirLight.direction);
     vec3 reflectDirection = reflect(-lightDir, normal);
     float specFac = pow(max(dot(viewDirection, reflectDirection), 0.0), shine);

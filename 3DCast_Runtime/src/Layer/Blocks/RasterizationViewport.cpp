@@ -101,7 +101,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	}
 
 	uint32_t textureID = RenderPipelineData.Framebuffer->GetColorAttachmentTextureID(0);
-	ImGui::Image((unsigned long long)textureID, lastViewportSize);
+	ImGui::Image((unsigned long long)textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
 
 	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
@@ -180,7 +180,7 @@ bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 			offset *= Runtime::conf.MOUSE_SENSITIVITY;
 
 			float yaw = Runtime::EditorContext.ActiveCamera->GetYaw() + offset.x;
-			float pitch = glm::clamp(Runtime::EditorContext.ActiveCamera->GetPitch() + offset.y, -89.99f, 89.99f);
+			float pitch = glm::clamp(Runtime::EditorContext.ActiveCamera->GetPitch() - offset.y, -89.99f, 89.99f);
 
 			Runtime::EditorContext.ActiveCamera->SetRotation({ pitch, yaw, Runtime::EditorContext.ActiveCamera->GetRoll() });
 		}
