@@ -77,23 +77,6 @@ void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
 	dispatcher.Dispatch<Cast::MouseMovedEvent>(CAST_BIND_EVENT_FUNC(RasterizationViewport::OnMouseMoved));
 }
 
-void Runtime::RasterizationViewport::OnRender()
-{
-	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
-
-	RenderGeometryPass();
-	API::Core::RenderCommand::CopyStencilBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
-	RenderLightingPass();
-
-	RenderPipelineData.Framebuffer->Bind();
-	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
-
-	Runtime::EditorContext.ActiveScene->OnForwardRender();
-	RenderPipelineData.Framebuffer->Unbind();
-
-	Cast::Renderer::RendererContext::EndScene();
-}
-
 void Runtime::RasterizationViewport::OnImGuiRender()
 {
 	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoTitleBar);
@@ -130,6 +113,19 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	ImGui::End();
 }
 
+void Runtime::RasterizationViewport::OnRender()
+{
+	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
+
+	RenderGeometryPass();
+	API::Core::RenderCommand::CopyStencilBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	RenderLightingPass();
+	API::Core::RenderCommand::CopyDepthBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	RenderForwardPass();
+
+	Cast::Renderer::RendererContext::EndScene();
+}
+
 void Runtime::RasterizationViewport::RenderGeometryPass()
 {
 	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.9f, 0.1f, 1.0f });
@@ -142,8 +138,6 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
 	Runtime::EditorContext.ActiveScene->OnDeferredRender();
-	/*glDisable(GL_STENCIL_TEST);
-	API::Core::RenderCommand::SetDefaultStencilTest();*/
 	RenderPipelineData.GBuffer->Unbind();
 }
 
@@ -173,6 +167,15 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 
 	API::Core::RenderCommand::SetBlend(false);
 	API::Core::RenderCommand::SetStencilTest(false);
+}
+
+void Runtime::RasterizationViewport::RenderForwardPass()
+{
+	RenderPipelineData.Framebuffer->Bind();
+	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
+
+	Runtime::EditorContext.ActiveScene->OnForwardRender();
+	RenderPipelineData.Framebuffer->Unbind();
 }
 
 void Runtime::RasterizationViewport::CompileShaders()

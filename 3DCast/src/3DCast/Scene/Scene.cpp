@@ -60,6 +60,7 @@ void Cast::Scene::OnDeferredRender()
 
 void Cast::Scene::OnForwardRender()
 {
+	if (InRenderView) return;
 	IconRenderer.Clear();
 
 	//RenderLightComponent();

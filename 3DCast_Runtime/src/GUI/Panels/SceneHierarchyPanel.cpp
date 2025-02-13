@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include "Data/SharedEditorData.h"
+
 #include <imgui.h>
 
 #include <3DCast/Scene/Components.h>
@@ -30,6 +32,8 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::End();
 
 	ImGui::Begin("Properties");
+	ImGui::Checkbox("Render View", &EditorContext.ActiveScene->GetInRenderView());
+	ImGui::Separator();
 
 	if (SelectionContext)
 	{

@@ -23,6 +23,7 @@ namespace Runtime {
 	private:
 		void RenderGeometryPass();
 		void RenderLightingPass();
+		void RenderForwardPass();
 
 		void CompileShaders();
 

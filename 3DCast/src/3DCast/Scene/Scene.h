@@ -35,6 +35,8 @@ namespace Cast {
 		inline entt::registry& GetRegistry() { return Registry; }
 		inline const std::vector<ComponentHandler>& GetComponentImGuiCallbacks() { return ComponentHandlers; }
 
+		inline bool& GetInRenderView() { return InRenderView; }
+
 		template<typename Component>
 		void RegisterComponentImGuiRenderCallback() {
 			ComponentHandlers.push_back([](entt::registry& registry, entt::entity entity) {
@@ -54,6 +56,8 @@ namespace Cast {
 		std::vector<ComponentHandler> ComponentHandlers;
 
 		IconRenderer IconRenderer;
+
+		bool InRenderView = false;
 
 		Cast::Ref<API::Core::Buffer> TransformSSBO;
 		Cast::Ref<API::Core::Buffer> DirLightsSSBO;
