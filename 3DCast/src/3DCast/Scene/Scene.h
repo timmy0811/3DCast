@@ -6,6 +6,7 @@
 
 #include "3DCast/Core.h"
 #include "3DCast/Scene/DataObjects/ShaderDataObjects.h"
+#include "3DCast/Renderer/IconRenderer.h"
 
 #include <API/core/Buffer.h>
 
@@ -21,6 +22,8 @@ namespace Cast {
 
 		Entity CreateEntity(const std::string& name = "Untagged");
 
+		void OnDeferredRender();
+		void OnForwardRender();
 		void OnUpdate();
 		void ReallocateLights(int type);
 
@@ -43,8 +46,14 @@ namespace Cast {
 		}
 
 	private:
+		inline void RenderCustomMeshComponent();
+		inline void RenderLightComponent();
+
+	private:
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
+
+		IconRenderer IconRenderer;
 
 		Cast::Ref<API::Core::Buffer> TransformSSBO;
 		Cast::Ref<API::Core::Buffer> DirLightsSSBO;

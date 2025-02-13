@@ -11,6 +11,7 @@
 #include <Vendor/glm/glm.hpp>
 
 Cast::Scene::Scene()
+	:IconRenderer(Cast::IconRenderer("../3DCast/ressources/configuration/icon.yml", "../3DCast/ressources/icon/icon_pallete.png"))
 {
 	RegisterComponentImGuiRenderCallback<Component::TagComponent>();
 	RegisterComponentImGuiRenderCallback<Component::TransformComponent>();
@@ -36,6 +37,8 @@ Cast::Scene::Scene()
 
 	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
 	PointLightsSSBO->BindBase(3);
+
+	IconRenderer.BindBufferBaseDefault();
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
@@ -50,18 +53,58 @@ Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
 	return entity;
 }
 
+void Cast::Scene::OnDeferredRender()
+{
+	RenderCustomMeshComponent();
+}
+
+void Cast::Scene::OnForwardRender()
+{
+	IconRenderer.Clear();
+
+	//RenderLightComponent();
+
+	IconRenderer.AddIcon(Icon::LightDirectional, glm::vec3(3.f, 0.f, 0.f));
+	IconRenderer.AddIcon(Icon::LightPoint, glm::vec3(4.5f, 0.f, 0.f));
+	IconRenderer.AddIcon(Icon::LightSpot, glm::vec3(6.f, 0.f, 0.f));
+	IconRenderer.AddIcon(Icon::Camera, glm::vec3(7.5f, 0.f, 0.f));
+	IconRenderer.RenderAll();
+}
+
 void Cast::Scene::OnUpdate()
 {
-	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
 	shader->SetUniform1i("BufferCountDirectionalLight", (int)(DirLightsSSBO->GetSize() / sizeof(DirectionalLight)));
 	shader->SetUniform1i("BufferCountPointLight", (int)(PointLightsSSBO->GetSize() / sizeof(PointLight)));
 	shader->SetUniform1i("BufferCountSpotLight", (int)(SpotLightsSSBO->GetSize() / sizeof(SpotLight)));
+}
 
-	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::RasterizableComponent>);
+void Cast::Scene::ReallocateLights(int type)
+{
+	switch (type) {
+	case 0: DirLightsSSBO->Empty(); break;
+	case 1: PointLightsSSBO->Empty(); break;
+	case 2: SpotLightsSSBO->Empty(); break;
+	}
+
+	auto view = Registry.view<Component::LightComponent>();
+
+	view.each([&](entt::entity entity, Component::LightComponent& light) {
+		if ((int)light.LightType == type) {
+			light.Reallocate();
+		}
+		});
+}
+
+inline void Cast::Scene::RenderCustomMeshComponent()
+{
+	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+
+	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::CustomMeshComponent>);
 	for (auto entity : group) {
-		auto& material = Registry.get<Component::MaterialComponent>(entity);
 		auto& transform = Registry.get<Component::TransformComponent>(entity);
+		auto& material = Registry.get<Component::MaterialComponent>(entity);
 		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
 		if (material.isDeffered) {
@@ -80,19 +123,29 @@ void Cast::Scene::OnUpdate()
 	}
 }
 
-void Cast::Scene::ReallocateLights(int type)
+inline void Cast::Scene::RenderLightComponent()
 {
-	switch (type) {
-	case 0: DirLightsSSBO->Empty(); break;
-	case 1: PointLightsSSBO->Empty(); break;
-	case 2: SpotLightsSSBO->Empty(); break;
+	IconRenderer.Clear();
+
+	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::LightComponent>);
+	for (auto entity : group) {
+		auto& light = Registry.get<Component::LightComponent>(entity);
+		auto& transform = Registry.get<Component::TransformComponent>(entity);
+
+		switch (light.LightType) {
+		case Component::LightComponent::Type::Directional:
+			IconRenderer.AddIcon(Icon::LightDirectional, transform.GetTranslation());
+			// Render vector
+			break;
+		case Component::LightComponent::Type::Point:
+			IconRenderer.AddIcon(Icon::LightPoint, transform.GetTranslation());
+			break;
+		case Component::LightComponent::Type::Spot:
+			// Render vector
+			IconRenderer.AddIcon(Icon::LightSpot, transform.GetTranslation());
+			break;
+		}
 	}
 
-	auto view = Registry.view<Component::LightComponent>();
-
-	view.each([&](entt::entity entity, Component::LightComponent& light) {
-		if ((int)light.LightType == type) {
-			light.Reallocate();
-		}
-		});
+	IconRenderer.RenderAll();
 }

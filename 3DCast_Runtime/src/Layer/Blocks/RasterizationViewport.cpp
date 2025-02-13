@@ -61,6 +61,14 @@ void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 		IsCameraRotating = false;
 		initCameraRotation = true;
 	}
+
+	auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
+	iconShader->Bind();
+	iconShader->SetUniformMat4f("u_ViewProjection", Runtime::EditorContext.ActiveCamera->GetViewProjectionMat());
+	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
+
+	Runtime::EditorContext.ActiveScene->OnUpdate();
 }
 
 void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
@@ -76,6 +84,12 @@ void Runtime::RasterizationViewport::OnRender()
 	RenderGeometryPass();
 	API::Core::RenderCommand::CopyStencilBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
 	RenderLightingPass();
+
+	RenderPipelineData.Framebuffer->Bind();
+	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
+
+	Runtime::EditorContext.ActiveScene->OnForwardRender();
+	RenderPipelineData.Framebuffer->Unbind();
 
 	Cast::Renderer::RendererContext::EndScene();
 }
@@ -118,6 +132,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 void Runtime::RasterizationViewport::RenderGeometryPass()
 {
+	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.9f, 0.1f, 1.0f });
 	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
@@ -126,15 +141,17 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	API::Core::RenderCommand::ClearStencilBuffer();
 	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
-	Runtime::EditorContext.ActiveScene->OnUpdate();
-
-	API::Core::RenderCommand::SetDefaultStencilTest();
+	Runtime::EditorContext.ActiveScene->OnDeferredRender();
+	/*glDisable(GL_STENCIL_TEST);
+	API::Core::RenderCommand::SetDefaultStencilTest();*/
 	RenderPipelineData.GBuffer->Unbind();
 }
 
 void Runtime::RasterizationViewport::RenderLightingPass()
 {
 	RenderPipelineData.Framebuffer->BindAndClear();
+	RenderPipelineData.GBuffer->BindDepthTexture(0);
+	RenderPipelineData.GBuffer->BindTextures(1);
 
 	// Lighting Pass Uniforms
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
@@ -154,16 +171,15 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 
 	RenderPipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
 
-	RenderPipelineData.Framebuffer->Unbind();
-
-	API::Core::RenderCommand::SetDepthTest(false);
 	API::Core::RenderCommand::SetBlend(false);
+	API::Core::RenderCommand::SetStencilTest(false);
 }
 
 void Runtime::RasterizationViewport::CompileShaders()
 {
 	Cast::AssetCache.AddShader("shader_geometry_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/geometry_pass.vert", "../3DCast/ressources/shader/deferred/geometry_pass.frag"));
 	Cast::AssetCache.AddShader("shader_shading_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/shading_pass.vert", "../3DCast/ressources/shader/deferred/shading_pass.frag"));
+	Cast::AssetCache.AddShader("icon_billboard", API::Core::Shader::Create("../3DCast/ressources/shader/sprite/icon.vert", "../3DCast/ressources/shader/sprite/icon.frag"));
 }
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
