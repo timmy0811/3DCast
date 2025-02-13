@@ -159,6 +159,8 @@ namespace Cast::Component {
 			//Area = 3
 		};
 
+		glm::vec3 EntityPosition;
+
 		Type LightType{ Type::Directional };
 		AbstractLight* Light;
 		Cast::Ref<Cast::Scene> Scene;
@@ -249,7 +251,9 @@ namespace Cast::Component {
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::ColorEdit3("##Specular", &dirLight->specular.x);
 
-					if (changed) Scene->GetDirLightsBuffer()->AddData(dirLight, sizeof(DirectionalLight), (int)BufferPos);
+					if (changed) {
+						Scene->GetDirLightsBuffer()->AddData(dirLight, sizeof(DirectionalLight), (int)BufferPos);
+					}
 
 					break;
 				case Type::Point:
@@ -262,10 +266,6 @@ namespace Cast::Component {
 
 					pointLight = (PointLight*)Light;
 					changed = false;
-
-					ImGui::Text("Position:");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat3("##Position", &pointLight->position.x, 0.1f);
 
 					ImGui::Text("Ambient:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
@@ -291,7 +291,10 @@ namespace Cast::Component {
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::DragFloat("##Quadratic", &pointLight->quadratic, 0.01f);
 
-					if (changed) Scene->GetPointLightsBuffer()->AddData(pointLight, sizeof(PointLight), (int)BufferPos);
+					if (changed) {
+						pointLight->position = EntityPosition;
+						Scene->GetPointLightsBuffer()->AddData(pointLight, sizeof(PointLight), (int)BufferPos);
+					}
 
 					break;
 				case Type::Spot:
@@ -304,10 +307,6 @@ namespace Cast::Component {
 
 					spotLight = (SpotLight*)Light;
 					changed = false;
-
-					ImGui::Text("Position:");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					changed |= ImGui::DragFloat3("##Position", &spotLight->position.x, 0.1f);
 
 					ImGui::Text("Direction:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
@@ -349,7 +348,10 @@ namespace Cast::Component {
 					changed |= ImGui::DragFloat("##Cutoff Out", &outerCutOff, 0.2f);
 					spotLight->outerCutOff = glm::cos(glm::radians(outerCutOff));
 
-					if (changed) Scene->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
+					if (changed) {
+						pointLight->position = EntityPosition;
+						Scene->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
+					}
 
 					break;
 				}

@@ -61,15 +61,8 @@ void Cast::Scene::OnDeferredRender()
 void Cast::Scene::OnForwardRender()
 {
 	if (InRenderView) return;
-	IconRenderer.Clear();
 
-	//RenderLightComponent();
-
-	IconRenderer.AddIcon(Icon::LightDirectional, glm::vec3(3.f, 0.f, 0.f));
-	IconRenderer.AddIcon(Icon::LightPoint, glm::vec3(4.5f, 0.f, 0.f));
-	IconRenderer.AddIcon(Icon::LightSpot, glm::vec3(6.f, 0.f, 0.f));
-	IconRenderer.AddIcon(Icon::Camera, glm::vec3(7.5f, 0.f, 0.f));
-	IconRenderer.RenderAll();
+	RenderLightComponent();
 }
 
 void Cast::Scene::OnUpdate()
@@ -128,10 +121,13 @@ inline void Cast::Scene::RenderLightComponent()
 {
 	IconRenderer.Clear();
 
-	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::LightComponent>);
-	for (auto entity : group) {
-		auto& light = Registry.get<Component::LightComponent>(entity);
-		auto& transform = Registry.get<Component::TransformComponent>(entity);
+	auto view = Registry.view<Component::LightComponent>();
+
+	for (auto entity : view) {
+		Component::LightComponent& light = view.get<Component::LightComponent>(entity);
+		Component::TransformComponent& transform = Registry.get<Component::TransformComponent>(entity);
+
+		light.EntityPosition = transform.GetTranslation();
 
 		switch (light.LightType) {
 		case Component::LightComponent::Type::Directional:
