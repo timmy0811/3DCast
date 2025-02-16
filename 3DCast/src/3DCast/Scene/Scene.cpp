@@ -127,19 +127,20 @@ inline void Cast::Scene::RenderLightComponent()
 		Component::LightComponent& light = view.get<Component::LightComponent>(entity);
 		Component::TransformComponent& transform = Registry.get<Component::TransformComponent>(entity);
 
-		light.EntityPosition = transform.GetTranslation();
+		glm::vec3 position = transform.GetTranslation();
+		light.EntityPosition = position;
 
 		switch (light.LightType) {
 		case Component::LightComponent::Type::Directional:
-			IconRenderer.AddIcon(Icon::LightDirectional, transform.GetTranslation());
+			IconRenderer.AddIcon(Icon::LightDirectional, position);
 			// Render vector
 			break;
 		case Component::LightComponent::Type::Point:
-			IconRenderer.AddIcon(Icon::LightPoint, transform.GetTranslation());
+			IconRenderer.AddIcon(Icon::LightPoint, position);
 			break;
 		case Component::LightComponent::Type::Spot:
 			// Render vector
-			IconRenderer.AddIcon(Icon::LightSpot, transform.GetTranslation());
+			IconRenderer.AddIcon(Icon::LightSpot, position);
 			break;
 		}
 	}

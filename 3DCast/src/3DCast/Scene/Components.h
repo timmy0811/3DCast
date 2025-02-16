@@ -160,6 +160,7 @@ namespace Cast::Component {
 		};
 
 		glm::vec3 EntityPosition;
+		glm::vec3 LastEntityPosition;
 
 		Type LightType{ Type::Directional };
 		AbstractLight* Light;
@@ -291,6 +292,9 @@ namespace Cast::Component {
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::DragFloat("##Quadratic", &pointLight->quadratic, 0.01f);
 
+					changed |= EntityPosition != LastEntityPosition;
+					LastEntityPosition = EntityPosition;
+
 					if (changed) {
 						pointLight->position = EntityPosition;
 						Scene->GetPointLightsBuffer()->AddData(pointLight, sizeof(PointLight), (int)BufferPos);
@@ -336,20 +340,23 @@ namespace Cast::Component {
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::DragFloat("##Quadratic", &spotLight->quadratic, 0.001f);
 
-					static float cutOff = glm::degrees(spotLight->cutOff);
+					static float cutOff = glm::degrees(glm::acos(spotLight->cutOff));
 					ImGui::Text("Outer Cutoff:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::DragFloat("##Outer Cutoff", &cutOff, 0.2f);
 					spotLight->cutOff = glm::cos(glm::radians(cutOff));
 
-					static float outerCutOff = glm::degrees(spotLight->outerCutOff);
+					static float outerCutOff = glm::degrees(glm::acos(spotLight->outerCutOff));
 					ImGui::Text("Cutoff:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::DragFloat("##Cutoff Out", &outerCutOff, 0.2f);
 					spotLight->outerCutOff = glm::cos(glm::radians(outerCutOff));
 
+					changed |= EntityPosition != LastEntityPosition;
+					LastEntityPosition = EntityPosition;
+
 					if (changed) {
-						pointLight->position = EntityPosition;
+						spotLight->position = EntityPosition;
 						Scene->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
 					}
 

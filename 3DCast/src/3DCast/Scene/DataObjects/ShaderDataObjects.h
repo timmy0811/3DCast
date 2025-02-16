@@ -33,7 +33,7 @@ namespace Cast {
 		alignas(16) glm::vec3 position = { 0.f, 2.f, 0.f };
 		alignas(16) glm::vec3 direction = { -0.2f, -1.0f, -0.3f };
 
-		alignas(16) glm::vec3 ambient = { 0.05f, 0.05f, 0.05f };
+		alignas(16) glm::vec3 ambient = { 0.1f, 0.1f, 0.1f };
 		alignas(16) glm::vec3 diffuse = { 0.8f, 0.8f, 0.8f };
 		alignas(16) glm::vec3 specular = { 1.0f, 1.0f, 1.0f };
 
@@ -41,7 +41,7 @@ namespace Cast {
 		float linear = 0.09f;
 		float quadratic = 0.032f;
 
-		float cutOff = glm::cos(glm::radians(12.5f));;
-		float outerCutOff = glm::cos(glm::radians(14.5f));
+		float cutOff = glm::cos(glm::radians(55.f));
+		float outerCutOff = glm::cos(glm::radians(50.f));
 	};
 }
