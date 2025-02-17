@@ -26,7 +26,7 @@ void Cast::Renderer::RendererContext::EndScene()
 {
 }
 
-void Cast::Renderer::RendererContext::Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::Shader>& shader)
+void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Shader> shader)
 {
 	shader->Bind();
 	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat); // Muss hier raus
@@ -36,7 +36,18 @@ void Cast::Renderer::RendererContext::Submit(const Ref<API::Core::VertexArray>& 
 	API::Core::RenderCommand::Draw(va, va->GetVBCount());
 }
 
-void Cast::Renderer::RendererContext::Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::IndexBuffer>& ib, const Ref<API::Core::Shader>& shader)
+void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::IndexBuffer> ib, Ref<API::Core::Shader> shader)
+{
+	shader->Bind();
+	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat);
+	shader->SetUniformMat4f("u_Projection", sceneDataCache->projectionMat);
+
+	va->Bind();
+	ib->Bind();
+	API::Core::RenderCommand::DrawIndexed(va, ib);
+}
+
+void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Buffer> ib, Ref<API::Core::Shader> shader)
 {
 	shader->Bind();
 	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat);

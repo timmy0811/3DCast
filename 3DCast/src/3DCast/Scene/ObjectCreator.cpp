@@ -17,67 +17,55 @@ Cast::Entity Cast::Create::Cube(const std::string& name, Cast::Scene* scene, int
 	float trIndex = (float)entity.GetComponent<Component::TransformComponent>().bufferIndex;
 	float tIndex = (float)texIndex;
 
-	float vertices[36 * 12] = {
-		// Position				// Normals				// UVs          // TexIndex	& TransformIndex // Shine & Reflectance
+	float vertices[36 * 9] = {
+		// Position				// Normals				// UVs          // TransformIndex
 		// back face
-		-1.0f, -1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		1.0f,  1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		1.0f, -1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		1.0f,  1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		-1.0f, -1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		-1.0f,  1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
+		-1.0f, -1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 0.0f,		trIndex,	// bottom-left
+		1.0f,  1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		1.0f, -1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 0.0f,		trIndex,	// bottom-right
+		1.0f,  1.0f, -1.0f,		0.0f,  0.0f, -1.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		-1.0f, -1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 0.0f,		trIndex,	// bottom-left
+		-1.0f,  1.0f, -1.0f,	0.0f,  0.0f, -1.0f,		0.0f, 1.0f,		trIndex,	// top-left
 		// front face
-		-1.0f, -1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		1.0f, -1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		1.0f,  1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		1.0f,  1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		-1.0f,  1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		-1.0f, -1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
+		-1.0f, -1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 0.0f,		trIndex,	// bottom-left
+		1.0f, -1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 0.0f,		trIndex,	// bottom-right
+		1.0f,  1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		1.0f,  1.0f,  1.0f,		0.0f,  0.0f,  1.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		-1.0f,  1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 1.0f,		trIndex,	// top-left
+		-1.0f, -1.0f,  1.0f,	0.0f,  0.0f,  1.0f,		0.0f, 0.0f,		trIndex,	// bottom-left
 		// left face
-		-1.0f,  1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		-1.0f,  1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		-1.0f, -1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		-1.0f, -1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		-1.0f, -1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		-1.0f,  1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // top-right
+		-1.0f,  1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 0.0f,		trIndex,	// top-right
+		-1.0f,  1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 1.0f,		trIndex,	// top-left
+		-1.0f, -1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 1.0f,		trIndex,	// bottom-left
+		-1.0f, -1.0f, -1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 1.0f,		trIndex,	// bottom-left
+		-1.0f, -1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	0.0f, 0.0f,		trIndex,	// bottom-right
+		-1.0f,  1.0f,  1.0f,	-1.0f,  0.0f,  0.0f,	1.0f, 0.0f,		trIndex,	// top-right
 		// right face
-		1.0f,  1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		1.0f, -1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		1.0f,  1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		1.0f, -1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		1.0f,  1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		1.0f, -1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
+		1.0f,  1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// top-left
+		1.0f, -1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// bottom-right
+		1.0f,  1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		1.0f, -1.0f, -1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// bottom-right
+		1.0f,  1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// top-left
+		1.0f, -1.0f,  1.0f,		1.0f,  0.0f,  0.0f,		0.0f, 0.0f,		trIndex,	// bottom-left
 		// bottom face
-		-1.0f, -1.0f, -1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		1.0f, -1.0f, -1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		1.0f, -1.0f,  1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		1.0f, -1.0f,  1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-left
-		-1.0f, -1.0f,  1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		-1.0f, -1.0f, -1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
+		-1.0f, -1.0f, -1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// top-right
+		1.0f, -1.0f, -1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 1.0f,		trIndex,	// top-left
+		1.0f, -1.0f,  1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// bottom-left
+		1.0f, -1.0f,  1.0f,		0.0f, -1.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// bottom-left
+		-1.0f, -1.0f,  1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 0.0f,		trIndex,	// bottom-right
+		-1.0f, -1.0f, -1.0f,	0.0f, -1.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// top-right
 		// top face
-		-1.0f,  1.0f, -1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		1.0f,  1.0f , 1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		1.0f,  1.0f, -1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-right
-		1.0f,  1.0f,  1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 0.0f,		tIndex, trIndex,	shine, reflectance, // bottom-right
-		-1.0f,  1.0f, -1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 1.0f,		tIndex, trIndex,	shine, reflectance, // top-left
-		-1.0f,  1.0f,  1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 0.0f, 	tIndex, trIndex,	shine, reflectance// bottom-left
+		-1.0f,  1.0f, -1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// top-left
+		1.0f,  1.0f , 1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// bottom-right
+		1.0f,  1.0f, -1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 1.0f,		trIndex,	// top-right
+		1.0f,  1.0f,  1.0f,		0.0f,  1.0f,  0.0f,		1.0f, 0.0f,		trIndex,	// bottom-right
+		-1.0f,  1.0f, -1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 1.0f,		trIndex,	// top-left
+		-1.0f,  1.0f,  1.0f,	0.0f,  1.0f,  0.0f,		0.0f, 0.0f, 	trIndex,	// bottom-left
 	};
 
 	Cast::Component::CustomMeshComponent& cubeMesh = entity.GetComponent<Cast::Component::CustomMeshComponent>();
-
-	cubeMesh.vb.reset(API::Core::VertexBuffer::Create(vertices, sizeof(vertices)));
-
-	cubeMesh.vbLayout.reset(API::Core::VertexBufferLayout::Create());
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float3);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float);
-	cubeMesh.vbLayout->Push(API::Core::ShaderDataType::Float2);
-
-	cubeMesh.va.reset(API::Core::VertexArray::Create());
-	cubeMesh.va->AddBuffer(*(cubeMesh.vb), *(cubeMesh.vbLayout));
-	cubeMesh.va->SetVBCount(36);
+	cubeMesh.AddAndAllocVertexData(vertices, sizeof(vertices));
+	cubeMesh.AddToBatchMemory();
 
 	return entity;
 }

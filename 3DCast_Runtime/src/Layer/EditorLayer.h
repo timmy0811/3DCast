@@ -39,8 +39,6 @@ private:
 
 	float CameraSpeed = 4.f;
 
-	Cast::Entity CubeEntity;
-
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
 };

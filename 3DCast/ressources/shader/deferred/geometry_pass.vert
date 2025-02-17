@@ -1,12 +1,12 @@
 //shader vertex
 #version 430 core
 
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec3 a_Normal;
-layout(location = 2) in vec2 a_UV;
-layout(location = 3) in float a_TexIndex;
-layout(location = 4) in float a_TransformIndex;
-layout(location = 5) in vec2 a_Shine_Reflectance;
+layout(location = 0) in vec3 a_Position; // +
+layout(location = 1) in vec3 a_Normal; // +
+layout(location = 2) in vec2 a_UV;  // +
+//layout(location = 3) in float a_TexIndex; // +
+layout(location = 3) in float a_TransformIndex; // +
+//layout(location = 5) in vec2 a_Shine_Reflectance;
 
 out vec3 v_FragPos;
 out vec2 v_UV;
@@ -31,7 +31,8 @@ void main()
     mat3 normalMatrix = transpose(inverse(mat3(model)));
     v_Normal = normalMatrix * a_Normal;
 
-    v_TexIndex = int(a_TexIndex);
-    v_Shine_Reflectance = a_Shine_Reflectance;
+    v_TexIndex = int(0);
+    //v_Shine_Reflectance = a_Shine_Reflectance;
+    v_Shine_Reflectance = vec2(32.0, 0.5);
     gl_Position = u_Projection * u_View * position;
 };

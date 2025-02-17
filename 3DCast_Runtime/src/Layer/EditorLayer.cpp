@@ -190,5 +190,6 @@ void EditorLayer::SampleContent()
 	Cast::Entity lightEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Light");
 	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Runtime::EditorContext.ActiveScene);
 
-	CubeEntity = Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
+	Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
+	Cast::Create::Cube("Cube_2", Runtime::EditorContext.ActiveScene.get());
 }

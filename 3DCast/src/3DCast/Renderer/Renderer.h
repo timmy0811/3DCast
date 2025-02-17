@@ -1,6 +1,7 @@
 #pragma once
 
 #include "API/core/RendererCommand.h"
+#include "API/core/Buffer.h"
 #include "API/core/Shader.h"
 
 #include "Camera/Camera.h"
@@ -14,8 +15,9 @@ namespace Cast::Renderer {
 		static void BeginScene(Camera& camera);
 		static void EndScene();
 
-		static void Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::Shader>& shader);
-		static void Submit(const Ref<API::Core::VertexArray>& va, const Ref<API::Core::IndexBuffer>& ib, const Ref<API::Core::Shader>& shader);
+		static void Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Shader> shader);
+		static void Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::IndexBuffer> ib, Ref<API::Core::Shader> shader);
+		static void Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Buffer> ib, Ref<API::Core::Shader> shader);
 
 		inline static API::Core::RendererAPI::API_ENUM GetAPI() { return API::Core::RendererAPI::GetAPI(); }
 

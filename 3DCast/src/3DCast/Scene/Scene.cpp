@@ -7,6 +7,8 @@
 
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Scene/SceneShaderCache.h"
+#include "3DCast/Memory/Batching/Vertex.h"
+#include "3DCast/Memory/Batching/BatchManager.h"
 
 #include <Vendor/glm/glm.hpp>
 
@@ -55,7 +57,9 @@ Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
 
 void Cast::Scene::OnDeferredRender()
 {
-	RenderCustomMeshComponent();
+	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+	Memory::BatchMemoryHandler.Render(shader);
+	Memory::BatchMemoryHandler.RenderIndexed(shader);
 }
 
 void Cast::Scene::OnForwardRender()
@@ -93,28 +97,28 @@ void Cast::Scene::ReallocateLights(int type)
 
 inline void Cast::Scene::RenderCustomMeshComponent()
 {
-	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	//static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 
-	auto group = Registry.group<Component::TransformComponent>(entt::get<Component::CustomMeshComponent>);
-	for (auto entity : group) {
-		auto& transform = Registry.get<Component::TransformComponent>(entity);
-		auto& material = Registry.get<Component::MaterialComponent>(entity);
-		auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
+	//auto group = Registry.group<Component::TransformComponent>(entt::get<Component::CustomMeshComponent>);
+	//for (auto entity : group) {
+	//	auto& transform = Registry.get<Component::TransformComponent>(entity);
+	//	auto& material = Registry.get<Component::MaterialComponent>(entity);
+	//	auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
 
-		if (material.isDeffered) {
-			shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
-		}
-		else {
-			shader = Cast::AssetCache.GetShaderHandle(material.Shader);
-		}
+	//	if (material.isDeffered) {
+	//		shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+	//	}
+	//	else {
+	//		shader = Cast::AssetCache.GetShaderHandle(material.Shader);
+	//	}
 
-		if (mesh.ib) {
-			Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
-		}
-		else {
-			Renderer::RendererContext::Submit(mesh.va, shader);
-		}
-	}
+	//	if (mesh.ib) {
+	//		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
+	//	}
+	//	else {
+	//		Renderer::RendererContext::Submit(mesh.va, shader);
+	//	}
+	//}
 }
 
 inline void Cast::Scene::RenderLightComponent()

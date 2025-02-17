@@ -23,6 +23,8 @@
 
 #include "3DCast/Renderer/Data/RenderPipelineObjectData.h"
 #include "3DCast/Scene/SceneShaderCache.h"
+#include "3DCast/Memory/Batching/BatchManager.h"
+#include "3DCast/Memory/Batching/Vertex.h"
 
 // --- Entry Point ---
 //#include "3DCast/EntryPoint.h"
