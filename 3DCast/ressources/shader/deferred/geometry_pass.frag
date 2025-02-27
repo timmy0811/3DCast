@@ -9,18 +9,44 @@ layout (location = 4) out vec2 g_Shine_Reflectance;
 
 in vec3 v_FragPos;
 in vec2 v_UV;
-flat in vec3 v_Normal;
-flat in int v_TexIndex;
-flat in vec2 v_Shine_Reflectance;
+flat in int v_SamplerIndex;
+flat in mat3 v_TBN;
+
+layout(std430, binding = 1) buffer DiffuseSamplers {
+    sampler2D diffuseSamplers; // diffuseSamplers[0] is neutral Element
+};
+
+layout(std430, binding = 2) buffer SpecularSamplers {
+    sampler2D specularSamplers; // specularSamplers[0] is neutral Element
+};
+
+layout(std430, binding = 3) buffer ShininessSamplers {
+    sampler2D shininessSamplers; // shininessSamplers[0] is neutral Element
+};
+
+layout(std430, binding = 4) buffer NormalSamplers{
+    sampler2D normalSamplers; // normalSamplers[0] is neutral Element
+};
+
+struct SamplerMapping{
+    unsigned short diffuseIndex;
+    unsigned short specularIndex;
+    unsigned short shininessIndex;
+};
+
+layout(std430, binding = 4) buffer SamplerMap {
+    SamplerMapping samplerMap;
+};
 
 void main()
 {    
+    SamplerMapping mapping = samplerMap[v_SamplerIndex];
+
     g_Position = v_FragPos;
     g_Normal = v_Normal;
 
-    // Determine by Texture Sample
-    g_Albedo = vec3(0.8, 0.8, 0.8);
-    g_Specular = vec3(0.5);
+    g_Albedo = diffuseSamplers[mapping.diffuseIndex].xyz;
+    g_Specular = specularSamplers[mapping.specularIndex].xyz;
 
-    g_Shine_Reflectance = v_Shine_Reflectance;
+    g_Shine_Reflectance = vec2(shininessSamplers[mapping.shininessIndex], 0.0);
 }

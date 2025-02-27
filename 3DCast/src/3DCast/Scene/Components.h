@@ -573,7 +573,7 @@ namespace Cast::Component {
 		/* Bitmask:
 		0: Diffuse
 		1: Specular
-		2: Ambient
+		2: Normal
 		3: Emmissive
 		4: Shine
 		5: Opacity
@@ -582,10 +582,21 @@ namespace Cast::Component {
 		uint16_t textureEnabled;
 		bool isDeffered = true;
 
-		glm::vec3 ambient{ 1.f };
 		glm::vec3 diffuse{ 1.f };
+		unsigned short diffuseId;
+		unsigned short diffuseGId;
+
+		glm::vec3 diffuse{ 1.f };
+		unsigned short diffuseId;
+		unsigned short diffuseGId;
+
 		glm::vec3 specular{ 1.f };
-		float shine;
+		unsigned short diffuseId;
+		unsigned short diffuseGId;
+
+		float shine = 1.f;
+		unsigned short shineId;
+		unsigned short shineGId;
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent&) = default;
@@ -594,39 +605,27 @@ namespace Cast::Component {
 
 		virtual void OnImGuiRender() override {
 			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
-				// Ambient
-				ImGui::Checkbox("Use deferred Rendering", &isDeffered);
-
-				bool textureBitEnabled = Helper::isBitSet(textureEnabled, 2);
-
-				if (!textureBitEnabled) {
-					ImGui::Text("Ambient:");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					ImGui::DragFloat3("##Ambient", &ambient.x, 1.f);
-				}
-				else {
-					ImGui::Button("Load Ambient Texture");
-				}
-
-				ImGui::Checkbox("Use Ambient-Map", &textureBitEnabled);
-				Helper::setBit(textureEnabled, 2, textureBitEnabled);
-
-				ImGui::Separator();
-
 				// Diffuse
-				textureBitEnabled = Helper::isBitSet(textureEnabled, 0);
+				bool textureBitEnabled = Helper::isBitSet(textureEnabled, 0);
 
 				if (!textureBitEnabled) {
 					ImGui::Text("Diffuse:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					ImGui::DragFloat3("##Diffuse", &diffuse.x, 1.f);
+					ImGui::ColorPicker3("##Diffuse", &diffuse.x);
 				}
 				else {
 					ImGui::Button("Load Diffuse Texture");
 				}
 
-				ImGui::Checkbox("Use Diffuse-Map", &textureBitEnabled);
-				Helper::setBit(textureEnabled, 0, textureBitEnabled);
+				// Normal
+				bool textureBitEnabled = Helper::isBitSet(textureEnabled, 2);
+
+				if (textureBitEnabled) {
+					ImGui::Button("Load Normal Map");
+				}
+
+				ImGui::Checkbox("Use Normal-Map", &textureBitEnabled);
+				Helper::setBit(textureEnabled, 2, textureBitEnabled);
 
 				ImGui::Separator();
 
@@ -636,7 +635,7 @@ namespace Cast::Component {
 				if (!textureBitEnabled) {
 					ImGui::Text("Specular:");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-					ImGui::DragFloat3("##Specular", &specular.x, 1.f);
+					ImGui::ColorPicker3("##Specular", &specular.x);
 				}
 				else {
 					ImGui::Button("Load Specular Texture");

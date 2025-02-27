@@ -23,7 +23,9 @@ void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
 	Layout.reset(API::Core::VertexBufferLayout::Create());
 	Layout->Push(API::Core::ShaderDataType::Float3);
 	Layout->Push(API::Core::ShaderDataType::Float3);
+	Layout->Push(API::Core::ShaderDataType::Float3);
 	Layout->Push(API::Core::ShaderDataType::Float2);
+	Layout->Push(API::Core::ShaderDataType::Float);
 	Layout->Push(API::Core::ShaderDataType::Float);
 
 	BatchStorages.push_back(LinearBatchStorage(defaultStorageSize));

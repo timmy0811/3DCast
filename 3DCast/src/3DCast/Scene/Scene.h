@@ -21,6 +21,7 @@ namespace Cast {
 		~Scene() = default;
 
 		Entity CreateEntity(const std::string& name = "Untagged");
+		void RemoveEntity(Entity& entity);
 
 		void OnDeferredRender();
 		void OnForwardRender();
@@ -48,7 +49,6 @@ namespace Cast {
 		}
 
 	private:
-		inline void RenderCustomMeshComponent();
 		inline void RenderLightComponent();
 
 	private:

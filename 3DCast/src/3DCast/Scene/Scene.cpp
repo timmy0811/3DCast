@@ -55,6 +55,21 @@ Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
 	return entity;
 }
 
+void Cast::Scene::RemoveEntity(Entity& entity) {
+	if (!Registry.valid(entity.GetEntityHandle())) {
+		LOG_CORE_WARN("Attempted to remove an invalid entity.");
+		return;
+	}
+
+	//if (entity.HasComponent<Component::TransformComponent>()) {
+	//	auto& transform = entity.GetComponent<Component::TransformComponent>();
+	//	transform.Unregister(); // Implement this method if needed
+	//}
+
+	Registry.destroy(entity.GetEntityHandle());
+	// Remove from batching if vertex source
+}
+
 void Cast::Scene::OnDeferredRender()
 {
 	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
@@ -93,32 +108,6 @@ void Cast::Scene::ReallocateLights(int type)
 			light.Reallocate();
 		}
 		});
-}
-
-inline void Cast::Scene::RenderCustomMeshComponent()
-{
-	//static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
-
-	//auto group = Registry.group<Component::TransformComponent>(entt::get<Component::CustomMeshComponent>);
-	//for (auto entity : group) {
-	//	auto& transform = Registry.get<Component::TransformComponent>(entity);
-	//	auto& material = Registry.get<Component::MaterialComponent>(entity);
-	//	auto& mesh = Registry.get<Component::CustomMeshComponent>(entity);
-
-	//	if (material.isDeffered) {
-	//		shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
-	//	}
-	//	else {
-	//		shader = Cast::AssetCache.GetShaderHandle(material.Shader);
-	//	}
-
-	//	if (mesh.ib) {
-	//		Renderer::RendererContext::Submit(mesh.va, mesh.ib, shader);
-	//	}
-	//	else {
-	//		Renderer::RendererContext::Submit(mesh.va, shader);
-	//	}
-	//}
 }
 
 inline void Cast::Scene::RenderLightComponent()

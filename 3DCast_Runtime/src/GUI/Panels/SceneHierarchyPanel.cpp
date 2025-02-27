@@ -20,24 +20,59 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 {
 	ImGui::Begin("Scene Hierarchy");
 
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	float buttonHeight = 20.0f;
+	float padding = 10.0f;
+	float childHeight = availableRegion.y - (buttonHeight + padding);
+
+	// Begin scrollable region
+	ImGui::BeginChild("EntityList", ImVec2(0, childHeight), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
 	for (auto entity : Context->GetRegistry().view<entt::entity>())
 	{
 		Cast::Entity handle{ entity , Context.get() };
 		DrawEntityNode(handle);
 	}
 
+	ImGui::EndChild();
+
 	if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 		SelectionContext = {};
+
+	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding);
+	if (ImGui::Button("New Entity", { ImGui::GetContentRegionAvail().x, buttonHeight })) {
+		Context->CreateEntity("New Entity");
+	}
 
 	ImGui::End();
 
 	ImGui::Begin("Properties");
 	ImGui::Checkbox("Render View", &EditorContext.ActiveScene->GetInRenderView());
+	ImGui::SameLine();
+	ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f);
+	if (ImGui::Button("Remove Entity")) {
+		Context->RemoveEntity(SelectionContext);
+		SelectionContext = {};
+	}
 	ImGui::Separator();
 
 	if (SelectionContext)
 	{
 		DrawComponents(SelectionContext);
+		ImGui::Separator();
+
+		float size = ImGui::CalcTextSize("Add Component").x + style.FramePadding.x * 2.0f;
+
+		float off = (availableRegion.x - size) * 0.5f;
+		if (off > 0.0f)
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+		if (ImGui::Button("Add Component")) {
+			LOG_CORE_INFO("Add Component");
+		}
 	}
 
 	ImGui::End();
@@ -48,11 +83,17 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Entity entity)
 	std::string& tag = entity.GetComponent<Cast::Component::TagComponent>().Tag;
 
 	ImGuiTreeNodeFlags flags = ((SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+
 	bool isOpen = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 	if (ImGui::IsItemClicked())
 	{
 		SelectionContext = entity;
 	}
+
+	/*if (ImGui::IsItemHovered()) {
+		ImGui::SameLine(ImGui::GetWindowWidth() - 78.0);
+		ImGui::Button("remove", { 70.f, 12.f });
+	}*/
 
 	if (isOpen)
 	{

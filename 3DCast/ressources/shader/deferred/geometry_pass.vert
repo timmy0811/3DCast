@@ -1,18 +1,17 @@
 //shader vertex
 #version 430 core
 
-layout(location = 0) in vec3 a_Position; // +
-layout(location = 1) in vec3 a_Normal; // +
-layout(location = 2) in vec2 a_UV;  // +
-//layout(location = 3) in float a_TexIndex; // +
-layout(location = 3) in float a_TransformIndex; // +
-//layout(location = 5) in vec2 a_Shine_Reflectance;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec3 a_Tangent;
+layout(location = 2) in vec3 a_Bitangent;
+layout(location = 3) in vec2 a_UV;
+layout(location = 4) in float a_SamplerIndex;
+layout(location = 5) in float a_TransformIndex;
 
 out vec3 v_FragPos;
 out vec2 v_UV;
-flat out vec3 v_Normal;
-flat out int v_TexIndex;
-flat out vec2 v_Shine_Reflectance;
+flat out int v_SamplerIndex;
+flat out mat3 v_TBN;
 
 uniform mat4 u_View;
 uniform mat4 u_Projection;
@@ -28,11 +27,12 @@ void main()
     v_FragPos = position.xyz;
     v_UV = a_UV;
 
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
-    v_Normal = normalMatrix * a_Normal;
+    vec3 T = normalize(vec3(model * vec4(a_Tangent, 0.0)));
+    vec3 B = normalize(vec3(model * vec4(a_Bitangent, 0.0)));
+    vec3 N = normalize(cross(T, B));
 
-    v_TexIndex = int(0);
-    //v_Shine_Reflectance = a_Shine_Reflectance;
-    v_Shine_Reflectance = vec2(32.0, 0.5);
+    v_TBN = mat3(T, B, N);
+
+    v_SamplerIndex = int(a_SamplerIndex);
     gl_Position = u_Projection * u_View * position;
 };
