@@ -1,10 +1,9 @@
 #include "SceneHierarchyPanel.h"
 
 #include "Data/SharedEditorData.h"
+#include <3DCast/Scene/Component/Component.h>
 
 #include <imgui.h>
-
-#include <3DCast/Scene/Components.h>
 
 Runtime::GUI::SceneHierarchyPanel::SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene)
 {

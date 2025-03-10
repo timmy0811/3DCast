@@ -27,12 +27,14 @@ void main()
     v_FragPos = position.xyz;
     v_UV = a_UV;
 
+    // Transform the tangent and bitangent vectors by the model matrix.
     vec3 T = normalize(vec3(model * vec4(a_Tangent, 0.0)));
     vec3 B = normalize(vec3(model * vec4(a_Bitangent, 0.0)));
-    vec3 N = normalize(cross(T, B));
-
+    
+    // Compute the normal with the corrected handedness (flipped cross order)
+    vec3 N = normalize(cross(B, T));
     v_TBN = mat3(T, B, N);
 
     v_SamplerIndex = int(a_SamplerIndex);
     gl_Position = u_Projection * u_View * position;
-};
+}

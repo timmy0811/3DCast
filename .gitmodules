@@ -19,3 +19,9 @@
 [submodule "Dependencies/imgui"]
 	path = Dependencies/imgui
 	url = https://github.com/timmy0811/imgui.git
+[submodule "Dependencies\\nfd"]
+	path = Dependencies\\nfd
+	url = https://github.com/mlabbe/nativefiledialog.git
+[submodule "Dependencies\\nativefile"]
+	path = Dependencies\\nativefile
+	url = https://github.com/btzy/nativefiledialog-extended.git

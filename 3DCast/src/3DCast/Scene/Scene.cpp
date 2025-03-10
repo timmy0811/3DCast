@@ -3,7 +3,7 @@
 
 #include "3DCast/Log.h"
 #include "3DCast/Scene/Entity.h"
-#include "3DCast/Scene/Components.h"
+#include "3DCast/Scene/Component/Component.h"
 
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Scene/SceneShaderCache.h"
@@ -22,25 +22,15 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::CustomMeshComponent>();
 	RegisterComponentImGuiRenderCallback<Component::MaterialComponent>();
 	RegisterComponentImGuiRenderCallback<Component::CameraComponent>();
-	RegisterComponentImGuiRenderCallback<Component::TextureComponent>();
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 
 	constexpr unsigned int maxTransforms = 32;
 	constexpr unsigned int maxLightsPerType = 8;
 
 	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxTransforms, sizeof(glm::mat4)));
-	TransformSSBO->BindBase(0);
-
 	DirLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(DirectionalLight)));
-	DirLightsSSBO->BindBase(1);
-
 	SpotLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(SpotLight)));
-	SpotLightsSSBO->BindBase(2);
-
 	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
-	PointLightsSSBO->BindBase(3);
-
-	IconRenderer.BindBufferBaseDefault();
 }
 
 Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
@@ -72,6 +62,9 @@ void Cast::Scene::RemoveEntity(Entity& entity) {
 
 void Cast::Scene::OnDeferredRender()
 {
+	BindTransformSSBO();
+	g_TextureManager.BindSamplerBuffersToShaderPoints();
+
 	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
 	Memory::BatchMemoryHandler.Render(shader);
 	Memory::BatchMemoryHandler.RenderIndexed(shader);
@@ -110,6 +103,11 @@ void Cast::Scene::ReallocateLights(int type)
 		});
 }
 
+void Cast::Scene::BindSSBOforShadingPass()
+{
+	BindLightSSBOs();
+}
+
 inline void Cast::Scene::RenderLightComponent()
 {
 	IconRenderer.Clear();
@@ -138,5 +136,23 @@ inline void Cast::Scene::RenderLightComponent()
 		}
 	}
 
+	BindSymbolSSBOs();
 	IconRenderer.RenderAll();
+}
+
+inline void Cast::Scene::BindLightSSBOs()
+{
+	DirLightsSSBO->BindBase(1);
+	SpotLightsSSBO->BindBase(2);
+	PointLightsSSBO->BindBase(3);
+}
+
+inline void Cast::Scene::BindSymbolSSBOs()
+{
+	IconRenderer.BindBufferBaseDefault();
+}
+
+inline void Cast::Scene::BindTransformSSBO()
+{
+	TransformSSBO->BindBase(0);
 }

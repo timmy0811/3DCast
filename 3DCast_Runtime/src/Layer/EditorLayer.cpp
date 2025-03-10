@@ -30,6 +30,8 @@ void EditorLayer::OnAttach()
 	ViewportPbr.Init();
 	ViewportRasterization.Init();
 
+	Cast::g_TextureManager.InitAfterDriverSetup();
+
 	// Sample Content
 	SampleContent();
 }
@@ -191,5 +193,4 @@ void EditorLayer::SampleContent()
 	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Runtime::EditorContext.ActiveScene);
 
 	Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
-	Cast::Create::Cube("Cube_2", Runtime::EditorContext.ActiveScene.get());
 }

@@ -153,6 +153,8 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	RenderPipelineData.GBuffer->BindDepthTexture(0);
 	RenderPipelineData.GBuffer->BindTextures(1);
 
+	Runtime::EditorContext.ActiveScene->BindSSBOforShadingPass();
+
 	// Lighting Pass Uniforms
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();

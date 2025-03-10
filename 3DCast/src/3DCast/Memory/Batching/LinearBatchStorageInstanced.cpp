@@ -16,8 +16,8 @@ Cast::Memory::LinearBatchStorageInstanced::LinearBatchStorageInstanced(size_t ca
 
 int Cast::Memory::LinearBatchStorageInstanced::AddObject(uid object, void* data, size_t size, void* indices, int count)
 {
-	int availableMemory = Capacity - BatchMemory->GetSize();
-	int availableIndexMemory = IndexCapacity - BatchIndices->GetSize();
+	size_t availableMemory = Capacity - BatchMemory->GetSize();
+	size_t availableIndexMemory = IndexCapacity - BatchIndices->GetSize();
 	if (availableMemory < size)
 	{
 		LOG_CORE_INFO("Not enough memory to store vertex data. Vertex data gets put into new batch storage.");
@@ -29,11 +29,11 @@ int Cast::Memory::LinearBatchStorageInstanced::AddObject(uid object, void* data,
 		return -1;
 	}
 
-	int offset = BatchMemory->AddData(data, size);
+	int offset = BatchMemory->AddData(data, (int)size);
 
 	unsigned int* shiftedIndex = new unsigned int[count];
-	memccpy(shiftedIndex, indices, count, sizeof(unsigned int));
-	for (unsigned int i = 0; i < count; i++)
+	_memccpy(shiftedIndex, indices, count, sizeof(unsigned int));
+	for (int i = 0; i < count; i++)
 	{
 		shiftedIndex[i] = shiftedIndex[i] + offset;
 	}
@@ -76,13 +76,13 @@ bool Cast::Memory::LinearBatchStorageInstanced::EditObject(uid object, void* dat
 		return false;
 	}
 
-	BatchMemory->AddData(data, size, Objects[object]);
+	BatchMemory->AddData(data, (int)size, Objects[object]);
 	return true;
 }
 
 void Cast::Memory::LinearBatchStorageInstanced::EditObject(size_t offset, void* data, size_t size)
 {
-	BatchMemory->AddData(data, size, offset);
+	BatchMemory->AddData(data, (int)size, (int)offset);
 }
 
 void Cast::Memory::LinearBatchStorageInstanced::Render(Cast::Ref<API::Core::Shader> shader)

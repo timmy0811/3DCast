@@ -17,7 +17,7 @@ void Cast::OpenGLContext::Init()
 	int res = glewInit();
 	CAST_CORE_ASSERT(glewInit() == GLEW_OK, "Could not init glew.");
 #ifndef CAST_ENABLE_ASSERTS
-	if (res != GL_OK) {
+	if (res != GLEW_OK) {
 		LOG_CORE_ERROR("Could not init glew.");
 		return;
 	}
@@ -28,6 +28,13 @@ void Cast::OpenGLContext::Init()
 	LOG_CORE_INFO("Detected GPU publisher: {0}", std::string((const char*)glGetString(GL_VENDOR)));
 	LOG_CORE_INFO("Detected GLSL Version: {0}", std::string((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)));
 	LOG_SW_ELAPSED(sw);
+
+	if (glewIsSupported("GL_ARB_bindless_texture")) {
+		LOG_CORE_INFO("Your GPU kernel supports bindless textures. Great");
+	}
+	else {
+		LOG_CORE_WARN("Your GPU kernel does not support bindless textures. This may cause the application to not work properly.");
+	}
 }
 
 void Cast::OpenGLContext::SwapBuffer()

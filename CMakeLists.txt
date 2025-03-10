@@ -107,6 +107,10 @@ set_target_properties("update_mappings" PROPERTIES FOLDER "Dependencies/glfw")
 add_subdirectory(Dependencies/imgui)
 set_target_properties("imgui" PROPERTIES FOLDER "Dependencies/imgui")
 
+# Native File Dialoge
+add_subdirectory(Dependencies/nativefile)
+set_target_properties(nfd PROPERTIES FOLDER "Dependencies/imgui")
+
 # Generator Settings
 # Visual Studio Startup Project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Runtime)

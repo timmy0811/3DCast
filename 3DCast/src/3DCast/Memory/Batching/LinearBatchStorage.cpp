@@ -13,7 +13,7 @@ Cast::Memory::LinearBatchStorage::LinearBatchStorage(size_t capacity)
 
 int Cast::Memory::LinearBatchStorage::AddObject(uid object, void* data, size_t size)
 {
-	int offset = BatchMemory->AddData(data, size);
+	int offset = BatchMemory->AddData(data, (int)size);
 	if (offset == -1) {
 		return -1;
 	}
@@ -46,13 +46,13 @@ bool Cast::Memory::LinearBatchStorage::EditObject(uid object, void* data, size_t
 		return false;
 	}
 
-	BatchMemory->AddData(data, size, Objects[object]);
+	BatchMemory->AddData(data, (int)size, Objects[object]);
 	return true;
 }
 
 void Cast::Memory::LinearBatchStorage::EditObject(size_t offset, void* data, size_t size)
 {
-	BatchMemory->AddData(data, size, offset);
+	BatchMemory->AddData(data, (int)size, (int)offset);
 }
 
 void Cast::Memory::LinearBatchStorage::Render(Cast::Ref<API::Core::Shader> shader)

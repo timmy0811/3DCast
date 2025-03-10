@@ -5,10 +5,11 @@
 #include "3DCast/Core/Timestep.h"
 #include "3DCast/Core.h"
 
+#include "3DCast/Scene/TextureManager.h"
 #include "3DCast/Scene/Scene.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/ObjectCreator.h"
-#include "3DCast/Scene/Components.h"
+#include "3DCast/Scene/Component/Component.h"
 #include "3DCast/Layer/Layer.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
 

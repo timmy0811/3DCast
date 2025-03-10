@@ -35,4 +35,4 @@ target_compile_definitions(3DCast PUBLIC
     $<$<CONFIG:Release>:NO_ASSERTS>
 )
 
-target_link_libraries(3DCast PUBLIC GLWrapper)
+target_link_libraries(3DCast PUBLIC GLWrapper nfd)

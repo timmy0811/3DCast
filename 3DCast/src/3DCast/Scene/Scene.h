@@ -28,6 +28,8 @@ namespace Cast {
 		void OnUpdate();
 		void ReallocateLights(int type);
 
+		void BindSSBOforShadingPass();
+
 		inline Cast::Ref<API::Core::Buffer> GetDirLightsBuffer() { return DirLightsSSBO; }
 		inline Cast::Ref<API::Core::Buffer> GetSpotLightsBuffer() { return SpotLightsSSBO; }
 		inline Cast::Ref<API::Core::Buffer> GetPointLightsBuffer() { return PointLightsSSBO; }
@@ -50,6 +52,9 @@ namespace Cast {
 
 	private:
 		inline void RenderLightComponent();
+		inline void BindLightSSBOs();
+		inline void BindSymbolSSBOs();
+		inline void BindTransformSSBO();
 
 	private:
 		entt::registry Registry;
