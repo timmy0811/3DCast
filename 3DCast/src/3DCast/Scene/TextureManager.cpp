@@ -8,7 +8,7 @@ namespace Cast {
 	TextureManager::TextureManager() {
 		DiffuseTextures.reserve(32);
 		SpecularTextures.reserve(32);
-		ShininessTextures.reserve(32);
+		ParallaxTextures.reserve(32);
 		NormalTextures.reserve(32);
 		SamplerMappings.reserve(32);
 
@@ -35,7 +35,7 @@ namespace Cast {
 			MAX_TEXTURES_PER_SLOT * sizeof(uint64_t)
 		));
 
-		ShininessSamplersBuffer.reset(API::Core::Buffer::Create(
+		ParallaxSamplersBuffer.reset(API::Core::Buffer::Create(
 			API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER,
 			API::Core::Buffer::MemoryLayout::DYNAMIC,
 			MAX_TEXTURES_PER_SLOT * sizeof(uint64_t)
@@ -56,7 +56,7 @@ namespace Cast {
 		// Default samplers
 		AddDiffuseTexture(API::Texture::Texture::Create("../3DCast/ressources/img/default_samplers/default_diffuse.png"));
 		AddSpecularTexture(API::Texture::Texture::Create("../3DCast/ressources/img/default_samplers/default_specular.png"));
-		AddShininessTexture(API::Texture::Texture::Create("../3DCast/ressources/img/default_samplers/default_shine.png"));
+		AddParallaxTexture(API::Texture::Texture::Create("../3DCast/ressources/img/default_samplers/default_parallax.png"));
 		AddNormalTexture(API::Texture::Texture::Create("../3DCast/ressources/img/default_samplers/default_normal.png"));
 
 		CreateSamplerMapping(0, 0, 0, 0);
@@ -114,11 +114,11 @@ namespace Cast {
 		return { SpecularCounter++, texture->GetRendererID() };
 	}
 
-	TextureInformation TextureManager::AddShininessTexture(API::Texture::Texture* texture) {
+	TextureInformation TextureManager::AddParallaxTexture(API::Texture::Texture* texture) {
 		if (!texture) return {};
 
 		if (std::find(TexIdCache.begin(), TexIdCache.end(), texture->GetRendererID()) != TexIdCache.end()) {
-			for (const auto& pair : ShininessTextures) {
+			for (const auto& pair : ParallaxTextures) {
 				if (pair.second->GetRendererID() == texture->GetRendererID())
 					return { pair.first, texture->GetRendererID() };
 			}
@@ -127,17 +127,17 @@ namespace Cast {
 			return {};
 		}
 
-		texture->SetType(API::Texture::TextureType::SHINE);
-		ShininessTextures[ShininessCounter] = Ref<API::Texture::Texture>(texture);
+		texture->SetType(API::Texture::TextureType::HEIGHT);
+		ParallaxTextures[ParallaxCounter] = Ref<API::Texture::Texture>(texture);
 		texture->MakeResident();
 
-		std::vector<uint64_t> shininessSamplerIds(ShininessCounter + 1);
-		for (const auto& pair : ShininessTextures) {
+		std::vector<uint64_t> shininessSamplerIds(ParallaxCounter + 1);
+		for (const auto& pair : ParallaxTextures) {
 			shininessSamplerIds[pair.first] = pair.second->GenerateHandle();
 		}
-		ShininessSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
+		ParallaxSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
 
-		return { ShininessCounter++, texture->GetRendererID() };
+		return { ParallaxCounter++, texture->GetRendererID() };
 	}
 
 	TextureInformation TextureManager::AddNormalTexture(API::Texture::Texture* texture) {
@@ -178,10 +178,10 @@ namespace Cast {
 		return AddSpecularTexture(API::Texture::Texture::Create(path, flipUV));
 	}
 
-	TextureInformation TextureManager::AddShininessTexture(const std::string& path, bool flipUV) {
+	TextureInformation TextureManager::AddParallaxTexture(const std::string& path, bool flipUV) {
 		if (path.empty()) return {};
 
-		return AddShininessTexture(API::Texture::Texture::Create(path, flipUV));
+		return AddParallaxTexture(API::Texture::Texture::Create(path, flipUV));
 	}
 
 	TextureInformation TextureManager::AddNormalTexture(const std::string& path, bool flipUV) {
@@ -196,7 +196,7 @@ namespace Cast {
 
 		SamplerMappings[id].diffuseIndex = diffuseId;
 		SamplerMappings[id].specularIndex = specularId;
-		SamplerMappings[id].shininessIndex = shininessId;
+		SamplerMappings[id].parallaxIndex = shininessId;
 		SamplerMappings[id].normalIndex = normalId;
 
 		SamplerMappingsBuffer->SetData(SamplerMappings.data(), SamplerMappings.size() * sizeof(SamplerMapping));
@@ -211,7 +211,7 @@ namespace Cast {
 		SamplerMapping mapping;
 		mapping.diffuseIndex = diffuseId;
 		mapping.specularIndex = specularId;
-		mapping.shininessIndex = shininessId;
+		mapping.parallaxIndex = shininessId;
 		mapping.normalIndex = normalId;
 
 		SamplerMappings.push_back(mapping);
@@ -228,8 +228,8 @@ namespace Cast {
 		return (SpecularTextures.count(id)) ? SpecularTextures[id] : SpecularTextures[0];
 	}
 
-	Ref<API::Texture::Texture> TextureManager::GetShininessTexture(unsigned short id) {
-		return (ShininessTextures.count(id)) ? ShininessTextures[id] : ShininessTextures[0];
+	Ref<API::Texture::Texture> TextureManager::GetParallaxTexture(unsigned short id) {
+		return (ParallaxTextures.count(id)) ? ParallaxTextures[id] : ParallaxTextures[0];
 	}
 
 	Ref<API::Texture::Texture> TextureManager::GetNormalTexture(unsigned short id) {
@@ -249,7 +249,7 @@ namespace Cast {
 			pair.second->MakeResident();
 		}
 
-		for (const auto& pair : ShininessTextures) {
+		for (const auto& pair : ParallaxTextures) {
 			pair.second->MakeResident();
 		}
 
@@ -272,11 +272,11 @@ namespace Cast {
 		}
 		SpecularSamplersBuffer->SetData(specularSamplerIds.data(), specularSamplerIds.size() * sizeof(uint64_t));
 
-		std::vector<uint64_t> shininessSamplerIds(ShininessCounter);
-		for (const auto& pair : ShininessTextures) {
+		std::vector<uint64_t> shininessSamplerIds(ParallaxCounter);
+		for (const auto& pair : ParallaxTextures) {
 			shininessSamplerIds[pair.first] = pair.second->GenerateHandle();
 		}
-		ShininessSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
+		ParallaxSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
 
 		std::vector<uint64_t> normalSamplerIds(NormalCounter);
 		for (const auto& pair : NormalTextures) {
@@ -289,7 +289,7 @@ namespace Cast {
 	{
 		DiffuseSamplersBuffer->BindBase(1);
 		SpecularSamplersBuffer->BindBase(2);
-		ShininessSamplersBuffer->BindBase(3);
+		ParallaxSamplersBuffer->BindBase(3);
 		NormalSamplersBuffer->BindBase(4);
 
 		SamplerMappingsBuffer->BindBase(5);

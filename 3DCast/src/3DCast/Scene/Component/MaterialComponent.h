@@ -23,7 +23,7 @@ namespace Cast::Component {
 
 		TextureInformation diffuseInfo;
 		TextureInformation specularInfo;
-		TextureInformation shineInfo;
+		TextureInformation parallaxInfo;
 		TextureInformation normalInfo;
 
 		MaterialComponent(const MaterialComponent&) = default;
@@ -35,7 +35,7 @@ namespace Cast::Component {
 			samplerIndex = g_TextureManager.CreateSamplerMapping(
 				diffuseInfo.bufferIndex,
 				specularInfo.bufferIndex,
-				shineInfo.bufferIndex,
+				parallaxInfo.bufferIndex,
 				normalInfo.bufferIndex
 			);
 		}
@@ -45,7 +45,7 @@ namespace Cast::Component {
 				samplerIndex,
 				diffuseInfo.bufferIndex,
 				specularInfo.bufferIndex,
-				shineInfo.bufferIndex,
+				parallaxInfo.bufferIndex,
 				normalInfo.bufferIndex
 			);
 		}
@@ -65,8 +65,8 @@ namespace Cast::Component {
 		}
 
 		// Load a shininess texture from file
-		void LoadShininessTexture(const std::string& path, bool flipUV = false) {
-			shineInfo = g_TextureManager.AddShininessTexture(path, flipUV);
+		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
+			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
 			Helper::setBit(textureEnabled, 4, true);
 			UpdateSamplerMapping();
 		}
@@ -169,6 +169,28 @@ namespace Cast::Component {
 						specularInfo = { 0, 0 };
 						UpdateSamplerMapping();
 						specLoaded = false;
+					}
+				}
+
+				ImGui::Separator();
+
+				// Parallax
+				static bool parallaxLoaded = false;
+				if (!parallaxLoaded && ImGui::Button("Load Parallax Texture")) {
+					std::string path = OpenFileDialoge();
+					if (!path.empty()) {
+						LoadParallaxTexture(path);
+						parallaxLoaded = true;
+					}
+				}
+
+				if (parallaxLoaded) {
+					ImGui::Image((unsigned long long)parallaxInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+					ImGui::SameLine();
+					if (ImGui::Button("Delete Parallax Texture")) {
+						parallaxInfo = { 0, 0 };
+						UpdateSamplerMapping();
+						parallaxLoaded = false;
 					}
 				}
 

@@ -2,11 +2,12 @@
 #version 430 core
 
 layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec3 a_Tangent;
-layout(location = 2) in vec3 a_Bitangent;
-layout(location = 3) in vec2 a_UV;
-layout(location = 4) in float a_SamplerIndex;
-layout(location = 5) in float a_TransformIndex;
+layout(location = 1) in vec3 a_Normal;
+layout(location = 2) in vec3 a_Tangent;
+layout(location = 3) in vec3 a_Bitangent;
+layout(location = 4) in vec2 a_UV;
+layout(location = 5) in float a_SamplerIndex;
+layout(location = 6) in float a_TransformIndex;
 
 out vec3 v_FragPos;
 out vec2 v_UV;
@@ -27,12 +28,9 @@ void main()
     v_FragPos = position.xyz;
     v_UV = a_UV;
 
-    // Transform the tangent and bitangent vectors by the model matrix.
     vec3 T = normalize(vec3(model * vec4(a_Tangent, 0.0)));
     vec3 B = normalize(vec3(model * vec4(a_Bitangent, 0.0)));
-    
-    // Compute the normal with the corrected handedness (flipped cross order)
-    vec3 N = normalize(cross(B, T));
+    vec3 N = normalize(vec3(model * vec4(a_Normal, 0.0)));
     v_TBN = mat3(T, B, N);
 
     v_SamplerIndex = int(a_SamplerIndex);

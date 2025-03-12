@@ -1,9 +1,9 @@
 #include "castpch.h"
 
-#include "LinearBatchStorageInstanced.h"
+#include "LinearBatchStorageIndexed.h"
 #include "3DCast/Renderer/Renderer.h"
 
-Cast::Memory::LinearBatchStorageInstanced::LinearBatchStorageInstanced(size_t capacity, size_t indexCapacity)
+Cast::Memory::LinearBatchStorageIndexed::LinearBatchStorageIndexed(size_t capacity, size_t indexCapacity)
 {
 	VertexArray.reset(API::Core::VertexArray::Create());
 
@@ -14,7 +14,7 @@ Cast::Memory::LinearBatchStorageInstanced::LinearBatchStorageInstanced(size_t ca
 	Capacity = capacity;
 }
 
-int Cast::Memory::LinearBatchStorageInstanced::AddObject(uid object, void* data, size_t size, void* indices, int count)
+int Cast::Memory::LinearBatchStorageIndexed::AddObject(uid object, void* data, size_t size, void* indices, int count)
 {
 	size_t availableMemory = Capacity - BatchMemory->GetSize();
 	size_t availableIndexMemory = IndexCapacity - BatchIndices->GetSize();
@@ -52,7 +52,7 @@ int Cast::Memory::LinearBatchStorageInstanced::AddObject(uid object, void* data,
 	return offset;
 }
 
-std::vector<Cast::uid> Cast::Memory::LinearBatchStorageInstanced::RemoveObject(uid object)
+std::vector<Cast::uid> Cast::Memory::LinearBatchStorageIndexed::RemoveObject(uid object)
 {
 	if (Objects.erase(object) == 0) {
 		return { Cast::UID::None() };
@@ -70,7 +70,7 @@ std::vector<Cast::uid> Cast::Memory::LinearBatchStorageInstanced::RemoveObject(u
 	return ids;
 }
 
-bool Cast::Memory::LinearBatchStorageInstanced::EditObject(uid object, void* data, size_t size)
+bool Cast::Memory::LinearBatchStorageIndexed::EditObject(uid object, void* data, size_t size)
 {
 	if (Objects.find(object) == Objects.end()) {
 		return false;
@@ -80,12 +80,12 @@ bool Cast::Memory::LinearBatchStorageInstanced::EditObject(uid object, void* dat
 	return true;
 }
 
-void Cast::Memory::LinearBatchStorageInstanced::EditObject(size_t offset, void* data, size_t size)
+void Cast::Memory::LinearBatchStorageIndexed::EditObject(size_t offset, void* data, size_t size)
 {
 	BatchMemory->AddData(data, (int)size, (int)offset);
 }
 
-void Cast::Memory::LinearBatchStorageInstanced::Render(Cast::Ref<API::Core::Shader> shader)
+void Cast::Memory::LinearBatchStorageIndexed::Render(Cast::Ref<API::Core::Shader> shader)
 {
 	BatchMemory->Bind();
 	BatchIndices->Bind();
@@ -94,14 +94,14 @@ void Cast::Memory::LinearBatchStorageInstanced::Render(Cast::Ref<API::Core::Shad
 	Renderer::RendererContext::Submit(VertexArray, BatchIndices, shader);
 }
 
-void Cast::Memory::LinearBatchStorageInstanced::Clear()
+void Cast::Memory::LinearBatchStorageIndexed::Clear()
 {
 	BatchMemory->Empty();
 	BatchIndices->Empty();
 	Objects.clear();
 }
 
-void Cast::Memory::LinearBatchStorageInstanced::SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout)
+void Cast::Memory::LinearBatchStorageIndexed::SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout)
 {
 	Layout = layout;
 	VertexArray->AddBuffer(*BatchMemory, *layout);

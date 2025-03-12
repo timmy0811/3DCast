@@ -2,7 +2,7 @@
 
 #include "UID.h"
 #include "LinearBatchStorage.h"
-#include "LinearBatchStorageInstanced.h"
+#include "LinearBatchStorageIndexed.h"
 
 #include <API/core/Shader.h>
 
@@ -43,7 +43,7 @@ namespace Cast::Memory
 		size_t BatchStorageSize;
 		int MaxIndices;
 		std::vector<LinearBatchStorage> BatchStorages;
-		std::vector<LinearBatchStorageInstanced> BatchStoragesIndexed;
+		std::vector<LinearBatchStorageIndexed> BatchStoragesIndexed;
 
 		Cast::Ref<API::Core::VertexBufferLayout> Layout;
 	};

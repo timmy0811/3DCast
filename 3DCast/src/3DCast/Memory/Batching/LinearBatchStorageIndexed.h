@@ -8,11 +8,11 @@
 
 namespace Cast::Memory
 {
-	class LinearBatchStorageInstanced
+	class LinearBatchStorageIndexed
 	{
 	public:
-		LinearBatchStorageInstanced(size_t capacity, size_t indexCapacity);
-		~LinearBatchStorageInstanced() = default;
+		LinearBatchStorageIndexed(size_t capacity, size_t indexCapacity);
+		~LinearBatchStorageIndexed() = default;
 
 		int AddObject(uid object, void* data, size_t size, void* indices, int count);
 		std::vector<uid> RemoveObject(uid object);

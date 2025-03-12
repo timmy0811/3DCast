@@ -143,6 +143,11 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	API::Core::RenderCommand::ClearStencilBuffer();
 	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
+	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+	shader->Bind();
+	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	shader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
+
 	Runtime::EditorContext.ActiveScene->OnDeferredRender();
 	RenderPipelineData.GBuffer->Unbind();
 }
@@ -165,7 +170,7 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
 	//GUI Background Color
-	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
+	API::Core::RenderCommand::SetClearColor({ 0.06f, 0.06f, 0.06f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
 	RenderPipelineData.Framebuffer->Bind();

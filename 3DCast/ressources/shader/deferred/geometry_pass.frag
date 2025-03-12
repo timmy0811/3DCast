@@ -24,8 +24,8 @@ layout(std430, binding = 2) buffer SpecularSamplers {
     sampler2D specularSamplers[]; // specularSamplers[0] is neutral Element
 };
 
-layout(std430, binding = 3) buffer ShininessSamplers {
-    sampler2D shininessSamplers[]; // shininessSamplers[0] is neutral Element
+layout(std430, binding = 3) buffer ParallaxSamplers {
+    sampler2D parallaxSamplers[]; // parallaxSamplers[0] is neutral Element
 };
 
 layout(std430, binding = 4) buffer NormalSamplers {
@@ -36,7 +36,7 @@ layout(std430, binding = 4) buffer NormalSamplers {
 struct SamplerMapping {
     unsigned short diffuseIndex;
     unsigned short specularIndex;
-    unsigned short shininessIndex;
+    unsigned short parallaxIndex;
     unsigned short normalIndex;
 };
 
@@ -45,15 +45,26 @@ layout(std430, binding = 5) buffer SamplerMap {
     SamplerMapping samplerMappings[];
 };
 
+// Uniforms
+uniform vec3 u_ViewPos;
+
+#define PARALLAX_SCALE 0.03
+#include <components/texture/parallax_displace.frag>
+
 void main()
 {    
     SamplerMapping mapping = samplerMappings[v_SamplerIndex];
 
-    // Output world-space position
     g_Position = v_FragPos;
-    
+
+    mat3 TBN = transpose(v_TBN);
+    vec3 tangentViewDir = normalize(TBN * u_ViewPos - TBN * v_FragPos);
+    vec2 uv_displaced = parallaxMap(v_UV, tangentViewDir, mapping.parallaxIndex);
+    if(uv_displaced.x > 1.0 || uv_displaced.y > 1.0 || uv_displaced.x < 0.0 || uv_displaced.y < 0.0)
+        discard;
+
     // Sample the normal map and convert from [0,1] to [-1,1]
-    vec3 normalMap = texture(normalSamplers[mapping.normalIndex], v_UV).rgb;
+    vec3 normalMap = texture(normalSamplers[mapping.normalIndex], uv_displaced).rgb;
     normalMap = normalMap * 2.0 - 1.0;
     normalMap.x = -normalMap.x;
     
@@ -61,13 +72,9 @@ void main()
     vec3 normal = normalize(v_TBN * normalMap);
     g_Normal = normal;
 
-    // Sample albedo/diffuse texture
-    g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], v_UV).rgb;
-    
-    // Sample specular texture
-    g_Specular = texture(specularSamplers[mapping.specularIndex], v_UV).rgb;
+    g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], uv_displaced).rgb;
+    g_Specular = texture(specularSamplers[mapping.specularIndex], uv_displaced).rgb;
+    float shininess = mix(4.0, 32.0, texture(specularSamplers[mapping.specularIndex], uv_displaced).r); // Using first bit of specular map for shininess
 
-    // Sample shininess texture (red channel)
-    float shininess = mix(4.0, 32.0, texture(specularSamplers[mapping.specularIndex], v_UV).r); // Using first bit of specular map for shininess
     g_Shine_Reflectance = vec2(shininess, 0.5);
 }

@@ -24,6 +24,7 @@ void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
 	Layout->Push(API::Core::ShaderDataType::Float3);
 	Layout->Push(API::Core::ShaderDataType::Float3);
 	Layout->Push(API::Core::ShaderDataType::Float3);
+	Layout->Push(API::Core::ShaderDataType::Float3);
 	Layout->Push(API::Core::ShaderDataType::Float2);
 	Layout->Push(API::Core::ShaderDataType::Float);
 	Layout->Push(API::Core::ShaderDataType::Float);
@@ -31,7 +32,7 @@ void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
 	BatchStorages.push_back(LinearBatchStorage(defaultStorageSize));
 	BatchStorages[BatchStorages.size() - 1].SetLayout(Layout);
 
-	BatchStoragesIndexed.push_back(LinearBatchStorageInstanced(defaultStorageSize, maxIndices));
+	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(defaultStorageSize, maxIndices));
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
 }
 
@@ -75,7 +76,7 @@ Cast::Memory::MemoryPosition Cast::Memory::BatchManager::AddIndexedObject(uid ob
 	}
 
 	// If no batch storage has enough space, create a new one
-	BatchStoragesIndexed.push_back(LinearBatchStorageInstanced(BatchStorageSize, MaxIndices));
+	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(BatchStorageSize, MaxIndices));
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
 	int offset = BatchStorages[BatchStoragesIndexed.size() - 1].AddObject(objectId, data, size);
 	return MemoryPosition{ -1, (int)BatchStoragesIndexed.size() - 1, offset };
