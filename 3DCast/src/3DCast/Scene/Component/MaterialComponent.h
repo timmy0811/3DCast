@@ -7,7 +7,7 @@
 namespace Cast::Component {
 	struct MaterialComponent : Component {
 		/* Bitmask:
-		0: Diffuse
+		0: normal
 		1: Specular
 		2: Normal
 		3: Emmissive
@@ -25,6 +25,11 @@ namespace Cast::Component {
 		TextureInformation specularInfo;
 		TextureInformation parallaxInfo;
 		TextureInformation normalInfo;
+
+		std::string diffuseFile;
+		std::string specularFile;
+		std::string parallaxFile;
+		std::string normalFile;
 
 		MaterialComponent(const MaterialComponent&) = default;
 		MaterialComponent() {
@@ -50,9 +55,15 @@ namespace Cast::Component {
 			);
 		}
 
-		// Load a diffuse texture from file
+		std::string ExtractFilename(const std::string& path) {
+			size_t found = path.find_last_of("/\\");
+			return path.substr(found + 1);
+		}
+
+		// Load a normal texture from file
 		void LoadDiffuseTexture(const std::string& path, bool flipUV = false) {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(path, flipUV);
+			diffuseFile = ExtractFilename(path);
 			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
@@ -60,6 +71,7 @@ namespace Cast::Component {
 		// Load a specular texture from file
 		void LoadSpecularTexture(const std::string& path, bool flipUV = false) {
 			specularInfo = g_TextureManager.AddSpecularTexture(path, flipUV);
+			specularFile = ExtractFilename(path);
 			Helper::setBit(textureEnabled, 1, true);
 			UpdateSamplerMapping();
 		}
@@ -67,6 +79,7 @@ namespace Cast::Component {
 		// Load a shininess texture from file
 		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
+			parallaxFile = ExtractFilename(path);
 			Helper::setBit(textureEnabled, 4, true);
 			UpdateSamplerMapping();
 		}
@@ -74,6 +87,7 @@ namespace Cast::Component {
 		// Load a normal map from file
 		void LoadNormalTexture(const std::string& path, bool flipUV = false) {
 			normalInfo = g_TextureManager.AddNormalTexture(path, flipUV);
+			normalFile = ExtractFilename(path);
 			Helper::setBit(textureEnabled, 2, true);
 			UpdateSamplerMapping();
 		}
@@ -106,92 +120,213 @@ namespace Cast::Component {
 
 		virtual void OnImGuiRender() override {
 			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
-				// Diffuse
-				static bool diffuseLoaded = false;
-				if (!diffuseLoaded && ImGui::Button("Load Diffuse Texture")) {
-					std::string path = OpenFileDialoge();
-					if (!path.empty()) {
-						LoadDiffuseTexture(path);
-						diffuseLoaded = true;
-					}
-				}
+				float windowWidth = ImGui::GetWindowWidth();
+				float textHeight = ImGui::GetTextLineHeightWithSpacing();
 
-				if (diffuseLoaded) {
-					ImGui::Image((unsigned long long)diffuseInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
-					ImGui::SameLine();
-					if (ImGui::Button("Delete Diffuse Texture")) {
-						diffuseInfo = { 0, 0 };
-						UpdateSamplerMapping();
-						diffuseLoaded = false;
+				// normal
+				if (ImGui::TreeNodeEx("normal", ImGuiTreeNodeFlags_DefaultOpen)) {
+					static bool diffuseLoaded = false;
+					if (diffuseLoaded) {
+						ImGui::Columns(2, nullptr, false);
+
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::Image((unsigned long long)diffuseInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+
+						ImGui::Text("File: %s", diffuseFile.c_str());
+						ImGui::Text("Dimension: %d x %d", (int)diffuseInfo.size.x, (int)diffuseInfo.size.y);
+
+						ImGui::Dummy({ 0.f, textHeight * 2.f });
+						if (ImGui::Button("Delete normal Texture")) {
+							diffuseInfo = { 0, 0 };
+							UpdateSamplerMapping();
+							diffuseLoaded = false;
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
 					}
+					else {
+						ImGui::Columns(2, nullptr, false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::Text("No normal Map Loaded");
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+
+						if (ImGui::Button("Load normal lexture")) {
+							std::string path = OpenFileDialoge();
+							if (!path.empty()) {
+								LoadDiffuseTexture(path);
+								diffuseLoaded = true;
+							}
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
+					}
+					ImGui::TreePop();
 				}
 
 				ImGui::Separator();
 
 				// Normal
-				static bool normalLoaded = false;
-				if (!normalLoaded && ImGui::Button("Load Normal Texture")) {
-					std::string path = OpenFileDialoge();
-					if (!path.empty()) {
-						LoadNormalTexture(path);
-						normalLoaded = true;
-					}
-				}
+				if (ImGui::TreeNodeEx("Normal", ImGuiTreeNodeFlags_DefaultOpen)) {
+					static bool normalLoaded = false;
+					if (normalLoaded) {
+						ImGui::Columns(2, nullptr, false);
 
-				if (normalLoaded) {
-					ImGui::Image((unsigned long long)normalInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
-					ImGui::SameLine();
-					if (ImGui::Button("Delete Normal Texture")) {
-						normalInfo = { 0, 0 };
-						UpdateSamplerMapping();
-						normalLoaded = false;
-					}
-				}
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::Image((unsigned long long)normalInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+						ImGui::EndChild();
 
-				// Ability to flip each axis of the normal map
+						ImGui::NextColumn();
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+
+						ImGui::Text("File: %s", normalFile.c_str());
+						ImGui::Text("Dimension: %d x %d", (int)normalInfo.size.x, (int)normalInfo.size.y);
+
+						ImGui::Dummy({ 0.f, textHeight * 2.f });
+						if (ImGui::Button("Delete normal Texture")) {
+							normalInfo = { 0, 0 };
+							UpdateSamplerMapping();
+							normalLoaded = false;
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
+					}
+					else {
+						ImGui::Columns(2, nullptr, false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::Text("No normal Map loaded");
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+
+						if (ImGui::Button("Load normal Texture")) {
+							std::string path = OpenFileDialoge();
+							if (!path.empty()) {
+								LoadNormalTexture(path);
+								normalLoaded = true;
+							}
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
+					}
+					ImGui::TreePop();
+				}
 
 				ImGui::Separator();
 
 				// Specular
-				static bool specLoaded = false;
-				if (!specLoaded && ImGui::Button("Load Specular Texture")) {
-					std::string path = OpenFileDialoge();
-					if (!path.empty()) {
-						LoadSpecularTexture(path);
-						specLoaded = true;
-					}
-				}
+				if (ImGui::TreeNodeEx("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
+					static bool specularLoaded = false;
+					if (specularLoaded) {
+						ImGui::Columns(2, nullptr, false);
 
-				if (specLoaded) {
-					ImGui::Image((unsigned long long)specularInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
-					ImGui::SameLine();
-					if (ImGui::Button("Delete Specular Texture")) {
-						specularInfo = { 0, 0 };
-						UpdateSamplerMapping();
-						specLoaded = false;
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::Image((unsigned long long)specularInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+
+						ImGui::Text("File: %s", specularFile.c_str());
+						ImGui::Text("Dimension: %d x %d", (int)specularInfo.size.x, (int)specularInfo.size.y);
+
+						ImGui::Dummy({ 0.f, textHeight * 2.f });
+						if (ImGui::Button("Delete specular Texture")) {
+							specularInfo = { 0, 0 };
+							UpdateSamplerMapping();
+							specularLoaded = false;
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
 					}
+					else {
+						ImGui::Columns(2, nullptr, false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::Text("No specular Map loaded");
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+
+						if (ImGui::Button("Load specular Texture")) {
+							std::string path = OpenFileDialoge();
+							if (!path.empty()) {
+								LoadSpecularTexture(path);
+								specularLoaded = true;
+							}
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
+					}
+					ImGui::TreePop();
 				}
 
 				ImGui::Separator();
 
 				// Parallax
-				static bool parallaxLoaded = false;
-				if (!parallaxLoaded && ImGui::Button("Load Parallax Texture")) {
-					std::string path = OpenFileDialoge();
-					if (!path.empty()) {
-						LoadParallaxTexture(path);
-						parallaxLoaded = true;
-					}
-				}
+				if (ImGui::TreeNodeEx("Parallax", ImGuiTreeNodeFlags_DefaultOpen)) {
+					static bool parallaxLoaded = false;
+					if (parallaxLoaded) {
+						ImGui::Columns(2, nullptr, false);
 
-				if (parallaxLoaded) {
-					ImGui::Image((unsigned long long)parallaxInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
-					ImGui::SameLine();
-					if (ImGui::Button("Delete Parallax Texture")) {
-						parallaxInfo = { 0, 0 };
-						UpdateSamplerMapping();
-						parallaxLoaded = false;
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::Image((unsigned long long)parallaxInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+
+						ImGui::Text("File: %s", parallaxFile.c_str());
+						ImGui::Text("Dimension: %d x %d", (int)parallaxInfo.size.x, (int)parallaxInfo.size.y);
+
+						ImGui::Dummy({ 0.f, textHeight * 2.f });
+						if (ImGui::Button("Delete parallax Texture")) {
+							parallaxInfo = { 0, 0 };
+							UpdateSamplerMapping();
+							parallaxLoaded = false;
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
 					}
+					else {
+						ImGui::Columns(2, nullptr, false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::Text("No parallax Map Loaded");
+						ImGui::EndChild();
+
+						ImGui::NextColumn();
+
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+
+						if (ImGui::Button("Load parallax Texture")) {
+							std::string path = OpenFileDialoge();
+							if (!path.empty()) {
+								LoadParallaxTexture(path);
+								parallaxLoaded = true;
+							}
+						}
+
+						ImGui::EndChild();
+						ImGui::Columns(1);
+					}
+					ImGui::TreePop();
 				}
 
 				ImGui::Separator();

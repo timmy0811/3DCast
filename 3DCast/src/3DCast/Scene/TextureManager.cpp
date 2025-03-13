@@ -85,7 +85,7 @@ namespace Cast {
 		}
 		DiffuseSamplersBuffer->SetData(diffuseSamplerIds.data(), diffuseSamplerIds.size() * sizeof(uint64_t));
 
-		return { DiffuseCounter++, texture->GetRendererID() };
+		return { DiffuseCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
 	}
 
 	TextureInformation TextureManager::AddSpecularTexture(API::Texture::Texture* texture) {
@@ -111,7 +111,7 @@ namespace Cast {
 		}
 		SpecularSamplersBuffer->SetData(specularSamplerIds.data(), specularSamplerIds.size() * sizeof(uint64_t));
 
-		return { SpecularCounter++, texture->GetRendererID() };
+		return { SpecularCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
 	}
 
 	TextureInformation TextureManager::AddParallaxTexture(API::Texture::Texture* texture) {
@@ -137,7 +137,7 @@ namespace Cast {
 		}
 		ParallaxSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
 
-		return { ParallaxCounter++, texture->GetRendererID() };
+		return { ParallaxCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
 	}
 
 	TextureInformation TextureManager::AddNormalTexture(API::Texture::Texture* texture) {
@@ -163,7 +163,7 @@ namespace Cast {
 		}
 		NormalSamplersBuffer->SetData(normalSamplerIds.data(), normalSamplerIds.size() * sizeof(uint64_t));
 
-		return { NormalCounter++, texture->GetRendererID() };
+		return { NormalCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
 	}
 
 	TextureInformation TextureManager::AddDiffuseTexture(const std::string& path, bool flipUV) {

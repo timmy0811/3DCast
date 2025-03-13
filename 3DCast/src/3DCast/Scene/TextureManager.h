@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <Vendor/glm/glm.hpp>
+
 namespace Cast {
 	// SamplerMapping corresponds to the struct declared in the shader
 	struct SamplerMapping {
@@ -18,6 +20,7 @@ namespace Cast {
 	struct TextureInformation {
 		unsigned short bufferIndex = 0;
 		int textureId = 0;
+		glm::vec2 size = { 0.0f, 0.0f };
 	};
 
 	class TextureManager {
