@@ -3,10 +3,16 @@
 #include <3DCast.h>
 
 namespace Runtime {
+	struct View
+	{
+		float ParallaxScale = 0.03f;
+	};
+
 	struct SharedEditorData
 	{
 		Cast::Ref<Cast::Scene> ActiveScene;
 		Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
+		View ViewSettings;
 	};
 
 	extern SharedEditorData EditorContext;

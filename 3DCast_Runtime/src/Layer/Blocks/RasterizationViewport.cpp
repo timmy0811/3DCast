@@ -147,6 +147,7 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	shader->Bind();
 	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
 	shader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
+	shader->SetUniform1f("u_ParallaxScale", Runtime::EditorContext.ViewSettings.ParallaxScale);
 
 	Runtime::EditorContext.ActiveScene->OnDeferredRender();
 	RenderPipelineData.GBuffer->Unbind();

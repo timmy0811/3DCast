@@ -10,7 +10,7 @@ vec2 parallaxMap(vec2 uv, vec3 viewDir, unsigned short samplerIndex)
     float currentLayerDepth = 0.0;
 
     // the amount to shift the texture coordinates per layer (from vector P)
-    vec2 P = viewDir.xy / viewDir.z * PARALLAX_SCALE; 
+    vec2 P = viewDir.xy / viewDir.z * u_ParallaxScale; 
     vec2 deltaTexCoords = P / numLayers;
   
     vec2 currentTexCoords = uv;

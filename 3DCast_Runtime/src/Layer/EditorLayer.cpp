@@ -112,6 +112,7 @@ void EditorLayer::OnImGuiRender()
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 	}
 
+	static bool showParallaxSettings = false;
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -122,7 +123,34 @@ void EditorLayer::OnImGuiRender()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("View"))
+		{
+			if (ImGui::MenuItem("Parallax Settings")) {
+				showParallaxSettings = true;
+			}
+
+			ImGui::EndMenu();
+		}
+
 		ImGui::EndMenuBar();
+	}
+
+	if (showParallaxSettings) {
+		ImGui::OpenPopup("ParallaxSettings");
+		showParallaxSettings = false;
+	}
+
+	if (ImGui::BeginPopupModal("ParallaxSettings")) {
+		ImGui::Text("Parallax Scale");
+		ImGui::SameLine();
+		ImGui::DragFloat("Parallax Scale", &Runtime::EditorContext.ViewSettings.ParallaxScale, 0.002f, 0.0f, 1.5f);
+
+		if (ImGui::Button("Close"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
 	}
 
 	ImGui::End();
