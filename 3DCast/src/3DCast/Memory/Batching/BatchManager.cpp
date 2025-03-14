@@ -32,24 +32,24 @@ void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
 	BatchStorages.push_back(LinearBatchStorage(defaultStorageSize));
 	BatchStorages[BatchStorages.size() - 1].SetLayout(Layout);
 
-	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(defaultStorageSize, maxIndices));
+	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(defaultStorageSize, maxIndices * sizeof(unsigned int)));
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
 }
 
 Cast::Memory::MemoryPosition Cast::Memory::BatchManager::AddObject(uid objectId, void* data, size_t size)
 {
+	if (size > BatchStorageSize)
+	{
+		LOG_CORE_ERROR("Object size is larger than the batch storage size. Object will not be added to the batch storage.");
+		return MemoryPosition{ -1, -1, -1 };
+	}
+
 	// Add object to the first batch storage that has enough space
 	for (int i = 0; i < BatchStorages.size(); i++) {
 		int offset = BatchStorages[i].AddObject(objectId, data, size);
 		if (offset != -1) {
 			return MemoryPosition{ i, offset };
 		}
-	}
-
-	if (size > BatchStorageSize)
-	{
-		LOG_CORE_ERROR("Object size is larger than the batch storage size. Object will not be added to the batch storage.");
-		return MemoryPosition{ -1, -1, -1 };
 	}
 
 	// If no batch storage has enough space, create a new one
@@ -61,24 +61,40 @@ Cast::Memory::MemoryPosition Cast::Memory::BatchManager::AddObject(uid objectId,
 
 Cast::Memory::MemoryPosition Cast::Memory::BatchManager::AddIndexedObject(uid objectId, void* data, size_t size, void* indices, int count)
 {
-	// Add object to the first batch storage that has enough space
-	for (int i = 0; i < BatchStoragesIndexed.size(); i++) {
-		int offset = BatchStoragesIndexed[i].AddObject(objectId, data, size, indices, count);
-		if (offset != -1) {
-			return MemoryPosition{ i, offset };
-		}
-	}
-
+	LOG_CORE_INFO("Adding indexed object with ID " + std::to_string(objectId) + " to the batch storage.");
 	if (size > BatchStorageSize)
 	{
 		LOG_CORE_ERROR("Object size is larger than the batch storage size. Object will not be added to the batch storage.");
 		return MemoryPosition{ -1, -1, -1 };
 	}
+	else if (count > MaxIndices)
+	{
+		LOG_CORE_ERROR("Object indices size is larger than the batch storage index size. Object will not be added to the batch storage.");
+		return MemoryPosition{ -1, -1, -1 };
+	}
+
+	// Add object to the first batch storage that has enough space
+	int offset = -3;
+	for (int i = 0; i < BatchStoragesIndexed.size(); i++) {
+		offset = BatchStoragesIndexed[i].AddObject(objectId, data, size, indices, count);
+		if (offset >= 0) {
+			return MemoryPosition{ i, offset };
+		}
+	}
 
 	// If no batch storage has enough space, create a new one
 	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(BatchStorageSize, MaxIndices));
+	std::string cause;
+	if (offset == -1)
+		cause = "Exceeding vertex buffer capacity.";
+	else if (offset == -2)
+		cause = "Exceeding index buffer capacity.";
+	else
+		cause = "Internal error.";
+
+	LOG_CORE_INFO("Creating new batch storage for object with ID " + std::to_string(objectId) + " | Cause: " + cause);
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
-	int offset = BatchStorages[BatchStoragesIndexed.size() - 1].AddObject(objectId, data, size);
+	offset = BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].AddObject(objectId, data, size, indices, count);
 	return MemoryPosition{ -1, (int)BatchStoragesIndexed.size() - 1, offset };
 }
 

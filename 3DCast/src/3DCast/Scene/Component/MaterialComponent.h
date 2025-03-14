@@ -60,10 +60,18 @@ namespace Cast::Component {
 			return path.substr(found + 1);
 		}
 
+#pragma region LOADERS
 		// Load a normal texture from file
 		void LoadDiffuseTexture(const std::string& path, bool flipUV = false) {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(path, flipUV);
 			diffuseFile = ExtractFilename(path);
+			Helper::setBit(textureEnabled, 0, true);
+			UpdateSamplerMapping();
+		}
+
+		void LoadDiffuseTexture(API::Texture::Texture* texture) {
+			diffuseInfo = g_TextureManager.AddDiffuseTexture(texture);
+			diffuseFile = ExtractFilename(texture->GetPath());
 			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
@@ -76,11 +84,25 @@ namespace Cast::Component {
 			UpdateSamplerMapping();
 		}
 
-		// Load a shininess texture from file
+		void LoadSpecularTexture(API::Texture::Texture* texture) {
+			specularInfo = g_TextureManager.AddSpecularTexture(texture);
+			specularFile = ExtractFilename(texture->GetPath());
+			Helper::setBit(textureEnabled, 0, true);
+			UpdateSamplerMapping();
+		}
+
+		// Load a parallax texture from file
 		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
 			parallaxFile = ExtractFilename(path);
 			Helper::setBit(textureEnabled, 4, true);
+			UpdateSamplerMapping();
+		}
+
+		void LoadParallaxTexture(API::Texture::Texture* texture) {
+			parallaxInfo = g_TextureManager.AddParallaxTexture(texture);
+			parallaxFile = ExtractFilename(texture->GetPath());
+			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 
@@ -91,6 +113,14 @@ namespace Cast::Component {
 			Helper::setBit(textureEnabled, 2, true);
 			UpdateSamplerMapping();
 		}
+
+		void LoadNormalTexture(API::Texture::Texture* texture) {
+			normalInfo = g_TextureManager.AddNormalTexture(texture);
+			normalFile = ExtractFilename(texture->GetPath());
+			Helper::setBit(textureEnabled, 0, true);
+			UpdateSamplerMapping();
+		}
+#pragma endregion
 
 		std::string OpenFileDialoge() {
 			nfdu8char_t* outPath;
@@ -129,12 +159,12 @@ namespace Cast::Component {
 					if (diffuseLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
-						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 						ImGui::Image((unsigned long long)diffuseInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
-						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 
 						ImGui::Text("File: %s", diffuseFile.c_str());
 						ImGui::Text("Dimension: %d x %d", (int)diffuseInfo.size.x, (int)diffuseInfo.size.y);
@@ -151,13 +181,13 @@ namespace Cast::Component {
 					}
 					else {
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 						ImGui::Text("No normal Map Loaded");
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
 
-						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 
 						if (ImGui::Button("Load normal lexture")) {
 							std::string path = OpenFileDialoge();
@@ -181,12 +211,12 @@ namespace Cast::Component {
 					if (normalLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
-						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 						ImGui::Image((unsigned long long)normalInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
-						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 
 						ImGui::Text("File: %s", normalFile.c_str());
 						ImGui::Text("Dimension: %d x %d", (int)normalInfo.size.x, (int)normalInfo.size.y);
@@ -203,13 +233,13 @@ namespace Cast::Component {
 					}
 					else {
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 						ImGui::Text("No normal Map loaded");
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
 
-						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 
 						if (ImGui::Button("Load normal Texture")) {
 							std::string path = OpenFileDialoge();
@@ -233,12 +263,12 @@ namespace Cast::Component {
 					if (specularLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
-						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 						ImGui::Image((unsigned long long)specularInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
-						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 
 						ImGui::Text("File: %s", specularFile.c_str());
 						ImGui::Text("Dimension: %d x %d", (int)specularInfo.size.x, (int)specularInfo.size.y);
@@ -255,13 +285,13 @@ namespace Cast::Component {
 					}
 					else {
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 						ImGui::Text("No specular Map loaded");
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
 
-						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 
 						if (ImGui::Button("Load specular Texture")) {
 							std::string path = OpenFileDialoge();
@@ -285,12 +315,12 @@ namespace Cast::Component {
 					if (parallaxLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
-						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 						ImGui::Image((unsigned long long)parallaxInfo.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
-						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 
 						ImGui::Text("File: %s", parallaxFile.c_str());
 						ImGui::Text("Dimension: %d x %d", (int)parallaxInfo.size.x, (int)parallaxInfo.size.y);
@@ -307,13 +337,13 @@ namespace Cast::Component {
 					}
 					else {
 						ImGui::Columns(2, nullptr, false);
-						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 						ImGui::Text("No parallax Map Loaded");
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
 
-						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.0 - 10.0, 20), false);
+						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 
 						if (ImGui::Button("Load parallax Texture")) {
 							std::string path = OpenFileDialoge();

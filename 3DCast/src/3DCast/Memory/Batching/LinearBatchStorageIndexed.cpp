@@ -8,9 +8,9 @@ Cast::Memory::LinearBatchStorageIndexed::LinearBatchStorageIndexed(size_t capaci
 	VertexArray.reset(API::Core::VertexArray::Create());
 
 	BatchMemory.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::ARRAY_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, capacity));
-	BatchIndices.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::ELEMENT_ARRAY_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, capacity));
+	BatchIndices.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::ELEMENT_ARRAY_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, indexCapacity));
 
-	indexCapacity = indexCapacity;
+	IndexCapacity = indexCapacity;
 	Capacity = capacity;
 }
 
@@ -18,33 +18,30 @@ int Cast::Memory::LinearBatchStorageIndexed::AddObject(uid object, void* data, s
 {
 	size_t availableMemory = Capacity - BatchMemory->GetSize();
 	size_t availableIndexMemory = IndexCapacity - BatchIndices->GetSize();
+
 	if (availableMemory < size)
-	{
-		LOG_CORE_INFO("Not enough memory to store vertex data. Vertex data gets put into new batch storage.");
 		return -1;
-	}
-	else if (availableIndexMemory < count * sizeof(int))
-	{
-		LOG_CORE_INFO("Not enough memory to store index data. Index data gets put into new index batch storage.");
-		return -1;
-	}
+	else if (availableIndexMemory < count * sizeof(unsigned int))
+		return -2;
 
 	int offset = BatchMemory->AddData(data, (int)size);
 
 	unsigned int* shiftedIndex = new unsigned int[count];
-	_memccpy(shiftedIndex, indices, count, sizeof(unsigned int));
+	int indexOffset = offset / Layout->GetStride();
+	memcpy(shiftedIndex, indices, count * sizeof(unsigned int));
+
 	for (int i = 0; i < count; i++)
 	{
-		shiftedIndex[i] = shiftedIndex[i] + offset;
+		shiftedIndex[i] = shiftedIndex[i] + indexOffset;
 	}
 
-	int indexOffset = BatchIndices->AddData(shiftedIndex, count);
+	indexOffset = BatchIndices->AddData(shiftedIndex, sizeof(int) * count);
 	delete[] shiftedIndex;
 
 	if (offset == -1 || indexOffset == -1)
 	{
 		LOG_CORE_ERROR("Internal Error: Batch memory or indices reporting overflow even though pre-check has been performed. Check implementation!");
-		return -1;
+		return -3;
 	}
 
 	Objects[object] = offset;
@@ -89,7 +86,7 @@ void Cast::Memory::LinearBatchStorageIndexed::Render(Cast::Ref<API::Core::Shader
 {
 	BatchMemory->Bind();
 	BatchIndices->Bind();
-	// VertexArray->SetVBCount(BatchMemory->GetSize() / Layout->GetStride());
+	VertexArray->SetVBCount(BatchMemory->GetSize() / Layout->GetStride());
 
 	Renderer::RendererContext::Submit(VertexArray, BatchIndices, shader);
 }

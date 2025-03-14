@@ -25,7 +25,7 @@
 #include "imgui.h"
 
 #define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3
-#define TEXTURE_THUMBNAIL_SIZE 100
+#define TEXTURE_THUMBNAIL_SIZE 100.f
 
 namespace Cast::Component {
 	struct Component
