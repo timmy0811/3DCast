@@ -49,6 +49,8 @@ namespace Cast {
 		}
 
 	private:
+		void CalcModelBounds(const aiNode* node, const aiScene* scene);
+
 		void ProcessNode(aiNode* node, const aiScene* scene);
 		Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
 		std::vector<API::Texture::Texture*> LoadMaterialTextures(aiMaterial* mat, aiTextureType type);
@@ -59,5 +61,12 @@ namespace Cast {
 
 		std::string DirPath;
 		Assimp::Importer m_Importer;
+
+		glm::vec3 ModelSize;
+		glm::vec3 ModelOffset;
+
+		bool IsFirstBoundCheck = true;
+		glm::vec3 BoundsMin;
+		glm::vec3 BoundsMax;
 	};
 }

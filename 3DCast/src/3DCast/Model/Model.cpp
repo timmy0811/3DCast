@@ -15,9 +15,11 @@ bool Cast::Model::Load(const std::string& path)
 		aiProcess_FlipUVs |
 		aiProcess_CalcTangentSpace |
 		aiProcess_GenNormals |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_OptimizeMeshes |
-		aiProcess_OptimizeGraph
+		aiProcess_FixInfacingNormals |
+		//aiProcess_JoinIdenticalVertices |
+		//aiProcess_OptimizeMeshes |
+		//aiProcess_OptimizeGraph |
+		aiProcess_GenBoundingBoxes
 	);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -26,9 +28,38 @@ bool Cast::Model::Load(const std::string& path)
 		return false;
 	}
 
+	CalcModelBounds(scene->mRootNode, scene);
+
 	DirPath = path.substr(0, path.find_last_of("/\\"));
 	ProcessNode(scene->mRootNode, scene);
 	return true;
+}
+
+void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
+{
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		auto bBox = mesh->mAABB;
+
+		if (IsFirstBoundCheck) {
+			BoundsMin = glm::vec3(bBox.mMin.x, bBox.mMin.y, bBox.mMin.z);
+			BoundsMax = glm::vec3(bBox.mMax.x, bBox.mMax.y, bBox.mMax.z);
+			IsFirstBoundCheck = false;
+		}
+		else {
+			BoundsMin.x = std::min(BoundsMin.x, bBox.mMin.x);
+			BoundsMin.y = std::min(BoundsMin.y, bBox.mMin.y);
+			BoundsMin.z = std::min(BoundsMin.z, bBox.mMin.z);
+
+			BoundsMax.x = std::max(BoundsMax.x, bBox.mMax.x);
+			BoundsMax.y = std::max(BoundsMax.y, bBox.mMax.y);
+			BoundsMax.z = std::max(BoundsMax.z, bBox.mMax.z);
+		}
+	}
+
+	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+		CalcModelBounds(node->mChildren[i], scene);
+	}
 }
 
 void Cast::Model::ProcessNode(aiNode* node, const aiScene* scene)
@@ -62,6 +93,12 @@ Cast::Mesh Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<API::Texture::Texture*> textures;
 	textures.reserve(8);
 
+	glm::vec3 center = BoundsMin + (BoundsMax - BoundsMin) * 0.5f;
+	glm::vec3 size = BoundsMax - BoundsMin;
+
+	float maxDim = std::max({ size.x, size.y, size.z });
+	float invDim = (1.0f / maxDim) * 5.f;
+
 	// Process vertices
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -72,6 +109,9 @@ Cast::Mesh Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			mesh->mVertices[i].y,
 			mesh->mVertices[i].z
 		};
+
+		vertex.Position -= center;
+		vertex.Position *= invDim;
 
 		if (mesh->HasNormals())
 		{
