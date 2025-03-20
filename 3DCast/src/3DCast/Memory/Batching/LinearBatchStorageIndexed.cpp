@@ -35,7 +35,7 @@ int Cast::Memory::LinearBatchStorageIndexed::AddObject(uid object, void* data, s
 		shiftedIndex[i] = shiftedIndex[i] + indexOffset;
 	}
 
-	indexOffset = BatchIndices->AddData(shiftedIndex, sizeof(int) * count);
+	indexOffset = BatchIndices->AddData(shiftedIndex, sizeof(unsigned int) * count);
 	delete[] shiftedIndex;
 
 	if (offset == -1 || indexOffset == -1)

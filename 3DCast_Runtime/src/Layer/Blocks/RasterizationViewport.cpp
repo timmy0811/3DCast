@@ -74,7 +74,7 @@ void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
 	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
 
-	Runtime::EditorContext.ActiveScene->OnUpdate();
+	Cast::Shared.ActiveScene->OnUpdate();
 }
 
 void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
@@ -149,7 +149,7 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	shader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
 	shader->SetUniform1f("u_ParallaxScale", Runtime::EditorContext.ViewSettings.ParallaxScale);
 
-	Runtime::EditorContext.ActiveScene->OnDeferredRender();
+	Cast::Shared.ActiveScene->OnDeferredRender();
 	RenderPipelineData.GBuffer->Unbind();
 }
 
@@ -159,7 +159,7 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	RenderPipelineData.GBuffer->BindDepthTexture(0);
 	RenderPipelineData.GBuffer->BindTextures(1);
 
-	Runtime::EditorContext.ActiveScene->BindSSBOforShadingPass();
+	Cast::Shared.ActiveScene->BindSSBOforShadingPass();
 
 	// Lighting Pass Uniforms
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
@@ -188,7 +188,7 @@ void Runtime::RasterizationViewport::RenderForwardPass()
 	RenderPipelineData.Framebuffer->Bind();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
-	Runtime::EditorContext.ActiveScene->OnForwardRender();
+	Cast::Shared.ActiveScene->OnForwardRender();
 	RenderPipelineData.Framebuffer->Unbind();
 }
 

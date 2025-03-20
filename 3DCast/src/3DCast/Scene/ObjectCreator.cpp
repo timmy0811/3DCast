@@ -7,16 +7,16 @@
 
 #include "SceneShaderCache.h"
 
-Cast::Entity Cast::Create::Cube(const std::string& name, Cast::Scene* scene)
+Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Cast::Scene* scene)
 {
 	// Cube
-	Cast::Entity entity = scene->CreateEntity(name);
-	entity.AddComponents<Cast::Component::CustomMeshComponent>();
-	entity.AddComponents<Cast::Component::RasterizableComponent>();
-	entity.AddComponents<Cast::Component::MaterialComponent>();
+	Ref<Cast::Entity> entity = scene->CreateEntity(name);
+	entity->AddComponents<Cast::Component::CustomMeshComponent>();
+	entity->AddComponents<Cast::Component::RasterizableComponent>();
+	entity->AddComponents<Cast::Component::MaterialComponent>();
 
-	float trIndex = (float)entity.GetComponent<Component::TransformComponent>().bufferIndex;
-	float samplerIndex = (float)entity.GetComponent<Component::MaterialComponent>().samplerIndex;
+	float trIndex = (float)entity->GetComponent<Component::TransformComponent>().bufferIndex;
+	float samplerIndex = (float)entity->GetComponent<Component::MaterialComponent>().samplerIndex;
 
 	std::pair<glm::vec3, glm::vec3> t0Back = GetTangentAndBitangent(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(1.f, 1.f, -1.f), glm::vec3(1.f, -1.f, -1.f), glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.f, 0.f));
 	std::pair<glm::vec3, glm::vec3> t1Back = GetTangentAndBitangent(glm::vec3(1.f, 1.f, -1.f), glm::vec3(-1.f, -1.f, -1.f), glm::vec3(-1.f, 1.f, -1.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f), glm::vec2(0.f, 1.f));
@@ -87,22 +87,22 @@ Cast::Entity Cast::Create::Cube(const std::string& name, Cast::Scene* scene)
 		{{-1.f,  1.f,  1.f},	{0.f, 1.f, 0.f},	t1Top.first,		t1Top.second,		{0.f, 0.f},		samplerIndex,	trIndex},		// top-left
 	};
 
-	Cast::Component::CustomMeshComponent& cubeMesh = entity.GetComponent<Cast::Component::CustomMeshComponent>();
+	Cast::Component::CustomMeshComponent& cubeMesh = entity->GetComponent<Cast::Component::CustomMeshComponent>();
 	cubeMesh.AddAndAllocVertexData(&vertices[0].Position.x, sizeof(vertices));
 	cubeMesh.AddToBatchMemory();
 
 	return entity;
 }
 
-Cast::Entity Cast::Create::Plane(const std::string& name, Cast::Scene* scene)
+Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Cast::Scene* scene)
 {
-	Cast::Entity entity = scene->CreateEntity(name);
-	entity.AddComponents<Cast::Component::CustomMeshComponent>();
-	entity.AddComponents<Cast::Component::RasterizableComponent>();
-	entity.AddComponents<Cast::Component::MaterialComponent>();
+	Ref<Cast::Entity> entity = scene->CreateEntity(name);
+	entity->AddComponents<Cast::Component::CustomMeshComponent>();
+	entity->AddComponents<Cast::Component::RasterizableComponent>();
+	entity->AddComponents<Cast::Component::MaterialComponent>();
 
-	float trIndex = (float)entity.GetComponent<Component::TransformComponent>().bufferIndex;
-	float samplerIndex = (float)entity.GetComponent<Cast::Component::MaterialComponent>().samplerIndex;
+	float trIndex = (float)entity->GetComponent<Component::TransformComponent>().bufferIndex;
+	float samplerIndex = (float)entity->GetComponent<Cast::Component::MaterialComponent>().samplerIndex;
 
 	float vertices[] = {
 		// Position				// Tangent				// Bitangent				// UVs			// SamplerIndex	// TransformIndex
@@ -114,7 +114,7 @@ Cast::Entity Cast::Create::Plane(const std::string& name, Cast::Scene* scene)
 		-1.0f,  0.0f,  1.0f,	1.0f, 0.0f, 0.0f,		0.0f, 0.0f, 1.0f,		0.0f, 0.0f,		samplerIndex,	trIndex			// bottom-left
 	};
 
-	Cast::Component::CustomMeshComponent& cubeMesh = entity.GetComponent<Cast::Component::CustomMeshComponent>();
+	Cast::Component::CustomMeshComponent& cubeMesh = entity->GetComponent<Cast::Component::CustomMeshComponent>();
 	cubeMesh.AddAndAllocVertexData(vertices, sizeof(vertices));
 	cubeMesh.AddToBatchMemory();
 

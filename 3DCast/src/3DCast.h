@@ -4,6 +4,7 @@
 #include "3DCast/Log.h"
 #include "3DCast/Core/Timestep.h"
 #include "3DCast/Core.h"
+#include "3DCast/Scene/DataObjects/GlobalShared.h"
 
 #include "3DCast/Scene/TextureManager.h"
 #include "3DCast/Scene/Scene.h"

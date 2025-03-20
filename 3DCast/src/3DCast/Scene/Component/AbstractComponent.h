@@ -27,11 +27,22 @@
 #define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3
 #define TEXTURE_THUMBNAIL_SIZE 100.f
 
+namespace Cast {
+	class Entity;
+}
+
 namespace Cast::Component {
 	struct Component
 	{
 		virtual ~Component() = default;
 		virtual void OnImGuiRender() {};
 		virtual void Print() {};
+
+		void SetEntity(Ref<Entity> entity) { EntityNode = entity; }
+
+	protected:
+		Ref<Entity> EntityNode; // Exception when destroying
+
+		friend class Entity;
 	};
 }

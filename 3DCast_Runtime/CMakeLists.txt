@@ -7,6 +7,9 @@ file(GLOB_RECURSE RUNTIME_HEADERS  
     "src/*.h"
     "src/*.hpp") 
 
+list(FILTER RUNTIME_SOURCES EXCLUDE REGEX ".*\.vshistory/.*")
+list(FILTER RUNTIME_HEADERS EXCLUDE REGEX ".*\.vshistory/.*")
+
 add_executable(Runtime ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
 target_compile_features(Runtime PUBLIC cxx_std_17)
 

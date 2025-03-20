@@ -18,7 +18,9 @@ namespace Cast {
 		T& AddComponents(Args&&... args)
 		{
 			CAST_ASSERT(HasComponent<T>(), "Entity already has component!");
-			return Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
+			auto& comp = Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
+			comp.SetEntity(Ref<Entity>(this));
+			return comp;
 		}
 
 		template <typename T>
@@ -55,8 +57,23 @@ namespace Cast {
 			return !(*this == other);
 		}
 
+		void SetScene(Scene* scene) { Scene = scene; }
+		Scene* GetScene() { return Scene; }
+
+		void AddChild(Ref<Entity> child) { Children.push_back(child); }
+		void RemoveChild(Ref<Entity> child) { Children.erase(std::remove(Children.begin(), Children.end(), child), Children.end()); }
+
+		void SetParent(Ref<Entity> parent) { Parent = parent; }
+
+		std::vector<Ref<Entity>>& GetChildren() { return Children; }
+		bool IsChild() { return Parent != nullptr; }
+		bool HasChildren() { return !Children.empty(); }
+
 	private:
 		entt::entity EntityHandle{ entt::null };
 		Scene* Scene = nullptr;
+
+		Ref<Entity> Parent;
+		std::vector<Ref<Entity>> Children;
 	};
 }

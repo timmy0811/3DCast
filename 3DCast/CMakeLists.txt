@@ -7,6 +7,10 @@ file(GLOB_RECURSE 3DCAST_HEADERS
     "src/*.h"
     "src/*.hpp") 
 
+# Remove .vshistory files from the sources and headers
+list(FILTER 3DCAST_SOURCES EXCLUDE REGEX ".*\.vshistory/.*")
+list(FILTER 3DCAST_HEADERS EXCLUDE REGEX ".*\.vshistory/.*")
+
 add_library(3DCast STATIC ${3DCAST_SOURCES} ${3DCAST_HEADERS})
   
 create_source_groups(${CMAKE_CURRENT_SOURCE_DIR}) 

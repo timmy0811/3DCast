@@ -20,7 +20,7 @@ namespace Cast {
 		Scene();
 		~Scene() = default;
 
-		Entity CreateEntity(const std::string& name = "Untagged");
+		Cast::Ref<Cast::Entity> CreateEntity(const std::string& name = "Untagged");
 		void RemoveEntity(Entity& entity);
 
 		void OnDeferredRender();
@@ -29,6 +29,8 @@ namespace Cast {
 		void ReallocateLights(int type);
 
 		void BindSSBOforShadingPass();
+
+		inline std::vector<Ref<Entity>>& GetEntityDescriptors() { return EntityDescriptorPool; }
 
 		inline Cast::Ref<API::Core::Buffer> GetDirLightsBuffer() { return DirLightsSSBO; }
 		inline Cast::Ref<API::Core::Buffer> GetSpotLightsBuffer() { return SpotLightsSSBO; }
@@ -59,6 +61,7 @@ namespace Cast {
 	private:
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
+		std::vector<Ref<Entity>> EntityDescriptorPool;
 
 		IconRenderer IconRenderer;
 

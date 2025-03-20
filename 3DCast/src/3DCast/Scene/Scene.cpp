@@ -15,6 +15,8 @@
 Cast::Scene::Scene()
 	:IconRenderer(Cast::IconRenderer("../3DCast/ressources/configuration/icon.yml", "../3DCast/ressources/icon/icon_pallete.png"))
 {
+	EntityDescriptorPool.reserve(1000);
+
 	RegisterComponentImGuiRenderCallback<Component::TagComponent>();
 	RegisterComponentImGuiRenderCallback<Component::TransformComponent>();
 	RegisterComponentImGuiRenderCallback<Component::LightComponent>();
@@ -24,7 +26,7 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::CameraComponent>();
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 
-	constexpr unsigned int maxTransforms = 32;
+	constexpr unsigned int maxTransforms = 512;
 	constexpr unsigned int maxLightsPerType = 8;
 
 	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxTransforms, sizeof(glm::mat4)));
@@ -33,14 +35,15 @@ Cast::Scene::Scene()
 	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
 }
 
-Cast::Entity Cast::Scene::CreateEntity(const std::string& name)
+Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name) // Return Ref
 {
-	Entity entity = { Registry.create(), this };
-	entity.AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
-	if (!entity.GetComponent<Component::TransformComponent>().Register(TransformSSBO))
+	auto entity = CreateRef<Entity>(Registry.create(), this);
+	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
+	if (!entity->GetComponent<Component::TransformComponent>().Register(TransformSSBO))
 		LOG_CORE_ERROR("Could not register transform component in registry.");
 
-	entity.AddComponents<Component::TagComponent>(name);
+	entity->AddComponents<Component::TagComponent>(name);
+	EntityDescriptorPool.push_back(entity);
 
 	return entity;
 }

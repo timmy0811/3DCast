@@ -1,14 +1,19 @@
 #include "castpch.h"
 #include "Model.h"
+
+#include "3DCast/Scene/DataObjects/GlobalShared.h"
 #include "3DCast/Scene/Entity.h"
+#include "3DCast/Scene/Component/Component.h"
 
 Cast::Model::Model()
 {
 	Meshes.reserve(8);
 }
 
-bool Cast::Model::Load(const std::string& path)
+bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 {
+	this->Entity = entity;
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path,
 		aiProcess_Triangulate |
@@ -31,7 +36,8 @@ bool Cast::Model::Load(const std::string& path)
 	CalcModelBounds(scene->mRootNode, scene);
 
 	DirPath = path.substr(0, path.find_last_of("/\\"));
-	ProcessNode(scene->mRootNode, scene);
+	ProcessNode(scene->mRootNode, scene, this->Entity);
+	IsLoaded = true;
 	return true;
 }
 
@@ -62,27 +68,45 @@ void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
 	}
 }
 
-void Cast::Model::ProcessNode(aiNode* node, const aiScene* scene)
+Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> parent)
 {
-	static bool error = false;
-	if (error) return;
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+	std::string nodeName = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed Node";
+	Ref<Cast::Entity> currentEntity = Cast::Shared.ActiveScene->CreateEntity(nodeName);
+
+	if (parent)
+	{
+		currentEntity->SetParent(parent);
+		parent->AddChild(currentEntity);
+	}
+
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		auto sceneMesh = ProcessMesh(mesh, scene);
-		if (!sceneMesh.LoadedSuccessfully()) {
-			LOG_CORE_ERROR("At least one submesh could not be loaded. Aborting.");
-			error = true;
-			return;
+		if (!sceneMesh->LoadedSuccessfully())
+		{
+			LOG_CORE_ERROR("Submesh could not be loaded.");
+			continue;
 		}
 		Meshes.push_back(sceneMesh);
+
+		currentEntity->AddComponents<Cast::Component::MeshComponent>(sceneMesh);
+		currentEntity->AddComponents<Cast::Component::MaterialComponent>();
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-		ProcessNode(node->mChildren[i], scene);
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
+		Ref<Cast::Entity> childEntity = ProcessNode(node->mChildren[i], scene, currentEntity);
+		if (!childEntity)
+		{
+			LOG_CORE_WARN("Detected empty mesh node. Ignoring.");
+		}
 	}
+
+	return currentEntity;
 }
 
-Cast::Mesh Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<Memory::BatchVertex> vertices;
 	vertices.reserve(mesh->mNumVertices);
@@ -182,7 +206,7 @@ Cast::Mesh Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
-	return Mesh(vertices, indices, textures);
+	return Cast::Ref<Mesh>(new Mesh(vertices, indices, textures));
 }
 
 std::vector<API::Texture::Texture*> Cast::Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type)

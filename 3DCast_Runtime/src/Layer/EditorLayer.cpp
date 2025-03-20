@@ -20,12 +20,12 @@ void EditorLayer::OnAttach()
 
 	Runtime::SetupImGuiStyle(true, 0.3f);
 
-	Runtime::EditorContext.ActiveScene = Cast::CreateRef<Cast::Scene>();
-	Cast::Entity cameraEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Camera");
+	Cast::Shared.ActiveScene = Cast::CreateRef<Cast::Scene>();
+	Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
 
 	Runtime::EditorContext.ActiveCamera.reset(new Cast::Renderer::PerspectiveCamera(glm::radians(90.f), 1.5f, 0.1f, 100.f));
 	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-	cameraEntity.AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
+	cameraEntity->AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
 
 	ViewportPbr.Init();
 	ViewportRasterization.Init();
@@ -70,7 +70,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 
 	Render();
 
-	SceneHierarchyPanel.SetContext(Runtime::EditorContext.ActiveScene);
+	SceneHierarchyPanel.SetContext(Cast::Shared.ActiveScene);
 
 	DeltaTime = ts.GetSeconds();
 }
@@ -217,10 +217,10 @@ void EditorLayer::Render()
 void EditorLayer::SampleContent()
 {
 	// Light
-	Cast::Entity lightEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Light");
-	lightEntity.AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Runtime::EditorContext.ActiveScene);
+	Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
+	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
 
-	Cast::Entity meshEntity = Runtime::EditorContext.ActiveScene->CreateEntity("Mesh");
-	meshEntity.AddComponents<Cast::Component::MeshComponent>();
-	Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
+	Cast::Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity("Mesh");
+	meshEntity->AddComponents<Cast::Component::MeshComponent>();
+	// Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 }
