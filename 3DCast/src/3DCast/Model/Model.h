@@ -52,15 +52,15 @@ namespace Cast {
 	private:
 		void CalcModelBounds(const aiNode* node, const aiScene* scene);
 
-		Cast::Ref<Cast::Entity> ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> context);
-		Cast::Ref<Cast::Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene);
-		std::vector<API::Texture::Texture*> LoadMaterialTextures(aiMaterial* mat, aiTextureType type);
+		Cast::Ref<Cast::Entity> ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> parent);
+		Cast::Ref<Cast::Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context);
+		std::vector<Cast::Ref<API::Texture::Texture>> LoadMaterialTextures(aiMaterial* mat, aiTextureType type);
 
 	private:
 		Ref<Entity> Entity;
 
 		std::vector<Ref<Mesh>> Meshes;
-		std::vector<API::Texture::Texture*> LoadedTextures;
+		std::vector<Cast::Ref<API::Texture::Texture>> LoadedTextures;
 
 		std::string DirPath;
 		Assimp::Importer m_Importer;

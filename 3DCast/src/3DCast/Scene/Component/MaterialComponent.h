@@ -65,14 +65,12 @@ namespace Cast::Component {
 		void LoadDiffuseTexture(const std::string& path, bool flipUV = false) {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(path, flipUV);
 			diffuseFile = ExtractFilename(path);
-			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 
 		void LoadDiffuseTexture(API::Texture::Texture* texture) {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(texture);
 			diffuseFile = ExtractFilename(texture->GetPath());
-			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 
@@ -80,14 +78,12 @@ namespace Cast::Component {
 		void LoadSpecularTexture(const std::string& path, bool flipUV = false) {
 			specularInfo = g_TextureManager.AddSpecularTexture(path, flipUV);
 			specularFile = ExtractFilename(path);
-			Helper::setBit(textureEnabled, 1, true);
 			UpdateSamplerMapping();
 		}
 
 		void LoadSpecularTexture(API::Texture::Texture* texture) {
 			specularInfo = g_TextureManager.AddSpecularTexture(texture);
 			specularFile = ExtractFilename(texture->GetPath());
-			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 
@@ -95,14 +91,12 @@ namespace Cast::Component {
 		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
 			parallaxFile = ExtractFilename(path);
-			Helper::setBit(textureEnabled, 4, true);
 			UpdateSamplerMapping();
 		}
 
 		void LoadParallaxTexture(API::Texture::Texture* texture) {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(texture);
 			parallaxFile = ExtractFilename(texture->GetPath());
-			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 
@@ -110,14 +104,12 @@ namespace Cast::Component {
 		void LoadNormalTexture(const std::string& path, bool flipUV = false) {
 			normalInfo = g_TextureManager.AddNormalTexture(path, flipUV);
 			normalFile = ExtractFilename(path);
-			Helper::setBit(textureEnabled, 2, true);
 			UpdateSamplerMapping();
 		}
 
 		void LoadNormalTexture(API::Texture::Texture* texture) {
 			normalInfo = g_TextureManager.AddNormalTexture(texture);
 			normalFile = ExtractFilename(texture->GetPath());
-			Helper::setBit(textureEnabled, 0, true);
 			UpdateSamplerMapping();
 		}
 #pragma endregion
@@ -153,8 +145,8 @@ namespace Cast::Component {
 				float windowWidth = ImGui::GetWindowWidth();
 				float textHeight = ImGui::GetTextLineHeightWithSpacing();
 
-				// normal
-				if (ImGui::TreeNodeEx("normal", ImGuiTreeNodeFlags_DefaultOpen)) {
+				// diffuse
+				if (ImGui::TreeNodeEx("diffuse", ImGuiTreeNodeFlags_DefaultOpen)) {
 					static bool diffuseLoaded = false;
 					if (diffuseLoaded) {
 						ImGui::Columns(2, nullptr, false);
@@ -170,7 +162,7 @@ namespace Cast::Component {
 						ImGui::Text("Dimension: %d x %d", (int)diffuseInfo.size.x, (int)diffuseInfo.size.y);
 
 						ImGui::Dummy({ 0.f, textHeight * 2.f });
-						if (ImGui::Button("Delete normal Texture")) {
+						if (ImGui::Button("Delete diffuse Texture")) {
 							diffuseInfo = { 0, 0 };
 							UpdateSamplerMapping();
 							diffuseLoaded = false;
@@ -182,14 +174,14 @@ namespace Cast::Component {
 					else {
 						ImGui::Columns(2, nullptr, false);
 						ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
-						ImGui::Text("No normal Map Loaded");
+						ImGui::Text("No diffuse Map Loaded");
 						ImGui::EndChild();
 
 						ImGui::NextColumn();
 
 						ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
 
-						if (ImGui::Button("Load normal lexture")) {
+						if (ImGui::Button("Load diffuse lexture")) {
 							std::string path = OpenFileDialoge();
 							if (!path.empty()) {
 								LoadDiffuseTexture(path);

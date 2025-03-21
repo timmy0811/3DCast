@@ -9,9 +9,11 @@
 namespace Cast {
 	class Mesh {
 	public:
-		Mesh(const std::vector<Memory::BatchVertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<API::Texture::Texture*>& textures);
+		Mesh();
 		~Mesh() = default;
 
+		void SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>& textures);
+		void SetupVertexData(const std::vector<Memory::BatchVertex>& vertices, const std::vector<unsigned int>& indices);
 		void SetMaterial(Component::MaterialComponent* material);
 
 		int GetVertexCount() const { return (int)Vertices.size(); }
@@ -24,7 +26,7 @@ namespace Cast {
 
 		std::vector<Memory::BatchVertex> Vertices;
 		std::vector<unsigned int> Indices;
-		std::vector<API::Texture::Texture*> Textures;
+		std::vector<Cast::Ref<API::Texture::Texture>> Textures;
 
 		Cast::Memory::MemoryPosition MemPos;
 		Component::MaterialComponent* Material = nullptr;

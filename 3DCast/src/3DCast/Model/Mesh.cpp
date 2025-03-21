@@ -1,13 +1,20 @@
 #include "castpch.h"
 #include "Mesh.h"
 
-Cast::Mesh::Mesh(const std::vector<Memory::BatchVertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<API::Texture::Texture*>& textures)
+Cast::Mesh::Mesh()
+{
+	BatchId = UID::Create();
+}
+
+void Cast::Mesh::SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>& textures)
+{
+	Textures = textures;
+}
+
+void Cast::Mesh::SetupVertexData(const std::vector<Memory::BatchVertex>& vertices, const std::vector<unsigned int>& indices)
 {
 	Vertices = vertices;
 	Indices = indices;
-	Textures = textures;
-
-	BatchId = UID::Create();
 
 	if (Indices.empty())
 		MemPos = Cast::Memory::BatchMemoryHandler.AddObject(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * vertices.size());
@@ -20,19 +27,19 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 	Material = material;
 
 	if (Material != nullptr) {
-		for (API::Texture::Texture* tex : Textures) {
+		for (Cast::Ref<API::Texture::Texture> tex : Textures) {
 			switch (tex->GetType()) {
 			case API::Texture::TextureType::DIFFUSE:
-				Material->LoadDiffuseTexture(tex);
+				Material->LoadDiffuseTexture(tex.get());
 				break;
 			case API::Texture::TextureType::SPECULAR:
-				Material->LoadSpecularTexture(tex);
+				Material->LoadSpecularTexture(tex.get());
 				break;
 			case API::Texture::TextureType::NORMAL:
-				Material->LoadNormalTexture(tex);
+				Material->LoadNormalTexture(tex.get());
 				break;
 			case API::Texture::TextureType::HEIGHT:
-				Material->LoadParallaxTexture(tex);
+				Material->LoadParallaxTexture(tex.get());
 				break;
 			default:
 				LOG_CORE_WARN("Texture %s type not supported", API::Texture::Texture::TextureTypeToString(tex->GetType()));
