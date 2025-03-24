@@ -49,14 +49,16 @@ namespace Cast {
 			auto itId = TextureIdentifierMap.find(path);
 			if (itId != TextureIdentifierMap.end()) {
 				auto itTex = Textures.find(itId->second);
-				if (itTex != Textures.end())
+				if (itTex != Textures.end()) {
 					return itTex->second;
+				}
 				else {
 					LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
 					return nullptr;
 				}
 			}
 
+			LOG_CORE_TRACE("Loading uncached texture: {0}", path);
 			Ref<API::Texture::Texture> texture = Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, flipUV));
 			Textures.insert({ IdCounterTextures, texture });
 			TextureIdentifierMap.insert({ path, IdCounterTextures++ });

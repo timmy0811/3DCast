@@ -12,7 +12,10 @@ layout(location = 6) in float a_TransformIndex;
 out vec3 v_FragPos;
 out vec2 v_UV;
 flat out int v_SamplerIndex;
-flat out mat3 v_TBN;
+
+flat out vec3 v_T;
+flat out vec3 v_B;
+out vec3 v_N;
 
 uniform mat4 u_View;
 uniform mat4 u_Projection;
@@ -28,10 +31,9 @@ void main()
     v_FragPos = position.xyz;
     v_UV = a_UV;
 
-    vec3 T = normalize(vec3(model * vec4(a_Tangent, 0.0)));
-    vec3 B = normalize(vec3(model * vec4(a_Bitangent, 0.0)));
-    vec3 N = normalize(vec3(model * vec4(a_Normal, 0.0)));
-    v_TBN = mat3(T, B, N);
+    v_T = normalize(vec3(model * vec4(a_Tangent, 0.0)));
+    v_B = normalize(vec3(model * vec4(a_Bitangent, 0.0)));
+    v_N = normalize(vec3(model * vec4(a_Normal, 0.0)));
 
     v_SamplerIndex = int(a_SamplerIndex);
     gl_Position = u_Projection * u_View * position;

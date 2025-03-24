@@ -45,7 +45,7 @@ namespace Cast::Component {
 			if (result == NFD_OKAY)
 			{
 				std::string outPathStr(outPath);
-				LOG_CORE_TRACE("Loading Texture: {0}", outPathStr);
+				LOG_CORE_TRACE("Loading Model: {0}", outPathStr);
 				NFD_FreePathU8(outPath);
 				return outPathStr;
 			}

@@ -13,7 +13,10 @@ layout (location = 4) out vec2 g_Shine_Reflectance;
 in vec3 v_FragPos;
 in vec2 v_UV;
 flat in int v_SamplerIndex;
-flat in mat3 v_TBN;
+
+flat in vec3 v_T;
+flat in vec3 v_B;
+in vec3 v_N;
 
 // Bindless texture samplers
 layout(std430, binding = 1) buffer DiffuseSamplers {
@@ -58,7 +61,8 @@ void main()
 
     g_Position = v_FragPos;
 
-    mat3 TBN = transpose(v_TBN);
+    mat3 TBNInterpolated = mat3(v_T, v_B, v_N);
+    mat3 TBN = transpose(TBNInterpolated);
     vec3 tangentViewDir = normalize(TBN * u_ViewPos - TBN * v_FragPos);
     vec2 uv_displaced = parallaxMap(v_UV, tangentViewDir, mapping.parallaxIndex);
 
@@ -74,7 +78,7 @@ void main()
     normalMap.x = -normalMap.x;
     
     // Transform the tangent-space normal to world space
-    vec3 normal = normalize(v_TBN * normalMap);
+    vec3 normal = normalize(TBNInterpolated * normalMap);
     g_Normal = normal;
 
     g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], sampler_uv).rgb;

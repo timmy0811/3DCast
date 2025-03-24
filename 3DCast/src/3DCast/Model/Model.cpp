@@ -247,7 +247,6 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 		std::filesystem::path fullPath = std::filesystem::path(DirPath) / texturePath;
 		std::string path = fullPath.string();
 
-		LOG_CORE_TRACE("Loading model texture: {0}", path);
 		auto texture = AssetCache.AddTexture(path, true);
 		texture->SetType(typeAPI);
 
