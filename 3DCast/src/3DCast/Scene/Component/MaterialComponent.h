@@ -31,6 +31,8 @@ namespace Cast::Component {
 		std::string parallaxFile;
 		std::string normalFile;
 
+		bool diffuseLoaded, specularLoaded, parallaxLoaded, normalLoaded;
+
 		MaterialComponent(const MaterialComponent&) = default;
 		MaterialComponent() {
 			SetupSamplerMapping();
@@ -66,12 +68,14 @@ namespace Cast::Component {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(path, flipUV);
 			diffuseFile = ExtractFilename(path);
 			UpdateSamplerMapping();
+			diffuseLoaded = true;
 		}
 
 		void LoadDiffuseTexture(API::Texture::Texture* texture) {
 			diffuseInfo = g_TextureManager.AddDiffuseTexture(texture);
 			diffuseFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
+			diffuseLoaded = true;
 		}
 
 		// Load a specular texture from file
@@ -79,12 +83,14 @@ namespace Cast::Component {
 			specularInfo = g_TextureManager.AddSpecularTexture(path, flipUV);
 			specularFile = ExtractFilename(path);
 			UpdateSamplerMapping();
+			specularLoaded = true;
 		}
 
 		void LoadSpecularTexture(API::Texture::Texture* texture) {
 			specularInfo = g_TextureManager.AddSpecularTexture(texture);
 			specularFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
+			specularLoaded = true;
 		}
 
 		// Load a parallax texture from file
@@ -92,12 +98,14 @@ namespace Cast::Component {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
 			parallaxFile = ExtractFilename(path);
 			UpdateSamplerMapping();
+			parallaxLoaded = true;
 		}
 
 		void LoadParallaxTexture(API::Texture::Texture* texture) {
 			parallaxInfo = g_TextureManager.AddParallaxTexture(texture);
 			parallaxFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
+			parallaxLoaded = true;
 		}
 
 		// Load a normal map from file
@@ -105,12 +113,14 @@ namespace Cast::Component {
 			normalInfo = g_TextureManager.AddNormalTexture(path, flipUV);
 			normalFile = ExtractFilename(path);
 			UpdateSamplerMapping();
+			normalLoaded = true;
 		}
 
 		void LoadNormalTexture(API::Texture::Texture* texture) {
 			normalInfo = g_TextureManager.AddNormalTexture(texture);
 			normalFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
+			normalLoaded = true;
 		}
 #pragma endregion
 
@@ -147,7 +157,6 @@ namespace Cast::Component {
 
 				// diffuse
 				if (ImGui::TreeNodeEx("diffuse", ImGuiTreeNodeFlags_DefaultOpen)) {
-					static bool diffuseLoaded = false;
 					if (diffuseLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
@@ -185,7 +194,6 @@ namespace Cast::Component {
 							std::string path = OpenFileDialoge();
 							if (!path.empty()) {
 								LoadDiffuseTexture(path);
-								diffuseLoaded = true;
 							}
 						}
 
@@ -199,7 +207,6 @@ namespace Cast::Component {
 
 				// Normal
 				if (ImGui::TreeNodeEx("Normal", ImGuiTreeNodeFlags_DefaultOpen)) {
-					static bool normalLoaded = false;
 					if (normalLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
@@ -251,7 +258,6 @@ namespace Cast::Component {
 
 				// Specular
 				if (ImGui::TreeNodeEx("Specular", ImGuiTreeNodeFlags_DefaultOpen)) {
-					static bool specularLoaded = false;
 					if (specularLoaded) {
 						ImGui::Columns(2, nullptr, false);
 
@@ -303,7 +309,6 @@ namespace Cast::Component {
 
 				// Parallax
 				if (ImGui::TreeNodeEx("Parallax", ImGuiTreeNodeFlags_DefaultOpen)) {
-					static bool parallaxLoaded = false;
 					if (parallaxLoaded) {
 						ImGui::Columns(2, nullptr, false);
 

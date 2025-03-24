@@ -253,7 +253,8 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 		std::filesystem::path fullPath = std::filesystem::path(DirPath) / texturePath;
 		std::string path = fullPath.string();
 
-		auto texture = AssetCache.AddTexture(path, true);
+		auto texture = AssetCache.AddTexture(path, true); // make adjustable
+		if (!texture) continue;
 		texture->SetType(typeAPI);
 
 		textures.push_back(texture);
