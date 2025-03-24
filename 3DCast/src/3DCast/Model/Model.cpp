@@ -5,6 +5,7 @@
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
 #include "3DCast/Scene/SceneShaderCache.h"
+#include "3DCast/ImGui/UIComponents.h"
 
 #include <filesystem>
 
@@ -17,16 +18,19 @@ bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 {
 	this->Entity = entity;
 
+	// Does only show on drawcall
+	UI::ModalImportInProgress(path);
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path,
 		aiProcess_Triangulate |
 		aiProcess_FlipUVs |
 		aiProcess_CalcTangentSpace |
 		aiProcess_GenNormals |
-		/*aiProcess_FixInfacingNormals |
+		aiProcess_FixInfacingNormals |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_OptimizeMeshes |
-		aiProcess_OptimizeGraph |*/
+		aiProcess_OptimizeGraph |
 		aiProcess_GenBoundingBoxes
 	);
 
@@ -41,6 +45,8 @@ bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 	DirPath = path.substr(0, path.find_last_of("/\\"));
 	ProcessNode(scene->mRootNode, scene, this->Entity);
 	IsLoaded = true;
+	UI::ModalImportInProgress(path, true);
+
 	return true;
 }
 
