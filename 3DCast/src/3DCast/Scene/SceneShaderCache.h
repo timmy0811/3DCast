@@ -13,6 +13,7 @@ namespace Cast {
 		SceneShaderCache();
 		~SceneShaderCache() = default;
 
+#pragma region TEXTURE
 		enum TextureType {
 			Diffuse,
 			Specular,
@@ -25,41 +26,66 @@ namespace Cast {
 			Reflectance
 		};
 
-		template <TextureType T>
-		unsigned short AddTexture(API::Texture::Texture* texture) {
-			switch (T) {
-			case TextureType::Diffuse:
-				DiffuseTextures[IdCounterDiffuse] = Ref<API::Texture::Texture>(texture);
-				return IdCounterDiffuse++;
-			case TextureType::Specular:
-				SpecularTextures[IdCounterSpecular] = Ref<API::Texture::Texture>(texture);
-				return IdCounterSpecular++;
-			case TextureType::Ambient:
-				AmbientTextures[IdCounterAmbient] = Ref<API::Texture::Texture>(texture);
-				return IdCounterAmbient++;
-			case TextureType::Normal:
-				NormalTextures[IdCounterNormal] = Ref<API::Texture::Texture>(texture);
-				return IdCounterNormal++;
-			case TextureType::Height:
-				HeightTextures[IdCounterHeight] = Ref<API::Texture::Texture>(texture);
-				return IdCounterHeight++;
-			case TextureType::Emissive:
-				EmissiveTextures[IdCounterEmissive] = Ref<API::Texture::Texture>(texture);
-				return IdCounterEmissive++;
-			case TextureType::Shininess:
-				ShininessTextures[IdCounterShinieness] = Ref<API::Texture::Texture>(texture);
-				return IdCounterShinieness++;
-			case TextureType::Opacity:
-				OpacityTextures[IdCounterOpacity] = Ref<API::Texture::Texture>(texture);
-				return IdCounterOpacity++;
-			case TextureType::Reflectance:
-				ReflectanceTextures[IdCounterReflectance] = Ref<API::Texture::Texture>(texture);
-				return IdCounterReflectance++;
-			default:
-				return NAN_UNSIGNED_SHORT;
+		Ref<API::Texture::Texture> AddTexture(Ref<API::Texture::Texture> texture, bool useCached = true) {
+			if (useCached) {
+				auto it = TextureIdentifierMap.find(texture->GetPath());
+				if (it != TextureIdentifierMap.end()) {
+					auto itTex = Textures.find(it->second);
+					if (itTex != Textures.end())
+						return itTex->second;
+					else {
+						LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+						return nullptr;
+					}
+				}
 			}
+
+			Textures.insert({ IdCounterTextures, texture });
+			TextureIdentifierMap.insert({ texture->GetPath(), IdCounterTextures++ });
+			return texture;
 		}
 
+		Ref<API::Texture::Texture> AddTexture(const std::string& path, bool flipUV = false) {
+			auto itId = TextureIdentifierMap.find(path);
+			if (itId != TextureIdentifierMap.end()) {
+				auto itTex = Textures.find(itId->second);
+				if (itTex != Textures.end())
+					return itTex->second;
+				else {
+					LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+					return nullptr;
+				}
+			}
+
+			Ref<API::Texture::Texture> texture = Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, flipUV));
+			Textures.insert({ IdCounterTextures, texture });
+			TextureIdentifierMap.insert({ path, IdCounterTextures++ });
+			return texture;
+		}
+
+		Ref<API::Texture::Texture> GetTexture(const std::string& path) {
+			auto it = TextureIdentifierMap.find(path);
+			if (it != TextureIdentifierMap.end()) {
+				auto itTex = Textures.find(it->second);
+				if (itTex != Textures.end())
+					return itTex->second;
+				else {
+					LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+					return nullptr;
+				}
+			}
+			return nullptr;
+		}
+
+		Ref<API::Texture::Texture> GetTexture(unsigned int textureId) {
+			auto it = Textures.find(textureId);
+			if (it != Textures.end())
+				return it->second;
+			return nullptr;
+		}
+#pragma endregion
+
+#pragma region SHADER
 		unsigned short AddShader(API::Core::Shader* shader) {
 			Shaders[IdCounterShaders].reset(shader);
 			return IdCounterShaders++;
@@ -75,32 +101,22 @@ namespace Cast {
 		Ref<API::Core::Shader> GetShaderHandle(const std::string& identifier);
 
 		unsigned int GetShaderId(const std::string& identifier);
+#pragma endregion
 
 	private:
-		unsigned short IdCounterDiffuse = 0;
-		unsigned short IdCounterSpecular = 0;
-		unsigned short IdCounterAmbient = 0;
-		unsigned short IdCounterNormal = 0;
-		unsigned short IdCounterHeight = 0;
-		unsigned short IdCounterEmissive = 0;
-		unsigned short IdCounterShinieness = 0;
-		unsigned short IdCounterOpacity = 0;
-		unsigned short IdCounterReflectance = 0;
+#pragma region TEXTURE
+		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> Textures;
+		std::unordered_map<std::string, unsigned short> TextureIdentifierMap;
 
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> DiffuseTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> SpecularTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> AmbientTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> NormalTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> HeightTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> EmissiveTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> ShininessTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> OpacityTextures;
-		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> ReflectanceTextures;
+		unsigned short IdCounterTextures = 0;
+#pragma endregion
 
+#pragma region SHADER
 		unsigned short IdCounterShaders = 0;
 
 		std::unordered_map<unsigned short, Ref<API::Core::Shader>> Shaders;
 		std::unordered_map<std::string, unsigned short> ShaderIdentifierMap;
+#pragma endregion
 
 		Ref<API::Core::Buffer> PointLightBuffer;
 		Ref<API::Core::Buffer> DirectionalLightBuffer;

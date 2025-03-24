@@ -4,6 +4,8 @@
 #include "3DCast/Scene/DataObjects/GlobalShared.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
+#include "3DCast/Scene/SceneShaderCache.h"
+
 #include <filesystem>
 
 Cast::Model::Model()
@@ -121,19 +123,19 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<Cast::Ref<API::Texture::Texture>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE);
+		std::vector<Cast::Ref<API::Texture::Texture>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, API::Texture::TextureType::DIFFUSE);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR);
+		std::vector<Cast::Ref<API::Texture::Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, API::Texture::TextureType::SPECULAR);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> shineMaps = LoadMaterialTextures(material, aiTextureType_SHININESS);
+		std::vector<Cast::Ref<API::Texture::Texture>> shineMaps = LoadMaterialTextures(material, aiTextureType_SHININESS, API::Texture::TextureType::SHINE);
 		textures.insert(textures.end(), shineMaps.begin(), shineMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS);
+		std::vector<Cast::Ref<API::Texture::Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS, API::Texture::TextureType::NORMAL);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT);
+		std::vector<Cast::Ref<API::Texture::Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, API::Texture::TextureType::HEIGHT);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
@@ -231,7 +233,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	return castMesh;
 }
 
-std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type)
+std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI)
 {
 	std::vector<Cast::Ref<API::Texture::Texture>> textures;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -245,48 +247,11 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 		std::filesystem::path fullPath = std::filesystem::path(DirPath) / texturePath;
 		std::string path = fullPath.string();
 
-		bool chached = false;
-		for (unsigned int j = 0; j < LoadedTextures.size(); j++)
-		{
-			if (std::strcmp(LoadedTextures[j]->GetPath().data(), path.c_str()) == 0) {
-				textures.push_back(LoadedTextures[j]);
-				chached = true;
-				break;
-			}
-		}
+		LOG_CORE_TRACE("Loading model texture: {0}", path);
+		auto texture = AssetCache.AddTexture(path, true);
+		texture->SetType(typeAPI);
 
-		if (!chached) {
-			LOG_CORE_TRACE("Loading model texture: {0}", path);
-			auto texture = Cast::Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, false));
-
-			switch (type) {
-			case aiTextureType_DIFFUSE: {
-				texture->SetType(API::Texture::TextureType::DIFFUSE);
-				break;
-			}
-			case aiTextureType_SPECULAR: {
-				texture->SetType(API::Texture::TextureType::SPECULAR);
-				break;
-			}
-			case aiTextureType_SHININESS: {
-				texture->SetType(API::Texture::TextureType::SHINE);
-				break;
-			}
-			case aiTextureType_HEIGHT: {
-				texture->SetType(API::Texture::TextureType::HEIGHT);
-				break;
-			}
-			case aiTextureType_NORMALS: {
-				texture->SetType(API::Texture::TextureType::NORMAL);
-				break;
-			}
-			default:
-				texture->SetType(API::Texture::TextureType::DEFAULT);
-			}
-
-			textures.push_back(texture);
-			LoadedTextures.push_back(texture);
-		}
+		textures.push_back(texture);
 	}
 	return textures;
 }

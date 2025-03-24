@@ -13,6 +13,7 @@ namespace Cast {
 		SamplerMappings.reserve(32);
 
 		PathCache.reserve(64);
+		TexIdCache.reserve(0x1000);
 	}
 
 	TextureManager::~TextureManager() {
@@ -78,6 +79,7 @@ namespace Cast {
 		texture->SetType(API::Texture::TextureType::DIFFUSE);
 		DiffuseTextures[DiffuseCounter] = Ref<API::Texture::Texture>(texture);
 		texture->MakeResident();
+		TexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> diffuseSamplerIds(DiffuseCounter + 1);
 		for (const auto& pair : DiffuseTextures) {
@@ -104,6 +106,7 @@ namespace Cast {
 		texture->SetType(API::Texture::TextureType::SPECULAR);
 		SpecularTextures[SpecularCounter] = Ref<API::Texture::Texture>(texture);
 		texture->MakeResident();
+		TexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> specularSamplerIds(SpecularCounter + 1);
 		for (const auto& pair : SpecularTextures) {
@@ -130,6 +133,7 @@ namespace Cast {
 		texture->SetType(API::Texture::TextureType::HEIGHT);
 		ParallaxTextures[ParallaxCounter] = Ref<API::Texture::Texture>(texture);
 		texture->MakeResident();
+		TexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> shininessSamplerIds(ParallaxCounter + 1);
 		for (const auto& pair : ParallaxTextures) {
@@ -156,6 +160,7 @@ namespace Cast {
 		texture->SetType(API::Texture::TextureType::NORMAL);
 		NormalTextures[NormalCounter] = Ref<API::Texture::Texture>(texture);
 		texture->MakeResident();
+		TexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> normalSamplerIds(NormalCounter + 1);
 		for (const auto& pair : NormalTextures) {

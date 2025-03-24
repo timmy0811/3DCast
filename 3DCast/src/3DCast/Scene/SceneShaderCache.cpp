@@ -7,17 +7,8 @@ namespace Cast {
 
 Cast::SceneShaderCache::SceneShaderCache()
 {
-	DiffuseTextures.reserve(10);
-	SpecularTextures.reserve(10);
-	AmbientTextures.reserve(10);
-	NormalTextures.reserve(10);
-	HeightTextures.reserve(10);
-	EmissiveTextures.reserve(10);
-	ShininessTextures.reserve(10);
-	OpacityTextures.reserve(10);
-	ReflectanceTextures.reserve(10);
-
-	Shaders.reserve(10);
+	Textures.reserve(0x1000);
+	Shaders.reserve(0x1000);
 }
 
 Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(unsigned short id)

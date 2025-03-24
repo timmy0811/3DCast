@@ -22,7 +22,7 @@ namespace Cast {
 
 		const std::string& GetDirectory() const { return DirPath; }
 		int GetMeshCount() const { return (int)Meshes.size(); }
-		int GetTextureCount() const { return (int)LoadedTextures.size(); }
+		int GetTextureCount() const { return (int)999; }
 		const bool IsModelLoaded() const { return IsLoaded; }
 
 		int GetTotalVertexCount() const
@@ -54,13 +54,12 @@ namespace Cast {
 
 		Cast::Ref<Cast::Entity> ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> parent);
 		Cast::Ref<Cast::Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context);
-		std::vector<Cast::Ref<API::Texture::Texture>> LoadMaterialTextures(aiMaterial* mat, aiTextureType type);
+		std::vector<Cast::Ref<API::Texture::Texture>> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI);
 
 	private:
 		Ref<Entity> Entity;
 
 		std::vector<Ref<Mesh>> Meshes;
-		std::vector<Cast::Ref<API::Texture::Texture>> LoadedTextures;
 
 		std::string DirPath;
 		Assimp::Importer m_Importer;
