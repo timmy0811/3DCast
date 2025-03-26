@@ -7,7 +7,7 @@
 #include "Layer/Blocks/RasterizationViewport.h"
 #include "Layer/Blocks/PBRViewport.h"
 
-#include "vendor/glm/glm.hpp"
+#include <vendor/glm/glm.hpp>
 
 class EditorLayer : public Cast::Layer
 {

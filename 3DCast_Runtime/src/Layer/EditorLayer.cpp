@@ -30,7 +30,7 @@ void EditorLayer::OnAttach()
 	ViewportPbr.Init();
 	ViewportRasterization.Init();
 
-	Cast::g_TextureManager.InitAfterDriverSetup();
+	Cast::SamplerRegistry.InitAfterDriverSetup();
 
 	// Sample Content
 	SampleContent();
@@ -77,6 +77,7 @@ void EditorLayer::OnUpdate(Cast::Timestep ts)
 
 void EditorLayer::OnImGuiRender()
 {
+#pragma region DOCKSPACE
 	static bool dockspaceOpen = true;
 	static bool opt_fullscreen_persistant = true;
 	bool opt_fullscreen = opt_fullscreen_persistant;
@@ -111,7 +112,9 @@ void EditorLayer::OnImGuiRender()
 		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 	}
+#pragma endregion
 
+#pragma region MENU_BAR
 	static bool showParallaxSettings = false;
 	if (ImGui::BeginMenuBar())
 	{
@@ -134,7 +137,9 @@ void EditorLayer::OnImGuiRender()
 
 		ImGui::EndMenuBar();
 	}
+#pragma endregion
 
+#pragma region WINDOW_SETTINGS_VIEW
 	if (showParallaxSettings) {
 		ImGui::OpenPopup("ParallaxSettings");
 		showParallaxSettings = false;
@@ -154,7 +159,9 @@ void EditorLayer::OnImGuiRender()
 	}
 
 	ImGui::End();
+#pragma endregion
 
+#pragma region WINDOW_DIAGNOSTICS
 	ImGui::Begin("Diagnostics");
 
 	int fps = (int)(1.0f / DeltaTime);
@@ -184,6 +191,7 @@ void EditorLayer::OnImGuiRender()
 	ImGui::Text("Camera Position: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x, Runtime::EditorContext.ActiveCamera->GetPosition().y, Runtime::EditorContext.ActiveCamera->GetPosition().z);
 
 	ImGui::End();
+#pragma endregion
 
 	ViewportRasterization.OnImGuiRender();
 	ViewportPbr.OnImGuiRender();

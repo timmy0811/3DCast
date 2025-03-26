@@ -2,7 +2,9 @@
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
 #include "3DCast/Model/Model.h"
-#include "3DCast/Scene/DataObjects/GlobalShared.h"
+#include "3DCast/Data/GlobalShared.h"
+
+#include "3DCast/ImGui/UIComponents.h"
 
 namespace Cast::Component {
 	struct MeshComponent : public Component
@@ -12,6 +14,8 @@ namespace Cast::Component {
 		Ref<Cast::Model> RootModel; // Complex intermediate and leafs do not need a model instance
 		Ref<Cast::Mesh> Mesh;
 
+		int _load = false;
+		int _loadC = 0;
 		bool IsMeshLeaf = false;
 		bool IsRootNode = false;
 
@@ -72,6 +76,20 @@ namespace Cast::Component {
 			else if (IsMeshLeaf) header = "Mesh Leaf Node";
 			else header = "Complex Mesh Node";
 
+			if (_load) { // ImGui needs to swap buffer once to make modal window show up
+				UI::ModalImportInProgress(Path);
+				_loadC++;
+			}
+
+			if (_loadC > 2) {
+				RootModel = CreateRef<Cast::Model>();
+				RootModel->Load(Path, EntityNode);
+				UI::ModalImportInProgress(Path, true);
+
+				_load = false;
+				_loadC = 0;
+			}
+
 			if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 				if (IsRootNode) { // Is the model root node
 					if (RootModel && RootModel->IsModelLoaded()) { // The model is loaded
@@ -89,8 +107,7 @@ namespace Cast::Component {
 						if (ImGui::Button("Load from file")) {
 							Path = OpenFileDialoge();
 							Filename = ExtractFilename(Path);
-							RootModel = CreateRef<Cast::Model>();
-							RootModel->Load(Path, EntityNode);
+							_load = true;
 						}
 					}
 				}

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "UID.h"
-#include "LinearBatchStorage.h"
-#include "LinearBatchStorageIndexed.h"
+#include "3DCast/Misc/UID.h"
+#include "3DCast/Memory/Batching/LinearBatchStorage.h"
+#include "3DCast/Memory/Batching/LinearBatchStorageIndexed.h"
 
 #include <API/core/Shader.h>
 

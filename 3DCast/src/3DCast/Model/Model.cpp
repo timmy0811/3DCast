@@ -1,11 +1,10 @@
 #include "castpch.h"
 #include "Model.h"
 
-#include "3DCast/Scene/DataObjects/GlobalShared.h"
+#include "3DCast/Data/GlobalShared.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
 #include "3DCast/Scene/SceneShaderCache.h"
-#include "3DCast/ImGui/UIComponents.h"
 
 #include <filesystem>
 
@@ -17,9 +16,6 @@ Cast::Model::Model()
 bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 {
 	this->Entity = entity;
-
-	// Does only show on drawcall
-	UI::ModalImportInProgress(path);
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path,
@@ -45,7 +41,6 @@ bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 	DirPath = path.substr(0, path.find_last_of("/\\"));
 	ProcessNode(scene->mRootNode, scene, this->Entity);
 	IsLoaded = true;
-	UI::ModalImportInProgress(path, true);
 
 	return true;
 }

@@ -23,17 +23,17 @@ namespace Cast {
 		glm::vec2 size = { 0.0f, 0.0f };
 	};
 
-	class TextureManager {
+	class DeferredSamplerRegistry {
 	public:
-		TextureManager();
-		~TextureManager();
+		DeferredSamplerRegistry();
+		~DeferredSamplerRegistry();
 
 		void InitAfterDriverSetup();
 
-		TextureInformation AddDiffuseTexture(API::Texture::Texture* texture);
-		TextureInformation AddSpecularTexture(API::Texture::Texture* texture);
-		TextureInformation AddParallaxTexture(API::Texture::Texture* texture);
-		TextureInformation AddNormalTexture(API::Texture::Texture* texture);
+		TextureInformation AddDiffuseTexture(Ref<API::Texture::Texture> texture);
+		TextureInformation AddSpecularTexture(Ref<API::Texture::Texture> texture);
+		TextureInformation AddParallaxTexture(Ref<API::Texture::Texture> texture);
+		TextureInformation AddNormalTexture(Ref<API::Texture::Texture> texture);
 
 		TextureInformation AddDiffuseTexture(const std::string& path, bool flipUV = false);
 		TextureInformation AddSpecularTexture(const std::string& path, bool flipUV = false);
@@ -79,7 +79,10 @@ namespace Cast {
 		unsigned short SamplerMappingCounter = 0;
 
 		std::vector<std::string> PathCache;
-		std::vector<int> TexIdCache;
+		std::vector<int> DiffuseTexIdCache;
+		std::vector<int> SpecularTexIdCache;
+		std::vector<int> ParallaxTexIdCache;
+		std::vector<int> NormalTexIdCache;
 
 		Ref<API::Core::Buffer> DiffuseSamplersBuffer;
 		Ref<API::Core::Buffer> SpecularSamplersBuffer;
@@ -89,6 +92,5 @@ namespace Cast {
 		Ref<API::Core::Buffer> SamplerMappingsBuffer;
 	};
 
-	// Global instance
-	extern TextureManager g_TextureManager;
+	extern DeferredSamplerRegistry SamplerRegistry;
 }

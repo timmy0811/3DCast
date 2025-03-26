@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "3DCast/Window.h"
+#include "3DCast/Core/Window.h"
 #include "3DCast/Renderer/GraphicsContext.h"
 
 namespace Cast {

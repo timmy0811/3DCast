@@ -1,6 +1,6 @@
 #pragma once
 
-#include "3DCast/Input.h"
+#include "3DCast/Input/Input.h"
 
 namespace Cast {
 	class WindowsInput : public Input {

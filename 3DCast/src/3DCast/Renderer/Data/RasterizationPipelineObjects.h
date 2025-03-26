@@ -7,7 +7,7 @@
 #include <API/core/Framebuffer.h>
 
 namespace Cast::Renderer {
-	struct RenderPipelineObjectData
+	struct RasterizationPipelineObjects
 	{
 		Cast::Ref<API::Core::Framebuffer> Framebuffer;
 		Cast::Ref<API::Advanced::GBuffer> GBuffer;

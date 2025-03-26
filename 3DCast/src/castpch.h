@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "3DCast/Log.h"
+#include "3DCast/Core/Log.h"
 
 #ifdef CAST_PLATFORM_WINDOWS
 #include <windows.h>

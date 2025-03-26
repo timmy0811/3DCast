@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-#include "Window.h"
+#include "Core/Window.h"
 
 #include "3DCast/Event/Event.h"
 #include "3DCast/Event/ApplicationEvent.h"

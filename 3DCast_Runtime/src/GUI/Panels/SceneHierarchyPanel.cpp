@@ -96,14 +96,11 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Entity entity)
 
 	if (isOpen)
 	{
-		//ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-		//isOpen = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
 		for (auto& child : entity.GetChildren())
 		{
 			DrawEntityNode(*child);
 		}
 		ImGui::TreePop();
-		//ImGui::TreePop();
 	}
 }
 

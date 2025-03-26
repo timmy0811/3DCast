@@ -1,7 +1,7 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
-#include <3DCast/Memory/Batching/UID.h>
+#include <3DCast/Misc/UID.h>
 
 namespace Cast::Component {
 	struct CustomMeshComponent : public Component

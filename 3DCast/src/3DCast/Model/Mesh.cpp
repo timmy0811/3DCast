@@ -30,16 +30,16 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 		for (Cast::Ref<API::Texture::Texture> tex : Textures) {
 			switch (tex->GetType()) {
 			case API::Texture::TextureType::DIFFUSE:
-				Material->LoadDiffuseTexture(tex.get());
+				Material->LoadDiffuseTexture(tex);
 				break;
 			case API::Texture::TextureType::SPECULAR:
-				Material->LoadSpecularTexture(tex.get());
+				Material->LoadSpecularTexture(tex);
 				break;
 			case API::Texture::TextureType::NORMAL:
-				Material->LoadNormalTexture(tex.get());
+				Material->LoadNormalTexture(tex);
 				break;
 			case API::Texture::TextureType::HEIGHT:
-				Material->LoadParallaxTexture(tex.get());
+				Material->LoadParallaxTexture(tex);
 				break;
 			default:
 				LOG_CORE_WARN("Texture %s type not supported", API::Texture::Texture::TextureTypeToString(tex->GetType()));

@@ -1,10 +1,10 @@
 #include "castpch.h"
 #include "Application.h"
 
-#include "3DCast/Log.h"
-#include "Input.h"
+#include "3DCast/Core/Log.h"
+#include "3DCast/Input/Input.h"
 
-#include "Renderer/Renderer.h"
+#include "3DCast/Renderer/Renderer.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

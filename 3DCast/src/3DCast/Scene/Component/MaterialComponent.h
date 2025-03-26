@@ -31,7 +31,7 @@ namespace Cast::Component {
 		std::string parallaxFile;
 		std::string normalFile;
 
-		bool diffuseLoaded, specularLoaded, parallaxLoaded, normalLoaded;
+		bool diffuseLoaded = false, specularLoaded = false, parallaxLoaded = false, normalLoaded = false;
 
 		MaterialComponent(const MaterialComponent&) = default;
 		MaterialComponent() {
@@ -39,7 +39,7 @@ namespace Cast::Component {
 		}
 
 		void SetupSamplerMapping() {
-			samplerIndex = g_TextureManager.CreateSamplerMapping(
+			samplerIndex = SamplerRegistry.CreateSamplerMapping(
 				diffuseInfo.bufferIndex,
 				specularInfo.bufferIndex,
 				parallaxInfo.bufferIndex,
@@ -48,7 +48,7 @@ namespace Cast::Component {
 		}
 
 		void UpdateSamplerMapping() {
-			g_TextureManager.UpdateSamplerMapping(
+			SamplerRegistry.UpdateSamplerMapping(
 				samplerIndex,
 				diffuseInfo.bufferIndex,
 				specularInfo.bufferIndex,
@@ -65,14 +65,14 @@ namespace Cast::Component {
 #pragma region LOADERS
 		// Load a normal texture from file
 		void LoadDiffuseTexture(const std::string& path, bool flipUV = false) {
-			diffuseInfo = g_TextureManager.AddDiffuseTexture(path, flipUV);
+			diffuseInfo = SamplerRegistry.AddDiffuseTexture(path, flipUV);
 			diffuseFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
 		}
 
-		void LoadDiffuseTexture(API::Texture::Texture* texture) {
-			diffuseInfo = g_TextureManager.AddDiffuseTexture(texture);
+		void LoadDiffuseTexture(Ref<API::Texture::Texture> texture) {
+			diffuseInfo = SamplerRegistry.AddDiffuseTexture(texture);
 			diffuseFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
@@ -80,14 +80,14 @@ namespace Cast::Component {
 
 		// Load a specular texture from file
 		void LoadSpecularTexture(const std::string& path, bool flipUV = false) {
-			specularInfo = g_TextureManager.AddSpecularTexture(path, flipUV);
+			specularInfo = SamplerRegistry.AddSpecularTexture(path, flipUV);
 			specularFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			specularLoaded = true;
 		}
 
-		void LoadSpecularTexture(API::Texture::Texture* texture) {
-			specularInfo = g_TextureManager.AddSpecularTexture(texture);
+		void LoadSpecularTexture(Ref<API::Texture::Texture> texture) {
+			specularInfo = SamplerRegistry.AddSpecularTexture(texture);
 			specularFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			specularLoaded = true;
@@ -95,14 +95,14 @@ namespace Cast::Component {
 
 		// Load a parallax texture from file
 		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
-			parallaxInfo = g_TextureManager.AddParallaxTexture(path, flipUV);
+			parallaxInfo = SamplerRegistry.AddParallaxTexture(path, flipUV);
 			parallaxFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
 		}
 
-		void LoadParallaxTexture(API::Texture::Texture* texture) {
-			parallaxInfo = g_TextureManager.AddParallaxTexture(texture);
+		void LoadParallaxTexture(Ref<API::Texture::Texture> texture) {
+			parallaxInfo = SamplerRegistry.AddParallaxTexture(texture);
 			parallaxFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
@@ -110,14 +110,14 @@ namespace Cast::Component {
 
 		// Load a normal map from file
 		void LoadNormalTexture(const std::string& path, bool flipUV = false) {
-			normalInfo = g_TextureManager.AddNormalTexture(path, flipUV);
+			normalInfo = SamplerRegistry.AddNormalTexture(path, flipUV);
 			normalFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			normalLoaded = true;
 		}
 
-		void LoadNormalTexture(API::Texture::Texture* texture) {
-			normalInfo = g_TextureManager.AddNormalTexture(texture);
+		void LoadNormalTexture(Ref<API::Texture::Texture> texture) {
+			normalInfo = SamplerRegistry.AddNormalTexture(texture);
 			normalFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			normalLoaded = true;

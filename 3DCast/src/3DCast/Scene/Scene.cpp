@@ -1,19 +1,19 @@
 #include "castpch.h"
 #include "Scene.h"
 
-#include "3DCast/Log.h"
+#include "3DCast/Core/Log.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
 
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Scene/SceneShaderCache.h"
-#include "3DCast/Memory/Batching/Vertex.h"
+#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
 
 #include <Vendor/glm/glm.hpp>
 
 Cast::Scene::Scene()
-	:IconRenderer(Cast::IconRenderer("../3DCast/ressources/configuration/icon.yml", "../3DCast/ressources/icon/icon_pallete.png"))
+	:IconRenderer(Cast::IconRenderer("../3DCast/ressources/configuration/icon.yml", "../3DCast/ressources/img/icon/icon_pallete.png"))
 {
 	EntityDescriptorPool.reserve(1000);
 
@@ -66,7 +66,7 @@ void Cast::Scene::RemoveEntity(Entity& entity) {
 void Cast::Scene::OnDeferredRender()
 {
 	BindTransformSSBO();
-	g_TextureManager.BindSamplerBuffersToShaderPoints();
+	SamplerRegistry.BindSamplerBuffersToShaderPoints();
 
 	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
 	Memory::BatchMemoryHandler.Render(shader);

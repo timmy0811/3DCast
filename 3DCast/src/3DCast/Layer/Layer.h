@@ -2,7 +2,7 @@
 
 #include "3DCast/Event/Event.h"
 #include "3DCast/Core/Timestep.h"
-#include "3DCast/Window.h"
+#include "3DCast/Core/Window.h"
 
 namespace Cast {
 	static int s_LayerIdentifier = 0;

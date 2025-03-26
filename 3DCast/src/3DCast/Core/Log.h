@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Core.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/stopwatch.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
+#include "3DCast/Core.h"
+
+#include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace Cast {
 	class Log

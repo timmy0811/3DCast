@@ -1,7 +1,7 @@
 #include "castpch.h"
 #include "BatchManager.h"
 
-#include "Vertex.h"
+#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
 namespace Cast::Memory
 {

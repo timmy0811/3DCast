@@ -4,21 +4,13 @@
 #include <string>
 
 namespace Cast::UI {
-	void ModalImportInProgress(const std::string& path, bool end = false) {
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f,
-			ImGui::GetIO().DisplaySize.y * 0.5f),
-			ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	static void ModalImportInProgress(const std::string& path, bool end = false) {
+		ImGui::OpenPopup("ModelImporting");
 
-		static bool show = false;
-
-		if (!show) {
-			ImGui::OpenPopup("ModelImporting");
-			show = true;
-		}
-
-		if (ImGui::BeginPopupModal("ModelImporting", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopupModal("ModelImporting", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			ImGui::Text("Model import running for %s", path.c_str());
+			ImGui::Text("Model import running for:");
+			ImGui::Text(path.c_str());
 			ImGui::Text("Please wait :)");
 
 			if (end)

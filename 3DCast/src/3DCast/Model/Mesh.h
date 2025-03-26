@@ -1,6 +1,6 @@
 #pragma once
 
-#include "3DCast/Memory/Batching/Vertex.h"
+#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 #include "3DCast/Scene/Component/MaterialComponent.h"
 
 #include <API/texture/Texture.h>

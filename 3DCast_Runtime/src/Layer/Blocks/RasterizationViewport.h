@@ -31,7 +31,7 @@ namespace Runtime {
 		bool OnMouseMoved(Cast::MouseMovedEvent& e);
 
 	private:
-		Cast::Renderer::RenderPipelineObjectData RenderPipelineData;
+		Cast::Renderer::RasterizationPipelineObjects PipelineData;
 
 		bool IsInitFrame = true;
 		bool IsCameraRotating = false;

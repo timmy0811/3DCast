@@ -17,33 +17,33 @@ void Runtime::RasterizationViewport::Init()
 	constexpr size_t DefaultStorageSize = sizeof(Cast::Memory::BatchVertex) * 1000000;
 	Cast::Memory::BatchMemoryHandler.Init(DefaultStorageSize, MaxIndices);
 
-	RenderPipelineData.GBufferScreenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
-	RenderPipelineData.Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
-	RenderPipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	PipelineData.GBufferScreenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	PipelineData.Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
+	PipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
 
-	RenderPipelineData.GBuffer->Bind();
-	RenderPipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	RenderPipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->Bind();
+	PipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
 
-	RenderPipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
-	RenderPipelineData.GBuffer->AddStencilTarget();
-	RenderPipelineData.GBuffer->Validate();
+	PipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
+	PipelineData.GBuffer->AddStencilTarget();
+	PipelineData.GBuffer->Validate();
 
-	RenderPipelineData.GBuffer->BindDepthTexture(0);
-	RenderPipelineData.GBuffer->BindTextures(1);
+	PipelineData.GBuffer->BindDepthTexture(0);
+	PipelineData.GBuffer->BindTextures(1);
 
 	CompileShaders();
 
 	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
-	shader->SetUniform1i("gBuf_Position", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	shader->SetUniform1i("gBuf_Normal", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	shader->SetUniform1i("gBuf_Albedo", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
-	shader->SetUniform1i("gBuf_Specular", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
-	shader->SetUniform1i("gBuf_Shine_Reflectance", RenderPipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
+	shader->SetUniform1i("gBuf_Position", PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
+	shader->SetUniform1i("gBuf_Normal", PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
+	shader->SetUniform1i("gBuf_Albedo", PipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
+	shader->SetUniform1i("gBuf_Specular", PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
+	shader->SetUniform1i("gBuf_Shine_Reflectance", PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
 	shader->Unbind();
 }
 
@@ -103,7 +103,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 		}
 	}
 
-	uint32_t textureID = RenderPipelineData.Framebuffer->GetColorAttachmentTextureID(0);
+	uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
 	ImGui::Image((unsigned long long)textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
 
 	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
@@ -124,9 +124,9 @@ void Runtime::RasterizationViewport::OnRender()
 	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
 
 	RenderGeometryPass();
-	API::Core::RenderCommand::CopyStencilBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(), PipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
 	RenderLightingPass();
-	API::Core::RenderCommand::CopyDepthBuffer(RenderPipelineData.GBuffer->GetInternalId(), RenderPipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(), PipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
 	RenderForwardPass();
 
 	Cast::Renderer::RendererContext::EndScene();
@@ -139,7 +139,7 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
 
-	RenderPipelineData.GBuffer->BindAndClear();
+	PipelineData.GBuffer->BindAndClear();
 	API::Core::RenderCommand::ClearStencilBuffer();
 	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
@@ -150,14 +150,14 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 	shader->SetUniform1f("u_ParallaxScale", Runtime::EditorContext.ViewSettings.ParallaxScale);
 
 	Cast::Shared.ActiveScene->OnDeferredRender();
-	RenderPipelineData.GBuffer->Unbind();
+	PipelineData.GBuffer->Unbind();
 }
 
 void Runtime::RasterizationViewport::RenderLightingPass()
 {
-	RenderPipelineData.Framebuffer->BindAndClear();
-	RenderPipelineData.GBuffer->BindDepthTexture(0);
-	RenderPipelineData.GBuffer->BindTextures(1);
+	PipelineData.Framebuffer->BindAndClear();
+	PipelineData.GBuffer->BindDepthTexture(0);
+	PipelineData.GBuffer->BindTextures(1);
 
 	Cast::Shared.ActiveScene->BindSSBOforShadingPass();
 
@@ -174,10 +174,10 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	API::Core::RenderCommand::SetClearColor({ 0.06f, 0.06f, 0.06f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
-	RenderPipelineData.Framebuffer->Bind();
+	PipelineData.Framebuffer->Bind();
 	API::Core::RenderCommand::SetDefaultStencilTest();
 
-	RenderPipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
+	PipelineData.GBufferScreenGeometry->Draw(Cast::AssetCache.GetShaderHandle("shader_shading_pass").get());
 
 	API::Core::RenderCommand::SetBlend(false);
 	API::Core::RenderCommand::SetStencilTest(false);
@@ -185,11 +185,11 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 
 void Runtime::RasterizationViewport::RenderForwardPass()
 {
-	RenderPipelineData.Framebuffer->Bind();
+	PipelineData.Framebuffer->Bind();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
 	Cast::Shared.ActiveScene->OnForwardRender();
-	RenderPipelineData.Framebuffer->Unbind();
+	PipelineData.Framebuffer->Unbind();
 }
 
 void Runtime::RasterizationViewport::CompileShaders()

@@ -3,11 +3,11 @@
 #include "3DCast/Core.h"
 #include "3DCast/Misc/Helper.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
-#include "3DCast/Memory/Batching/UID.h"
+#include "3DCast/Misc/UID.h"
 #include "3DCast/Renderer/Camera/Camera.h"
-#include "3DCast/Scene/DataObjects/ShaderDataObjects.h"
+#include "3DCast/Data/ShaderDataObjects/Light.h"
 #include "3DCast/Scene/Scene.h"
-#include "3DCast/Scene/TextureManager.h"
+#include "3DCast/Scene/DeferredSamplerRegistry.h"
 
 #include <API/core/Buffer.h>
 #include <API/core/IndexBuffer.h>

@@ -17,7 +17,11 @@ namespace Cast {
 		template<typename T, typename... Args>
 		T& AddComponents(Args&&... args)
 		{
-			CAST_ASSERT(HasComponent<T>(), "Entity already has component!");
+			if (HasComponent<T>()) {
+				LOG_CORE_WARN("Trying to add a component even though it hase already been added. Ignoring.");
+				return GetComponent<T>();
+			}
+
 			auto& comp = Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
 			comp.SetEntity(Ref<Entity>(this));
 			return comp;
@@ -33,14 +37,16 @@ namespace Cast {
 		template <typename T>
 		bool HasComponent()
 		{
-			//return Scene->Registry.has<T>(EntityHandle);
-			return true;
+			return Scene->Registry.all_of<T>(EntityHandle);
 		}
 
 		template <typename T>
 		void RemoveComponent()
 		{
-			CAST_ASSERT(!HasComponent<T>(), "Entity does not have component!");
+			if (HasComponent<T>()) {
+				LOG_CORE_WARN("Trying to remove a component that has never been added. Ignoring.");
+				return;
+			}
 			Scene->Registry.remove<T>(EntityHandle);
 		}
 

@@ -1,5 +1,5 @@
 #include "castpch.h"
-#include "3DCast/Window.h"
+#include "3DCast/Core/Window.h"
 
 #ifdef CAST_PLATFORM_WINDOWS
 #include "3DCast/Platform/Windows/WindowsWindow.h"

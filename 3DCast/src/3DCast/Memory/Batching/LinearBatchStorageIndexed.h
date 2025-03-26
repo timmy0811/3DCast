@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UID.h"
-#include "LinearBatchStorage.h"
+#include "3DCast/Misc/UID.h"
+#include "3DCast/Memory/Batching/LinearBatchStorage.h"
 
 #include <unordered_map>
 #include <API/core/Buffer.h>

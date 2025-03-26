@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Log.h"
+#include "Core/Log.h"
 #include <memory>
 
 #ifdef CAST_PLATFORM_WINDOWS

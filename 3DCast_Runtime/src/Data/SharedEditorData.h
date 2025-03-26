@@ -5,7 +5,7 @@
 namespace Runtime {
 	struct View
 	{
-		float ParallaxScale = 0.03f;
+		float ParallaxScale = 0.00f;
 	};
 
 	struct SharedEditorData

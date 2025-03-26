@@ -5,7 +5,7 @@
 #include <entt/entt.hpp>
 
 #include "3DCast/Core.h"
-#include "3DCast/Scene/DataObjects/ShaderDataObjects.h"
+#include "3DCast/Data/ShaderDataObjects/Light.h"
 #include "3DCast/Renderer/IconRenderer.h"
 
 #include <API/core/Buffer.h>

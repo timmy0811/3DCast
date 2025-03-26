@@ -3,7 +3,7 @@
 
 #include "Component/Component.h"
 #include "Entity.h"
-#include "3DCast/Memory/Batching/Vertex.h"
+#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
 #include "SceneShaderCache.h"
 
