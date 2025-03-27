@@ -40,7 +40,7 @@ bool Cast::Core::StartupBanner::Init()
 	context = new OpenGLContext(window);
 	context->Init();
 
-	screenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(800, 600));
+	screenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(880, 660));
 	shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/sprite/basic_img.vert", "../3DCast/ressources/shader/sprite/basic_img.frag"));
 	texture.reset(API::Texture::Texture::Create("../3DCast/ressources/img/startup.png", true));
 	texture->Bind();
