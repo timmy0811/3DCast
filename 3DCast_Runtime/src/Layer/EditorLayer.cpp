@@ -4,7 +4,7 @@
 #include "Config.h"
 
 #include "GUI/Panels/EventConsole.h"
-#include "GUI/ImGuiStyle.h"
+#include "GUI/Theme.h"
 
 #include <imgui_internal.h>
 #include <time.h>
@@ -20,7 +20,7 @@ void EditorLayer::OnAttach()
 {
 	Cast::Application::Get().GetWindow().SetRawMouseInput(true);
 
-	Runtime::SetupImGuiStyle(true, 0.3f);
+	Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::NewDark);
 
 	Cast::Shared.ActiveScene = Cast::CreateRef<Cast::Scene>();
 	Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
@@ -132,6 +132,43 @@ void EditorLayer::OnImGuiRender()
 		{
 			if (ImGui::MenuItem("Parallax Settings")) {
 				showParallaxSettings = true;
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Extras"))
+		{
+			if (ImGui::BeginMenu("Theme")) {
+				if (ImGui::MenuItem("Default")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Default);
+				}
+				if (ImGui::MenuItem("NewDark")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::NewDark);
+				}
+				if (ImGui::MenuItem("Mocha")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Mocha);
+				}
+				if (ImGui::MenuItem("Glass")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Glass);
+				}
+				if (ImGui::MenuItem("MaterialYou")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::MaterialYou);
+				}
+				if (ImGui::MenuItem("Dark")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Dark);
+				}
+				if (ImGui::MenuItem("Darker")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Darker);
+				}
+				if (ImGui::MenuItem("Fluent")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Fluent);
+				}
+				if (ImGui::MenuItem("FluentLight")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::FluentLight);
+				}
+
+				ImGui::EndMenu();
 			}
 
 			ImGui::EndMenu();

@@ -32,6 +32,10 @@ void Cast::ImGuiLayer::OnAttach()
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
+	ImFont* myFont = io.Fonts->AddFontFromFileTTF("../3DCast/ressources/font/roboto/ubuntu.ttf", 15.5f);
+	if (myFont == nullptr)
+		myFont = io.Fonts->AddFontDefault();
+
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
