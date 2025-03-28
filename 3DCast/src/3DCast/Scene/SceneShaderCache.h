@@ -59,7 +59,7 @@ namespace Cast {
 			}
 
 			LOG_CORE_TRACE("Loading uncached texture: {0}", path);
-			Ref<API::Texture::Texture> texture = Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, flipUV));
+			Ref<API::Texture::Texture> texture = Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, API::Texture::TextureFilter::LINEAR, flipUV));
 			if (texture->GetError())
 				return nullptr;
 

@@ -6,7 +6,7 @@
 
 Cast::IconRenderer::IconRenderer(const std::string& palleteConfigPath, const std::string& palleteImgPath)
 {
-	Pallete.reset(API::Texture::Texture::Create(palleteImgPath));
+	Pallete.reset(API::Texture::Texture::Create(palleteImgPath, API::Texture::TextureFilter::NEAREST));
 
 	SourceSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, 128, sizeof(BillboardSource)));
 	IconDataSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, 128, sizeof(IconData)));
