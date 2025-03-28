@@ -2,6 +2,8 @@
 
 #include "Data/SharedEditorData.h"
 #include "Config.h"
+
+#include "GUI/Panels/EventConsole.h"
 #include "GUI/ImGuiStyle.h"
 
 #include <imgui_internal.h>
@@ -197,6 +199,7 @@ void EditorLayer::OnImGuiRender()
 	ViewportPbr.OnImGuiRender();
 
 	SceneHierarchyPanel.OnImGuiRender();
+	Runtime::GUI::EventConsole::OnImGuiRender();
 }
 
 void EditorLayer::OnEvent(Cast::Event& e)
@@ -210,8 +213,10 @@ void EditorLayer::OnEvent(Cast::Event& e)
 
 bool EditorLayer::OnMouseScrolled(Cast::MouseScrolledEvent& e)
 {
-	if (e.GetYOffset() < 0.f) CameraSpeed *= 0.9f;
-	else if (e.GetYOffset() > 0.f) CameraSpeed *= 1.1f;
+	if (ViewportRasterization.IsViewportHovered()) {
+		if (e.GetYOffset() < 0.f) CameraSpeed *= 0.9f;
+		else if (e.GetYOffset() > 0.f) CameraSpeed *= 1.1f;
+	}
 
 	return false;
 }

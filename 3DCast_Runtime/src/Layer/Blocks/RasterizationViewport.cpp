@@ -134,6 +134,7 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::RenderGeometryPass()
 {
+	// Color for bleeding areas
 	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.9f, 0.1f, 1.0f });
 	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
@@ -170,8 +171,8 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
-	//GUI Background Color
-	API::Core::RenderCommand::SetClearColor({ 0.06f, 0.06f, 0.06f, 1.0f });
+	// Viewport Background Color
+	API::Core::RenderCommand::SetClearColor({ 0.10f, 0.10f, 0.10f, 1.0f });
 	API::Core::RenderCommand::Clear();
 
 	PipelineData.Framebuffer->Bind();
