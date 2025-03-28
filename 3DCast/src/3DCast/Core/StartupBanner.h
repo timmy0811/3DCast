@@ -1,21 +1,22 @@
 #pragma once
-#include "GLFW/glfw3.h"
+
+#include <API/advanced/GBufferScreenGeometry.h>
+#include <API/texture/Texture.h>
+
 #include "3DCast/Renderer/GraphicsContext.h"
-#include "API/advanced/GBufferScreenGeometry.h"
-#include "API/texture/Texture.h"
 
 namespace Cast::Core {
 	class StartupBanner
 	{
 	public:
-		StartupBanner() = default;
-		~StartupBanner() = default;
+		virtual ~StartupBanner() {};
 
-		bool Init();
-		void Blit(unsigned long ms);
+		virtual bool Init(const std::string& imgPath) = 0;
+		virtual void Blit(unsigned long ms) = 0;
 
-	private:
-		GLFWwindow* window;
+		static Scope<StartupBanner> Create();
+
+	protected:
 		GraphicsContext* context;
 
 		Ref<API::Advanced::GBufferScreenGeometry> screenGeometry;
