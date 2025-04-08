@@ -1,31 +1,11 @@
 #pragma once
 
 #include "3DCast/Core.h"
-#include "3DCast/Misc/Helper.h"
-#include "3DCast/Memory/Batching/BatchManager.h"
-#include "3DCast/Misc/UID.h"
-#include "3DCast/Renderer/Camera/Camera.h"
-#include "3DCast/Data/ShaderDataObjects/Light.h"
-#include "3DCast/Scene/Scene.h"
-#include "3DCast/Scene/DeferredSamplerRegistry.h"
-
-#include <API/core/Buffer.h>
-#include <API/core/IndexBuffer.h>
-#include <API/core/Shader.h>
-#include <API/core/VertexArray.h>
-#include <API/core/VertexBufferLayout.h>
-#include <API/texture/Texture.h>
-
-#include <Vendor/glm/glm.hpp>
-#include <vendor/glm/gtx/euler_angles.hpp>
-#include <Vendor/glm/gtx/matrix_decompose.hpp>
+#include "3DCast/Scene/Component/Typedefinition.h"
 
 #include <string>
 
-#include "imgui.h"
-
-#define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3
-#define TEXTURE_THUMBNAIL_SIZE 100.f
+#define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3.0f
 
 namespace Cast {
 	class Entity;
@@ -35,13 +15,20 @@ namespace Cast::Component {
 	struct Component
 	{
 		virtual ~Component() = default;
-		virtual void OnImGuiRender() {};
-		virtual void Print() {};
 
-		void SetEntity(Ref<Entity> entity) { EntityNode = entity; }
+		virtual UIResponse OnImGuiRender() { return {}; };
+		virtual void Print() {};
+		virtual void OnAfterEntitySetBehaviour() {};
+
+		void SetEntity(Entity* entity) { EntityNode = entity; }
+
+		virtual std::string GetName() const
+		{
+			return "Component";
+		}
 
 	protected:
-		Ref<Entity> EntityNode; // Exception when destroying
+		Entity* EntityNode = nullptr;
 
 		friend class Entity;
 	};

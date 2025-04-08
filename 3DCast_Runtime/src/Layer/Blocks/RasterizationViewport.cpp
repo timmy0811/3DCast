@@ -4,6 +4,7 @@
 #include "Data/SharedEditorData.h"
 
 #include <3DCast.h>
+#include <3DCast/Data/GlobalShared.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -113,6 +114,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	glm::vec2 viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 	glm::vec2 applicationAbsPos = (glm::vec2)ParentLayer->GetParentWindow()->GetPosition();
 	Position = viewportAbsPos - applicationAbsPos;
+	Cast::Shared.WindowCenter = { applicationAbsPos.x + (float)ParentLayer->GetParentWindow()->GetWidth() * 0.5f, applicationAbsPos.y + (float)ParentLayer->GetParentWindow()->GetHeight() * 0.5f };
 
 	RelativeMousePosition = { ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y };
 

@@ -5,12 +5,16 @@
 #include "3DCast/Core.h"
 
 namespace Cast {
+	namespace Component {
+		enum class Type;
+	}
+
 	class Entity
 	{
 	public:
 		Entity() = default;
 		Entity(entt::entity handle, Scene* scene);
-		Entity(const Entity& other) = default;
+		//Entity(const Entity& other) = default;
 
 		inline const entt::entity GetEntityHandle() const { return EntityHandle; }
 
@@ -22,8 +26,11 @@ namespace Cast {
 				return GetComponent<T>();
 			}
 
+			EntityHasRequiredComponents(T::GetType());
+
 			auto& comp = Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
-			comp.SetEntity(Ref<Entity>(this));
+			comp.SetEntity(this);
+			comp.OnAfterEntitySetBehaviour();
 			return comp;
 		}
 
@@ -43,7 +50,7 @@ namespace Cast {
 		template <typename T>
 		void RemoveComponent()
 		{
-			if (HasComponent<T>()) {
+			if (!HasComponent<T>()) {
 				LOG_CORE_WARN("Trying to remove a component that has never been added. Ignoring.");
 				return;
 			}
@@ -74,6 +81,9 @@ namespace Cast {
 		std::vector<Ref<Entity>>& GetChildren() { return Children; }
 		bool IsChild() { return Parent != nullptr; }
 		bool HasChildren() { return !Children.empty(); }
+
+	private:
+		bool EntityHasRequiredComponents(Component::Type type);
 
 	private:
 		entt::entity EntityHandle{ entt::null };

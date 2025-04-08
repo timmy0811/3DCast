@@ -6,37 +6,58 @@
 
 #include "3DCast/ImGui/UIComponents.h"
 
+#include <imgui.h>
+
 namespace Cast::Component {
 	struct MeshComponent : public Component
 	{
+#pragma region DATA
 		std::string Path;
 		std::string Filename;
+		std::string header;
+
 		Ref<Cast::Model> RootModel; // Complex intermediate and leafs do not need a model instance
 		Ref<Cast::Mesh> Mesh;
+		bool IsRootNode = false;
+		bool IsMeshLeaf = false;
 
 		int _load = false;
 		int _loadC = 0;
-		bool IsMeshLeaf = false;
-		bool IsRootNode = false;
+#pragma endregion
 
-		MeshComponent(const MeshComponent&) = default;
+#pragma region CONSTRUCTOR
+		MeshComponent(const MeshComponent&) {};
 		MeshComponent(bool isRootNode = true) {
 			if (isRootNode) {
-				RootModel = CreateRef<Cast::Model>();
+				RootModel = Ref<Cast::Model>();
 				IsRootNode = true;
+				header = "Model Root Node";
+			}
+			else {
+				IsMeshLeaf = true;
+				header = "Mesh Leaf Node";
 			}
 		}
 
 		MeshComponent(Ref<Cast::Mesh> mesh)
 			: Mesh(mesh) {
 			IsMeshLeaf = true;
+			header = "Mesh Leaf Node";
 		}
 
 		MeshComponent(const std::string& path)
 			: Path(path) {
 			IsRootNode = true;
 			RootModel = CreateRef<Cast::Model>();
-			RootModel->Load(path, EntityNode);
+			RootModel->Load(path, Ref<Entity>(EntityNode));
+			header = "Model Root Node";
+		}
+#pragma endregion
+
+#pragma region UTILITY
+		void SetMeshAsChildNode(Ref<Cast::Mesh> mesh) {
+			Mesh = mesh;
+			IsMeshLeaf = true;
 		}
 
 		std::string OpenFileDialoge() {
@@ -69,13 +90,18 @@ namespace Cast::Component {
 			size_t found = path.find_last_of("/\\");
 			return path.substr(found + 1);
 		}
+#pragma endregion
 
-		virtual void OnImGuiRender() override {
-			std::string header;
-			if (IsRootNode) header = "Model Root Node";
-			else if (IsMeshLeaf) header = "Mesh Leaf Node";
-			else header = "Complex Mesh Node";
+#pragma region OVERRIDE
+		static inline const Type GetType() { return Type::Mesh; }
+		static inline std::string GetName() { return "Mesh"; }
 
+		void OnAfterEntitySetBehaviour() override {
+			if (IsMeshLeaf)
+				Shared.ActiveScene->RegisterTransformComponent(Ref<Entity>(EntityNode));
+		}
+
+		virtual UIResponse OnImGuiRender() override {
 			if (_load) { // ImGui needs to swap buffer once to make modal window show up
 				UI::ModalImportInProgress(Path);
 				_loadC++;
@@ -83,14 +109,25 @@ namespace Cast::Component {
 
 			if (_loadC > 2) {
 				RootModel = CreateRef<Cast::Model>();
-				RootModel->Load(Path, EntityNode);
+				RootModel->Load(Path, Ref<Entity>(EntityNode));
 				UI::ModalImportInProgress(Path, true);
 
 				_load = false;
 				_loadC = 0;
 			}
 
-			if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+			bool isOpen = ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			ImGui::SameLine();
+
+			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f) {
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
+			}
+
+			if (ImGui::SmallButton("Remove##Mesh"))
+				return { UIResponse::Code::Remove, Type::Mesh };
+
+			if (isOpen) {
 				if (IsRootNode) { // Is the model root node
 					if (RootModel && RootModel->IsModelLoaded()) { // The model is loaded
 						ImGui::Text("Model: %s", Filename.c_str());
@@ -122,6 +159,9 @@ namespace Cast::Component {
 					}
 				}
 			}
+
+			return {};
 		}
+#pragma endregion
 	};
 }

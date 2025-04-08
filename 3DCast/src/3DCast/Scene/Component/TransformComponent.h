@@ -2,18 +2,27 @@
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
 
+#include <Vendor/glm/glm.hpp>
+#include <vendor/glm/gtx/euler_angles.hpp>
+#include <Vendor/glm/gtx/matrix_decompose.hpp>
+
 namespace Cast::Component {
 	struct TransformComponent : public Component
 	{
-		bool isValid;
-		size_t bufferPosition;
-		unsigned short bufferIndex;
+#pragma region DATA
 		glm::mat4 Transform{ 1.0f };
 		glm::vec3 translation{ 0.0f };
 		glm::vec3 scale{ 1.0f };
 		glm::vec3 rotation{ 0.0f };
+
 		Cast::Ref<API::Core::Buffer> transformRegistry;
 
+		bool isRegistered = false;
+		size_t bufferPosition = 0;
+		unsigned short bufferIndex = 0;
+#pragma endregion
+
+#pragma region CONSTRUCTOR
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
 		TransformComponent(const glm::mat4& transform)
@@ -22,7 +31,9 @@ namespace Cast::Component {
 		{
 			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 		}
+#pragma endregion
 
+#pragma region UTILITY
 		bool Register(Cast::Ref<API::Core::Buffer> transformRegistry)
 		{
 			this->transformRegistry = transformRegistry;
@@ -31,7 +42,7 @@ namespace Cast::Component {
 				bufferPosition = transformRegistry->GetSize();
 				transformRegistry->AddData(&Transform, sizeof(glm::mat4));
 				bufferIndex = (unsigned short)(bufferPosition / sizeof(glm::mat4));
-				isValid = true;
+				isRegistered = true;
 				return true;
 			}
 
@@ -74,10 +85,26 @@ namespace Cast::Component {
 				glm::eulerAngleXYZ(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z)) *
 				glm::scale(glm::mat4(1.0f), scale);
 		}
+#pragma endregion
 
-		virtual void OnImGuiRender() override
+#pragma region OVERRIDE
+		static inline const Type GetType() { return Type::Transform; }
+		static inline std::string GetName() { return "Transform"; }
+
+		virtual UIResponse OnImGuiRender() override
 		{
-			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			bool isOpen = ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			ImGui::SameLine();
+
+			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f) {
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
+			}
+
+			if (ImGui::SmallButton("Remove##Transform"))
+				return { UIResponse::Code::Remove, Type::Camera };
+
+			if (isOpen)
 			{
 				ImGui::Text("Translation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
@@ -97,6 +124,9 @@ namespace Cast::Component {
 				if (transformRegistry)
 					transformRegistry->AddData(&Transform, sizeof(glm::mat4), (int)bufferPosition);
 			}
+
+			return {};
 		}
+#pragma endregion
 	};
 }

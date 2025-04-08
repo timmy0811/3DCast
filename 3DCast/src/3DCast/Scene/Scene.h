@@ -8,20 +8,24 @@
 #include "3DCast/Data/ShaderDataObjects/Light.h"
 #include "3DCast/Renderer/IconRenderer.h"
 
+#include "3DCast/Scene/Component/Typedefinition.h"
+
 #include <API/core/Buffer.h>
 
 namespace Cast {
 	class Entity;
 
 	class Scene {
-		using ComponentHandler = std::function<void(entt::registry&, entt::entity)>;
+		using ComponentHandler = std::function<Component::UIResponse(entt::registry&, entt::entity)>;
 
 	public:
 		Scene();
 		~Scene() = default;
 
-		Cast::Ref<Cast::Entity> CreateEntity(const std::string& name = "Untagged");
+		Cast::Ref<Cast::Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
 		void RemoveEntity(Entity& entity);
+
+		bool RegisterTransformComponent(Ref<Entity> entity);
 
 		void OnDeferredRender();
 		void OnForwardRender();
@@ -42,13 +46,15 @@ namespace Cast {
 
 		inline bool& GetInRenderView() { return InRenderView; }
 
-		template<typename Component>
+		template<typename Comp>
 		void RegisterComponentImGuiRenderCallback() {
-			ComponentHandlers.push_back([](entt::registry& registry, entt::entity entity) {
-				if (registry.all_of<Component>(entity)) {
-					auto& component = registry.get<Component>(entity);
-					component.OnImGuiRender();
+			ComponentHandlers.push_back([](entt::registry& registry, entt::entity entity) -> Component::UIResponse {
+				if (registry.all_of<Comp>(entity)) {
+					auto& component = registry.get<Comp>(entity);
+					return component.OnImGuiRender();
 				}
+
+				return {};
 				});
 		}
 

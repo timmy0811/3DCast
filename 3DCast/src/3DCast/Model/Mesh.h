@@ -2,6 +2,7 @@
 
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 #include "3DCast/Scene/Component/MaterialComponent.h"
+#include "3DCast/Memory/Batching/BatchManager.h"
 
 #include <API/texture/Texture.h>
 #include <vector>

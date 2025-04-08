@@ -16,11 +16,13 @@ namespace Runtime::GUI {
 		void OnImGuiRender();
 
 	private:
-		void DrawEntityNode(Cast::Entity entity);
-		void DrawComponents(Cast::Entity entity);
+		void DrawEntityNode(Cast::Ref<Cast::Entity> entity);
+		void DrawComponents(Cast::Ref<Cast::Entity> entity);
+
+		void DispatchComponent(int id);
 
 	private:
 		Cast::Ref<Cast::Scene> Context;
-		Cast::Entity SelectionContext;
+		Cast::Ref<Cast::Entity> SelectionContext;
 	};
 }

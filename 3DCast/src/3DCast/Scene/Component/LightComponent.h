@@ -2,6 +2,8 @@
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
 
+#include <imgui.h>
+
 namespace Cast::Component {
 	struct LightComponent : public Component
 	{
@@ -10,9 +12,9 @@ namespace Cast::Component {
 			Directional = 0,
 			Point = 1,
 			Spot = 2
-			//Area = 3
 		};
 
+#pragma region DATA
 		glm::vec3 EntityPosition;
 		glm::vec3 LastEntityPosition;
 
@@ -22,7 +24,9 @@ namespace Cast::Component {
 
 		size_t BufferPos;
 		unsigned int BufferIndex;
+#pragma endregion
 
+#pragma region CONSTRUCTOR
 		LightComponent() = default;
 		LightComponent(const LightComponent&) = default;
 		LightComponent(const DirectionalLight& light, Cast::Ref<Cast::Scene> scene)
@@ -47,9 +51,12 @@ namespace Cast::Component {
 		}
 
 		~LightComponent() {
-			delete Light;
+			if (Light)
+				delete Light; // TODO: Throws exception
 		}
+#pragma endregion
 
+#pragma region UTILITY
 		void Reallocate() {
 			switch (LightType) {
 			case Type::Directional:
@@ -64,15 +71,51 @@ namespace Cast::Component {
 			}
 		}
 
-		virtual void OnImGuiRender() override {
-			if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+	private:
+		void SetupDirLight() {
+			BufferPos = Scene->GetDirLightsBuffer()->GetSize();
+			BufferIndex = (unsigned int)(BufferPos / sizeof(DirectionalLight));
+			Scene->GetDirLightsBuffer()->AddData(Light, sizeof(DirectionalLight));
+		}
+
+		void SetupSpotLight() {
+			BufferPos = Scene->GetSpotLightsBuffer()->GetSize();
+			BufferIndex = (unsigned int)(BufferPos / sizeof(SpotLight));
+			Scene->GetSpotLightsBuffer()->AddData(Light, sizeof(SpotLight));
+		}
+
+		void SetupPointLight() {
+			BufferPos = Scene->GetPointLightsBuffer()->GetSize();
+			BufferIndex = (unsigned int)(BufferPos / sizeof(PointLight));
+			Scene->GetPointLightsBuffer()->AddData(Light, sizeof(PointLight));
+		}
+#pragma endregion
+
+#pragma region OVERRIDE
+	public:
+		static inline const Cast::Component::Type GetType() { return Cast::Component::Type::Light; }
+		static inline std::string GetName() { return "Light"; }
+
+		virtual UIResponse OnImGuiRender() override {
+			bool isOpen = ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			ImGui::SameLine();
+
+			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f) {
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
+			}
+
+			if (ImGui::SmallButton("Remove##Light"))
+				return { UIResponse::Code::Remove, Cast::Component::Type::Light };
+
+			if (isOpen) {
 				ImGui::Text("Type:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 
 				Type oldType = LightType;
 				bool changed = ImGui::Combo("##LightType", (int*)&LightType, "Directional\0Point\0Spot\0");
 
-				if (!Light) return;
+				if (!Light) return {};
 
 				PointLight* pointLight;
 				SpotLight* spotLight;
@@ -217,24 +260,9 @@ namespace Cast::Component {
 					break;
 				}
 			}
-		}
-	private:
-		void SetupDirLight() {
-			BufferPos = Scene->GetDirLightsBuffer()->GetSize();
-			BufferIndex = (unsigned int)(BufferPos / sizeof(DirectionalLight));
-			Scene->GetDirLightsBuffer()->AddData(Light, sizeof(DirectionalLight));
-		}
 
-		void SetupSpotLight() {
-			BufferPos = Scene->GetSpotLightsBuffer()->GetSize();
-			BufferIndex = (unsigned int)(BufferPos / sizeof(SpotLight));
-			Scene->GetSpotLightsBuffer()->AddData(Light, sizeof(SpotLight));
+			return {};
 		}
-
-		void SetupPointLight() {
-			BufferPos = Scene->GetPointLightsBuffer()->GetSize();
-			BufferIndex = (unsigned int)(BufferPos / sizeof(PointLight));
-			Scene->GetPointLightsBuffer()->AddData(Light, sizeof(PointLight));
-		}
+#pragma endregion
 	};
 }

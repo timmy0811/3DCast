@@ -1,19 +1,44 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
+#include "3DCast/Renderer/Renderer.h"
+
+#include <imgui.h>
 
 namespace Cast::Component {
 	struct CameraComponent : public Component
 	{
+#pragma region DATA
 		Renderer::Camera Camera;
+#pragma endregion
 
+#pragma region CONSTRUCTOR
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 		CameraComponent(const Renderer::Camera& camera)
 			: Camera(camera) {}
+#pragma endregion
 
-		virtual void OnImGuiRender() override {
-			if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+#pragma region UTILITY
+#pragma endregion
+
+#pragma region OVERRIDE
+		static inline const Type GetType() { return Type::Camera; }
+		static inline std::string GetName() { return "Camera"; }
+
+		virtual UIResponse OnImGuiRender() override {
+			bool isOpen = ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			ImGui::SameLine();
+
+			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f) {
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
+			}
+
+			if (ImGui::SmallButton("Remove##Camera"))
+				return { UIResponse::Code::Remove, Type::Camera };
+
+			if (isOpen) {
 				glm::vec3 position = Camera.GetPosition();
 				glm::vec3 rotation = Camera.GetRotation();
 
@@ -28,6 +53,9 @@ namespace Cast::Component {
 				Camera.SetPosition(position);
 				Camera.SetRotation(rotation);
 			}
+
+			return {};
 		}
+#pragma endregion
 	};
 }

@@ -4,7 +4,9 @@
 
 // Structures layout must match shader structs
 namespace Cast {
-	struct AbstractLight {};
+	struct AbstractLight {
+		virtual ~AbstractLight() = default;
+	};
 
 	struct DirectionalLight : public AbstractLight
 	{

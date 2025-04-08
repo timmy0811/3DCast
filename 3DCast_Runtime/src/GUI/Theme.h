@@ -6,7 +6,7 @@
 
 namespace Runtime::GUI::Theme {
 	enum Theme {
-		Default,
+		Azure,
 		NewDark,
 		Mocha,
 		Glass,
@@ -18,7 +18,7 @@ namespace Runtime::GUI::Theme {
 		FluentLight
 	};
 
-	void ThemeImGuiDefault(bool bStyleDark_, float alpha_)
+	void ThemeImGuiAzure(bool bStyleDark_, float alpha_)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
 
@@ -688,9 +688,9 @@ namespace Runtime::GUI::Theme {
 
 	static void ApplyTheme(Theme theme) {
 		switch (theme) {
-		case Theme::Default:
-			ThemeImGuiDefault(false, 1.0f);
-			LOG_CORE_INFO("Applied Default Theme");
+		case Theme::Azure:
+			ThemeImGuiAzure(false, 1.0f);
+			LOG_CORE_INFO("Applied Azure Light Theme");
 			break;
 		case Theme::NewDark:
 			ThemeNewDark();

@@ -1,26 +1,44 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
-#include <3DCast/Misc/UID.h>
+#include "3DCast/Memory/Batching/BatchManager.h"
+#include "3DCast/Misc/UID.h"
+#include "3DCast/Data/GlobalShared.h"
+
+#include <imgui.h>
 
 namespace Cast::Component {
 	struct CustomMeshComponent : public Component
 	{
+#pragma region DATA
 		uid BatchId = UID::Create();
-		Memory::MemoryPosition memPos;
-		bool IsAvailable = true;
+		Memory::MemoryPosition memPos{};
+		bool IsAvailableInMemory = true;
 
 		float* vertexData = nullptr;
 		unsigned int* indexData = nullptr;
 
 		size_t vertexDataSize = 0;
 		size_t indexDataSize = 0;
+#pragma endregion
 
-		CustomMeshComponent() = default;
+#pragma region CONSTRUCTOR
+		CustomMeshComponent() {	}
 		CustomMeshComponent(const CustomMeshComponent&) = default;
 		CustomMeshComponent(size_t vertexBufferSize, size_t indexBufferSize) {
 			vertexData = (float*)malloc(vertexBufferSize);
 			indexData = (unsigned int*)malloc(indexBufferSize);
+		}
+
+		~CustomMeshComponent() {
+			free(vertexData);
+			free(indexData);
+		}
+#pragma endregion
+
+#pragma region UTILITY
+		void OnAfterEntitySetBehaviour() override {
+			Shared.ActiveScene->RegisterTransformComponent(Ref<Entity>(EntityNode));
 		}
 
 		void AllocVertexData(size_t size) {
@@ -35,17 +53,12 @@ namespace Cast::Component {
 			indexDataSize = size;
 		}
 
-		~CustomMeshComponent() {
-			free(vertexData);
-			free(indexData);
-		}
-
 		void SwapToDisk() {
-			IsAvailable = false;
+			IsAvailableInMemory = false;
 		}
 
 		void SwapToMemory() {
-			IsAvailable = true;
+			IsAvailableInMemory = true;
 		}
 
 		void AddAndAllocVertexData(float* data, size_t size) {
@@ -82,5 +95,30 @@ namespace Cast::Component {
 		void AddToIndexedBatchMemory() {
 			memPos = Cast::Memory::BatchMemoryHandler.AddIndexedObject(BatchId, vertexData, vertexDataSize, indexData, (int)indexDataSize);
 		}
+#pragma endregion
+
+#pragma region OVERRIDE
+		static inline const Type GetType() { return Type::CustomMesh; }
+		static inline std::string GetName() { return "Custom Mesh"; }
+
+		virtual UIResponse OnImGuiRender() override {
+			bool isOpen = ImGui::CollapsingHeader("Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			ImGui::SameLine();
+
+			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f) {
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
+			}
+
+			if (ImGui::SmallButton("Remove##CustomMesh"))
+				return { UIResponse::Code::Remove, Type::CustomMesh };
+
+			if (isOpen) {
+				ImGui::Text("No content to show here :)");
+			}
+
+			return {};
+		}
+#pragma endregion
 	};
 }

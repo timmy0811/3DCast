@@ -35,11 +35,12 @@ Cast::Scene::Scene()
 	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
 }
 
-Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name) // Return Ref
+Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, bool registerTransform)
 {
 	auto entity = CreateRef<Entity>(Registry.create(), this);
 	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
-	if (!entity->GetComponent<Component::TransformComponent>().Register(TransformSSBO))
+
+	if (registerTransform && !entity->GetComponent<Component::TransformComponent>().Register(TransformSSBO))
 		LOG_CORE_ERROR("Could not register transform component in registry.");
 
 	entity->AddComponents<Component::TagComponent>(name);
@@ -61,6 +62,19 @@ void Cast::Scene::RemoveEntity(Entity& entity) {
 
 	Registry.destroy(entity.GetEntityHandle());
 	// Remove from batching if vertex source
+}
+
+bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)
+{
+	auto& view = entity->GetComponent<Component::TransformComponent>();
+	if (!view.isRegistered) {
+		if (!view.Register(TransformSSBO)) {
+			LOG_CORE_ERROR("Could not register transform component in registry.");
+			return false;
+		}
+		return true;
+	}
+	return false;
 }
 
 void Cast::Scene::OnDeferredRender()

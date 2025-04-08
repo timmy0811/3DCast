@@ -88,10 +88,13 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 		Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity(nodeName + "_" + std::to_string(i));
 		meshEntity->SetParent(currentEntity);
 		currentEntity->AddChild(meshEntity);
+
 		meshEntity->AddComponents<Cast::Component::MaterialComponent>();
+		auto& meshComp = meshEntity->AddComponents<Cast::Component::MeshComponent>(false);
+		auto& transformComp = meshEntity->GetComponent<Cast::Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity);
+		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.bufferIndex);
 		if (!sceneMesh->LoadedSuccessfully())
 		{
 			LOG_CORE_ERROR("Submesh could not be loaded.");
@@ -99,7 +102,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 		}
 		Meshes.push_back(sceneMesh);
 
-		meshEntity->AddComponents<Cast::Component::MeshComponent>(sceneMesh);
+		meshComp.SetMeshAsChildNode(sceneMesh);
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -114,7 +117,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 	return currentEntity;
 }
 
-Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context)
+Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context, unsigned short transformIndex)
 {
 	Ref<Cast::Mesh> castMesh = CreateRef<Cast::Mesh>();
 	std::vector<Cast::Ref<API::Texture::Texture>> textures;
@@ -217,7 +220,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		}
 
 		vertex.SamplerIndex = 1.0;
-		vertex.TransformIndex = 0.0f;
+		vertex.TransformIndex = transformIndex;
 
 		vertices.push_back(vertex);
 	}

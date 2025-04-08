@@ -6,6 +6,8 @@
 #include "GUI/Panels/EventConsole.h"
 #include "GUI/Theme.h"
 
+#include <3DCast/ImGui/TempElements/TempGuiElementCollection.h>
+
 #include <imgui_internal.h>
 #include <time.h>
 
@@ -140,10 +142,10 @@ void EditorLayer::OnImGuiRender()
 		if (ImGui::BeginMenu("Extras"))
 		{
 			if (ImGui::BeginMenu("Theme")) {
-				if (ImGui::MenuItem("Default")) {
-					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Default);
+				if (ImGui::MenuItem("Azure Light")) {
+					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::Azure);
 				}
-				if (ImGui::MenuItem("NewDark")) {
+				if (ImGui::MenuItem("NewDark (Default)")) {
 					Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::NewDark);
 				}
 				if (ImGui::MenuItem("Mocha")) {
@@ -237,6 +239,7 @@ void EditorLayer::OnImGuiRender()
 
 	SceneHierarchyPanel.OnImGuiRender();
 	Runtime::GUI::EventConsole::OnImGuiRender();
+	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }
 
 void EditorLayer::OnEvent(Cast::Event& e)
@@ -270,7 +273,7 @@ void EditorLayer::SampleContent()
 	Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
 	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
 
-	Cast::Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity("Mesh");
-	meshEntity->AddComponents<Cast::Component::MeshComponent>();
-	// Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
+	//Cast::Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity("Mesh");
+	//meshEntity->AddComponents<Cast::Component::MeshComponent>();
+	//Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 }
