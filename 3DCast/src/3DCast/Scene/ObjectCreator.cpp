@@ -15,7 +15,9 @@ Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Cast::Scene*
 	entity->AddComponents<Cast::Component::RasterizableComponent>();
 	entity->AddComponents<Cast::Component::MaterialComponent>();
 
-	float trIndex = (float)entity->GetComponent<Component::TransformComponent>().bufferIndex;
+	auto transformComp = entity->GetComponent<Cast::Component::TransformComponent>();
+	transformComp.Register(scene->GetTransformRegistry());
+	float trIndex = (float)transformComp.GetRegistryPosition();
 	float samplerIndex = (float)entity->GetComponent<Component::MaterialComponent>().samplerIndex;
 
 	std::pair<glm::vec3, glm::vec3> t0Back = GetTangentAndBitangent(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(1.f, 1.f, -1.f), glm::vec3(1.f, -1.f, -1.f), glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.f, 0.f));
@@ -101,7 +103,7 @@ Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Cast::Scene
 	entity->AddComponents<Cast::Component::RasterizableComponent>();
 	entity->AddComponents<Cast::Component::MaterialComponent>();
 
-	float trIndex = (float)entity->GetComponent<Component::TransformComponent>().bufferIndex;
+	float trIndex = (float)entity->GetComponent<Component::TransformComponent>().GetRegistryPosition();
 	float samplerIndex = (float)entity->GetComponent<Cast::Component::MaterialComponent>().samplerIndex;
 
 	float vertices[] = {

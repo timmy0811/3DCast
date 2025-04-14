@@ -31,14 +31,14 @@ namespace Cast::Component {
 		}
 
 		~CustomMeshComponent() {
-			free(vertexData);
-			free(indexData);
+			if(vertexData) free(vertexData);
+			if(indexData) free(indexData);
 		}
 #pragma endregion
 
 #pragma region UTILITY
 		void OnAfterEntitySetBehaviour() override {
-			Shared.ActiveScene->RegisterTransformComponent(Ref<Entity>(EntityNode));
+			Shared.ActiveScene->RegisterTransformComponent(EntityNode);
 		}
 
 		void AllocVertexData(size_t size) {

@@ -98,7 +98,7 @@ namespace Cast::Component {
 
 		void OnAfterEntitySetBehaviour() override {
 			if (IsMeshLeaf)
-				Shared.ActiveScene->RegisterTransformComponent(Ref<Entity>(EntityNode));
+				Shared.ActiveScene->RegisterTransformComponent(EntityNode);
 		}
 
 		virtual UIResponse OnImGuiRender() override {

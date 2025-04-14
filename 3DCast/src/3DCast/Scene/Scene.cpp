@@ -26,10 +26,8 @@ Cast::Scene::Scene()
 	RegisterComponentImGuiRenderCallback<Component::CameraComponent>();
 	RegisterComponentImGuiRenderCallback<Component::ShaderComponent>();
 
-	constexpr unsigned int maxTransforms = 512;
 	constexpr unsigned int maxLightsPerType = 8;
 
-	TransformSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxTransforms, sizeof(glm::mat4)));
 	DirLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(DirectionalLight)));
 	SpotLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(SpotLight)));
 	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
@@ -40,7 +38,7 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, bool 
 	auto entity = CreateRef<Entity>(Registry.create(), this);
 	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
 
-	if (registerTransform && !entity->GetComponent<Component::TransformComponent>().Register(TransformSSBO))
+	if (registerTransform && !entity->GetComponent<Component::TransformComponent>().Register(&TransRegistry))
 		LOG_CORE_ERROR("Could not register transform component in registry.");
 
 	entity->AddComponents<Component::TagComponent>(name);
@@ -55,20 +53,17 @@ void Cast::Scene::RemoveEntity(Entity& entity) {
 		return;
 	}
 
-	//if (entity.HasComponent<Component::TransformComponent>()) {
-	//	auto& transform = entity.GetComponent<Component::TransformComponent>();
-	//	transform.Unregister(); // Implement this method if needed
-	//}
+	EntityDescriptorPool.erase(std::remove_if(EntityDescriptorPool.begin(), EntityDescriptorPool.end(),
+		[&entity](const Ref<Entity>& e) { return e->GetEntityHandle() == entity.GetEntityHandle(); }));
 
 	Registry.destroy(entity.GetEntityHandle());
-	// Remove from batching if vertex source
 }
 
-bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)
+bool Cast::Scene::RegisterTransformComponent(Entity* entity)
 {
 	auto& view = entity->GetComponent<Component::TransformComponent>();
 	if (!view.isRegistered) {
-		if (!view.Register(TransformSSBO)) {
+		if (!view.Register(&TransRegistry)) {
 			LOG_CORE_ERROR("Could not register transform component in registry.");
 			return false;
 		}
@@ -171,5 +166,5 @@ inline void Cast::Scene::BindSymbolSSBOs()
 
 inline void Cast::Scene::BindTransformSSBO()
 {
-	TransformSSBO->BindBase(0);
+	TransRegistry.BindBase(0);
 }

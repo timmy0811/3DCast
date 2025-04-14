@@ -94,7 +94,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 		auto& transformComp = meshEntity->GetComponent<Cast::Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.bufferIndex);
+		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.GetRegistryPosition());
 		if (!sceneMesh->LoadedSuccessfully())
 		{
 			LOG_CORE_ERROR("Submesh could not be loaded.");

@@ -41,20 +41,20 @@ namespace Cast::Component {
 #pragma region UTILITY
 		void SetupSamplerMapping() {
 			samplerIndex = SamplerRegistry.CreateSamplerMapping(
-				diffuseInfo.bufferIndex,
-				specularInfo.bufferIndex,
-				parallaxInfo.bufferIndex,
-				normalInfo.bufferIndex
+				diffuseInfo.transformRegistryIndex,
+				specularInfo.transformRegistryIndex,
+				parallaxInfo.transformRegistryIndex,
+				normalInfo.transformRegistryIndex
 			);
 		}
 
 		void UpdateSamplerMapping() {
 			SamplerRegistry.UpdateSamplerMapping(
 				samplerIndex,
-				diffuseInfo.bufferIndex,
-				specularInfo.bufferIndex,
-				parallaxInfo.bufferIndex,
-				normalInfo.bufferIndex
+				diffuseInfo.transformRegistryIndex,
+				specularInfo.transformRegistryIndex,
+				parallaxInfo.transformRegistryIndex,
+				normalInfo.transformRegistryIndex
 			);
 		}
 
@@ -178,13 +178,13 @@ namespace Cast::Component {
 				}
 				else {
 					ImGui::Columns(2, nullptr, false);
-					ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
+					ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
 					ImGui::Text("No Texture loaded");
 					ImGui::EndChild();
 
 					ImGui::NextColumn();
 
-					ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 20.f), false);
+					ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
 
 					std::string buttonText = "Load " + typeStr + " Texture";
 					if (ImGui::Button(buttonText.c_str())) {

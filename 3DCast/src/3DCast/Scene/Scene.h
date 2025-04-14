@@ -9,6 +9,7 @@
 #include "3DCast/Renderer/IconRenderer.h"
 
 #include "3DCast/Scene/Component/Typedefinition.h"
+#include "3DCast/Scene/TransformRegistry.h"
 
 #include <API/core/Buffer.h>
 
@@ -25,7 +26,7 @@ namespace Cast {
 		Cast::Ref<Cast::Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
 		void RemoveEntity(Entity& entity);
 
-		bool RegisterTransformComponent(Ref<Entity> entity);
+		bool RegisterTransformComponent(Entity* entity);
 
 		void OnDeferredRender();
 		void OnForwardRender();
@@ -40,7 +41,7 @@ namespace Cast {
 		inline Cast::Ref<API::Core::Buffer> GetSpotLightsBuffer() { return SpotLightsSSBO; }
 		inline Cast::Ref<API::Core::Buffer> GetPointLightsBuffer() { return PointLightsSSBO; }
 
-		inline Cast::Ref<API::Core::Buffer> GetTransformRegistry() { return TransformSSBO; }
+		inline TransformRegistry* GetTransformRegistry() { return &TransRegistry; }
 		inline entt::registry& GetRegistry() { return Registry; }
 		inline const std::vector<ComponentHandler>& GetComponentImGuiCallbacks() { return ComponentHandlers; }
 
@@ -73,7 +74,8 @@ namespace Cast {
 
 		bool InRenderView = false;
 
-		Cast::Ref<API::Core::Buffer> TransformSSBO;
+		TransformRegistry TransRegistry{};
+
 		Cast::Ref<API::Core::Buffer> DirLightsSSBO;
 		Cast::Ref<API::Core::Buffer> SpotLightsSSBO;
 		Cast::Ref<API::Core::Buffer> PointLightsSSBO;

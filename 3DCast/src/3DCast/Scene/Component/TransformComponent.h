@@ -6,6 +6,8 @@
 #include <vendor/glm/gtx/euler_angles.hpp>
 #include <Vendor/glm/gtx/matrix_decompose.hpp>
 
+#include "3DCast/Scene/TransformRegistry.h"
+
 namespace Cast::Component {
 	struct TransformComponent : public Component
 	{
@@ -15,11 +17,11 @@ namespace Cast::Component {
 		glm::vec3 scale{ 1.0f };
 		glm::vec3 rotation{ 0.0f };
 
-		Cast::Ref<API::Core::Buffer> transformRegistry;
+		TransformRegistry* transformRegistry = nullptr;
 
 		bool isRegistered = false;
-		size_t bufferPosition = 0;
-		unsigned short bufferIndex = 0;
+		uid transformRegistryKey = UID::None();
+
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -31,17 +33,30 @@ namespace Cast::Component {
 		{
 			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 		}
+
+		~TransformComponent() {
+			if (transformRegistry && isRegistered) {
+				transformRegistry->InvalidateEntry(transformRegistryKey);
+				isRegistered = false;
+			}
+		}
+
 #pragma endregion
 
 #pragma region UTILITY
-		bool Register(Cast::Ref<API::Core::Buffer> transformRegistry)
+		int GetRegistryPosition() {
+			if (transformRegistry && isRegistered) {
+				return transformRegistry->GetPosition(transformRegistryKey);
+			}
+			return -1;
+		}
+
+		bool Register(TransformRegistry* transformRegistry)
 		{
 			this->transformRegistry = transformRegistry;
 
 			if (transformRegistry) {
-				bufferPosition = transformRegistry->GetSize();
-				transformRegistry->AddData(&Transform, sizeof(glm::mat4));
-				bufferIndex = (unsigned short)(bufferPosition / sizeof(glm::mat4));
+				transformRegistryKey = transformRegistry->RegisterTransform(&Transform);
 				isRegistered = true;
 				return true;
 			}
@@ -122,7 +137,7 @@ namespace Cast::Component {
 					UpdateTransformMatrix();
 
 				if (transformRegistry)
-					transformRegistry->AddData(&Transform, sizeof(glm::mat4), (int)bufferPosition);
+					transformRegistry->EditTransform(transformRegistryKey, &Transform);
 			}
 
 			return {};

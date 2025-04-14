@@ -44,7 +44,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 		SelectionContext = {};
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
-	if (ImGui::Button("New Entity", { ImGui::GetContentRegionAvail().x, 0.f })) {
+	if (ImGui::Button("New Entity", { ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f })) {
 		Context->CreateEntity("New Entity", false);
 	}
 	if (ImGui::IsItemHovered())
@@ -53,6 +53,15 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 		ImGui::Text("An entity that can carry multiple components to give it functionality");
 		ImGui::EndTooltip();
 	}
+
+	ImGui::SameLine();
+	ImGui::BeginDisabled(!SelectionContext);
+	if (ImGui::Button("Remove", { ImGui::GetContentRegionAvail().x - 5.f, 0.f })) {
+		LOG_CORE_INFO("indo");
+		Context->RemoveEntity(*SelectionContext);
+		SelectionContext = {};
+	}
+	ImGui::EndDisabled();
 
 	ImGui::End();
 
@@ -108,25 +117,25 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 {
 	std::string& tag = entity->GetComponent<Cast::Component::TagComponent>().Tag;
 
-	ImGuiTreeNodeFlags flags = ((SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | (entity->HasChildren() ? ImGuiTreeNodeFlags_OpenOnArrow : ImGuiTreeNodeFlags_Leaf);
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
+		((SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) |
+		(entity->HasChildren() ? ImGuiTreeNodeFlags_OpenOnArrow
+			: ImGuiTreeNodeFlags_Leaf);
 
-	bool isOpen = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)*entity, flags, tag.c_str());
+	ImGui::PushID((void*)(uint64_t)(uint32_t)*entity);
+
+	bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s", tag.c_str());
+
 	if (ImGui::IsItemClicked())
-	{
 		SelectionContext = entity;
-	}
 
-	/*if (ImGui::IsItemHovered()) {
-		ImGui::SameLine(ImGui::GetWindowWidth() - 78.0);
-		ImGui::Button("remove", { 70.f, 12.f });
-	}*/
+	ImGui::PopID();
 
 	if (isOpen)
 	{
 		for (auto& child : entity->GetChildren())
-		{
 			DrawEntityNode(child);
-		}
+
 		ImGui::TreePop();
 	}
 }

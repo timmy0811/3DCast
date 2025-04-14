@@ -18,7 +18,7 @@ namespace Cast {
 	};
 
 	struct TextureInformation {
-		unsigned short bufferIndex = 0;
+		unsigned short transformRegistryIndex = 0;
 		int textureId = 0;
 		glm::vec2 size = { 0.0f, 0.0f };
 	};

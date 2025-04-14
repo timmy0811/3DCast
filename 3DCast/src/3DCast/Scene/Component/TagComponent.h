@@ -3,6 +3,7 @@
 #include "3DCast/Scene/Component/AbstractComponent.h"
 
 #include <imgui.h>
+#include <string>
 
 namespace Cast::Component
 {
