@@ -10,13 +10,12 @@
 Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Cast::Scene* scene)
 {
 	// Cube
-	Ref<Cast::Entity> entity = scene->CreateEntity(name);
+	Ref<Cast::Entity> entity = scene->CreateEntity(name, true);
 	entity->AddComponents<Cast::Component::CustomMeshComponent>();
 	entity->AddComponents<Cast::Component::RasterizableComponent>();
 	entity->AddComponents<Cast::Component::MaterialComponent>();
 
-	auto transformComp = entity->GetComponent<Cast::Component::TransformComponent>();
-	transformComp.Register(scene->GetTransformRegistry());
+	auto& transformComp = entity->GetComponent<Cast::Component::TransformComponent>();
 	float trIndex = (float)transformComp.GetRegistryPosition();
 	float samplerIndex = (float)entity->GetComponent<Component::MaterialComponent>().samplerIndex;
 

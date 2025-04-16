@@ -277,5 +277,5 @@ void EditorLayer::SampleContent()
 	//meshEntity->AddComponents<Cast::Component::MeshComponent>();
 	//Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 
-	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
+	//Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
 }

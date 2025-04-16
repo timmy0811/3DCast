@@ -121,22 +121,29 @@ namespace Cast::Component {
 
 			if (isOpen)
 			{
+				bool edited = false;
 				ImGui::Text("Translation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
+				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f)) {
 					UpdateTransformMatrix();
+					edited = true;
+				}
 
 				ImGui::Text("Scale:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
+				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f)) {
 					UpdateTransformMatrix();
+					edited = true;
+				}
 
 				ImGui::Text("Rotation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
+				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f)) {
 					UpdateTransformMatrix();
+					edited = true;
+				}
 
-				if (transformRegistry)
+				if (edited && transformRegistry)
 					transformRegistry->EditTransform(transformRegistryKey, &Transform);
 			}
 

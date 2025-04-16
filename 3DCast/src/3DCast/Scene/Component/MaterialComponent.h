@@ -152,52 +152,61 @@ namespace Cast::Component {
 		}
 
 		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, TextureInformation& info, const std::string& path, const std::function<void(const std::string& path, bool flipUV)>& loadProc) {
-			if (ImGui::TreeNodeEx(typeStr.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-				if (isLoaded) {
-					ImGui::Columns(2, nullptr, false);
+			ImGui::SeparatorText(typeStr.c_str());
 
+			if (isLoaded)
+			{
+				if (ImGui::BeginTable("MaterialTable", 2))
+				{
+					ImGui::TableNextRow();
+
+					ImGui::TableSetColumnIndex(0);
 					ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
-					ImGui::Image((unsigned long long)info.textureId, { TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE });
+					ImGui::Image((ImTextureID)info.textureId, ImVec2(TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE));
 					ImGui::EndChild();
 
-					ImGui::NextColumn();
+					ImGui::TableSetColumnIndex(1);
 					ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
-
 					ImGui::Text("File: %s", path.c_str());
 					ImGui::Text("Dimension: %d x %d", (int)info.size.x, (int)info.size.y);
-
-					ImGui::Dummy({ 0.f, textHeight * 2.f });
-					if (ImGui::Button("Remove Texture")) {
+					ImGui::Dummy(ImVec2(0.f, textHeight * 2.f));
+					if (ImGui::Button("Remove Texture"))
+					{
 						info = { 0, 0 };
 						UpdateSamplerMapping();
 						isLoaded = false;
 					}
-
 					ImGui::EndChild();
-					ImGui::Columns(1);
+
+					ImGui::EndTable();
 				}
-				else {
-					ImGui::Columns(2, nullptr, false);
+			}
+			else
+			{
+				if (ImGui::BeginTable("MaterialTable", 2))
+				{
+					ImGui::TableNextRow();
+
+					ImGui::TableSetColumnIndex(0);
 					ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
 					ImGui::Text("No Texture loaded");
 					ImGui::EndChild();
 
-					ImGui::NextColumn();
-
+					ImGui::TableSetColumnIndex(1);
 					ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
-
 					std::string buttonText = "Load " + typeStr + " Texture";
-					if (ImGui::Button(buttonText.c_str())) {
+					if (ImGui::Button(buttonText.c_str()))
+					{
 						std::string path = OpenFileDialoge();
-						if (!path.empty()) {
+						if (!path.empty())
+						{
 							loadProc(path, false);
 						}
 					}
-
 					ImGui::EndChild();
-					ImGui::Columns(1);
+
+					ImGui::EndTable();
 				}
-				ImGui::TreePop();
 			}
 		}
 #pragma endregion
@@ -225,17 +234,11 @@ namespace Cast::Component {
 				RenderMaterialMapImGui("Diffuse", diffuseLoaded, diffuseInfo, diffuseFile,
 					[this](const std::string& path, bool flipUV) { LoadDiffuseTexture(path, flipUV); });
 
-				ImGui::Separator();
-
 				RenderMaterialMapImGui("Normal", normalLoaded, normalInfo, normalFile,
 					[this](const std::string& path, bool flipUV) { LoadNormalTexture(path, flipUV); });
 
-				ImGui::Separator();
-
 				RenderMaterialMapImGui("Specular", specularLoaded, specularInfo, specularFile,
 					[this](const std::string& path, bool flipUV) { LoadSpecularTexture(path, flipUV); });
-
-				ImGui::Separator();
 
 				RenderMaterialMapImGui("Parallax", parallaxLoaded, parallaxInfo, parallaxFile,
 					[this](const std::string& path, bool flipUV) { LoadParallaxTexture(path, flipUV); });

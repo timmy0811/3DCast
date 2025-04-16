@@ -38,8 +38,10 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, bool 
 	auto entity = CreateRef<Entity>(Registry.create(), this);
 	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
 
-	if (registerTransform && !entity->GetComponent<Component::TransformComponent>().Register(&TransRegistry))
-		LOG_CORE_ERROR("Could not register transform component in registry.");
+	if (registerTransform) {
+		if (!entity->GetComponent<Component::TransformComponent>().Register(&TransRegistry))
+			LOG_CORE_ERROR("Could not register transform component in registry.");
+	}
 
 	entity->AddComponents<Component::TagComponent>(name);
 	EntityDescriptorPool.push_back(entity);
