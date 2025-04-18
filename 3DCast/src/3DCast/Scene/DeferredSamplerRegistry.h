@@ -8,6 +8,8 @@
 
 #include <Vendor/glm/glm.hpp>
 
+#define MAX_SAMPLER_MAPPINGS 1024
+
 namespace Cast {
 	// SamplerMapping corresponds to the struct declared in the shader
 	struct SamplerMapping {
@@ -41,7 +43,7 @@ namespace Cast {
 		TextureInformation AddNormalTexture(const std::string& path, bool flipUV = false);
 
 		void UpdateSamplerMapping(
-			unsigned short id,
+			unsigned short index,
 			unsigned short diffuseId = 0,
 			unsigned short specularId = 0,
 			unsigned short parallaxId = 0,
@@ -53,16 +55,45 @@ namespace Cast {
 			unsigned short parallaxId = 0,
 			unsigned short normalId = 0);
 
+		inline void RemoveSamplerMapping(int index) { SetMappingUnused(index); }
+		inline bool IsSamplerMappingUsed(int index) const { return IsMappingUsed(index); }
+
 		Ref<API::Texture::Texture> GetDiffuseTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetSpecularTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetParallaxTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetNormalTexture(unsigned short id);
 
-		SamplerMapping& GetSamplerMapping(unsigned short id);
-
 		void MakeTexturesResidentIdempotent();
 		void UpdateBufferData();
 		void BindSamplerBuffersToShaderPoints();
+
+	private:
+		int GetUnusedMapping() {
+			for (int i = 0; i < MAX_SAMPLER_MAPPINGS / 64; i++) {
+				if (isMappingUsedMap[i] != 0xFFFFFFFFFFFFFFFF) {
+					for (int j = 0; j < 64; j++) {
+						if ((isMappingUsedMap[i] & (1ULL << j)) == 0) {
+							return i * 64 + j;
+						}
+					}
+				}
+			}
+
+			LOG_CORE_WARN("Mapping buffer is full, cannot register more mappings.");
+			return -1;
+		}
+
+		inline void SetMappingUsed(int index) {
+			isMappingUsedMap[index / sizeof(uint64_t)] |= (1ULL << index % 64);
+		}
+
+		inline void SetMappingUnused(int index) {
+			isMappingUsedMap[index / sizeof(uint64_t)] &= ~(1ULL << index % 64);
+		}
+
+		inline bool IsMappingUsed(int index) const {
+			return (isMappingUsedMap[index / sizeof(uint64_t)] & (1ULL << index % 64)) != 0;
+		}
 
 	private:
 		std::unordered_map<unsigned short, Ref<API::Texture::Texture>> DiffuseTextures;
@@ -74,9 +105,6 @@ namespace Cast {
 		unsigned short SpecularCounter = 0;
 		unsigned short ParallaxCounter = 0;
 		unsigned short NormalCounter = 0;
-
-		std::vector<SamplerMapping> SamplerMappings;
-		unsigned short SamplerMappingCounter = 0;
 
 		std::vector<std::string> PathCache;
 		std::vector<int> DiffuseTexIdCache;
@@ -90,6 +118,8 @@ namespace Cast {
 		Ref<API::Core::Buffer> NormalSamplersBuffer;
 
 		Ref<API::Core::Buffer> SamplerMappingsBuffer;
+
+		uint64_t isMappingUsedMap[MAX_SAMPLER_MAPPINGS / 64] = {};
 	};
 
 	extern DeferredSamplerRegistry SamplerRegistry;

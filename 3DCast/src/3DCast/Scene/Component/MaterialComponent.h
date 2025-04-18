@@ -36,6 +36,10 @@ namespace Cast::Component {
 		MaterialComponent() {
 			SetupSamplerMapping();
 		}
+
+		~MaterialComponent() {
+			SamplerRegistry.RemoveSamplerMapping(samplerIndex);
+		}
 #pragma endregion
 
 #pragma region UTILITY

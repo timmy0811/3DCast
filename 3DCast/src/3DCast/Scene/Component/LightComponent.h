@@ -15,15 +15,15 @@ namespace Cast::Component {
 		};
 
 #pragma region DATA
-		glm::vec3 EntityPosition;
-		glm::vec3 LastEntityPosition;
+		glm::vec3 EntityPosition{};
+		glm::vec3 LastEntityPosition{};
 
 		Type LightType{ Type::Directional };
 		AbstractLight* Light;
 		Cast::Ref<Cast::Scene> Scene;
 
-		size_t BufferPos;
-		unsigned int BufferIndex;
+		size_t BufferPos = 0;
+		unsigned int BufferIndex = 0;
 #pragma endregion
 
 #pragma region CONSTRUCTOR

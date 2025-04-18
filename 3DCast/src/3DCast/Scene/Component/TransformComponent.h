@@ -8,6 +8,8 @@
 
 #include "3DCast/Scene/TransformRegistry.h"
 
+#include <imgui.h>
+
 namespace Cast::Component {
 	struct TransformComponent : public Component
 	{
@@ -20,7 +22,7 @@ namespace Cast::Component {
 		TransformRegistry* transformRegistry = nullptr;
 
 		bool isRegistered = false;
-		uid transformRegistryKey = UID::None();
+		int transformRegistryIndex = -1;
 
 #pragma endregion
 
@@ -36,27 +38,19 @@ namespace Cast::Component {
 
 		~TransformComponent() {
 			if (transformRegistry && isRegistered) {
-				transformRegistry->InvalidateEntry(transformRegistryKey);
+				transformRegistry->InvalidateEntry(transformRegistryIndex);
 				isRegistered = false;
 			}
 		}
-
 #pragma endregion
 
 #pragma region UTILITY
-		int GetRegistryPosition() {
-			if (transformRegistry && isRegistered) {
-				return transformRegistry->GetPosition(transformRegistryKey);
-			}
-			return -1;
-		}
-
 		bool Register(TransformRegistry* transformRegistry)
 		{
 			this->transformRegistry = transformRegistry;
 
 			if (transformRegistry) {
-				transformRegistryKey = transformRegistry->RegisterTransform(&Transform);
+				transformRegistryIndex = transformRegistry->RegisterTransform(&Transform);
 				isRegistered = true;
 				return true;
 			}
@@ -144,7 +138,7 @@ namespace Cast::Component {
 				}
 
 				if (edited && transformRegistry)
-					transformRegistry->EditTransform(transformRegistryKey, &Transform);
+					transformRegistry->EditTransform(transformRegistryIndex, &Transform);
 			}
 
 			return {};

@@ -94,7 +94,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 		auto& transformComp = meshEntity->GetComponent<Cast::Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.GetRegistryPosition());
+		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.transformRegistryIndex);
 		if (!sceneMesh->LoadedSuccessfully())
 		{
 			LOG_CORE_ERROR("Submesh could not be loaded.");
@@ -143,15 +143,11 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
-	unsigned short samplerSlot = 0;
-	if (!textures.empty()) {
-		castMesh->SetTextures(textures);
-		auto& material = context->GetComponent<Cast::Component::MaterialComponent>();
-		castMesh->SetMaterial(&material);
-		material.UpdateSamplerMapping();
-
-		samplerSlot = material.samplerIndex;
-	}
+	castMesh->SetTextures(textures);
+	auto& material = context->GetComponent<Cast::Component::MaterialComponent>();
+	castMesh->SetMaterial(&material);
+	material.UpdateSamplerMapping();
+	unsigned short samplerSlot = material.samplerIndex;
 
 	std::vector<Memory::BatchVertex> vertices;
 	vertices.reserve(mesh->mNumVertices);
@@ -219,7 +215,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			vertex.TexCoords = { 0.0f, 0.0f };
 		}
 
-		vertex.SamplerIndex = 1.0;
+		vertex.SamplerIndex = samplerSlot;
 		vertex.TransformIndex = transformIndex;
 
 		vertices.push_back(vertex);

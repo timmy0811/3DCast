@@ -40,7 +40,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 	ImGui::EndChild();
 
-	if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+	if (ImGui::IsMouseDown(0) && ImGui::IsItemHovered())
 		SelectionContext = {};
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
@@ -57,7 +57,6 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::SameLine();
 	ImGui::BeginDisabled(!SelectionContext);
 	if (ImGui::Button("Remove", { ImGui::GetContentRegionAvail().x - 5.f, 0.f })) {
-		LOG_CORE_INFO("indo");
 		Context->RemoveEntity(*SelectionContext);
 		SelectionContext = {};
 	}

@@ -20,6 +20,7 @@ namespace Cast::Component {
 
 		size_t vertexDataSize = 0;
 		size_t indexDataSize = 0;
+		bool isHeapAlloc = false;
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -28,11 +29,15 @@ namespace Cast::Component {
 		CustomMeshComponent(size_t vertexBufferSize, size_t indexBufferSize) {
 			vertexData = (float*)malloc(vertexBufferSize);
 			indexData = (unsigned int*)malloc(indexBufferSize);
+
+			isHeapAlloc = true;
 		}
 
 		~CustomMeshComponent() {
-			if(vertexData) free(vertexData);
-			if(indexData) free(indexData);
+			if (isHeapAlloc) {
+				free(vertexData);
+				free(indexData);
+			}
 		}
 #pragma endregion
 

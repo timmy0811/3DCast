@@ -12,7 +12,6 @@ namespace Cast {
 		SpecularTextures.reserve(32);
 		ParallaxTextures.reserve(32);
 		NormalTextures.reserve(32);
-		SamplerMappings.reserve(32);
 
 		PathCache.reserve(64);
 		DiffuseTexIdCache.reserve(0x1000);
@@ -22,11 +21,9 @@ namespace Cast {
 	}
 
 	DeferredSamplerRegistry::~DeferredSamplerRegistry() {
-		// Clean up resources if needed
 	}
 
-	void DeferredSamplerRegistry::InitAfterDriverSetup()
-	{
+	void DeferredSamplerRegistry::InitAfterDriverSetup() {
 		constexpr unsigned int MAX_TEXTURES_PER_SLOT = 128;
 
 		DiffuseSamplersBuffer.reset(API::Core::Buffer::Create(
@@ -56,7 +53,7 @@ namespace Cast {
 		SamplerMappingsBuffer.reset(API::Core::Buffer::Create(
 			API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER,
 			API::Core::Buffer::MemoryLayout::DYNAMIC,
-			MAX_TEXTURES_PER_SLOT * 2 * sizeof(SamplerMapping)
+			MAX_SAMPLER_MAPPINGS * sizeof(SamplerMapping)
 		));
 
 		// Default samplers
@@ -68,6 +65,7 @@ namespace Cast {
 		CreateSamplerMapping(0, 0, 0, 0);
 	}
 
+#pragma region ADDERS
 	TextureInformation DeferredSamplerRegistry::AddDiffuseTexture(Ref<API::Texture::Texture> texture) {
 		if (!texture) return {}; // Return default texture index if null
 
@@ -199,17 +197,23 @@ namespace Cast {
 
 		return AddNormalTexture(AssetCache.AddTexture(path, flipUV));
 	}
+#pragma endregion
 
-	void DeferredSamplerRegistry::UpdateSamplerMapping(unsigned short id, unsigned short diffuseId, unsigned short specularId, unsigned short parallaxId, unsigned short normalId)
+	void DeferredSamplerRegistry::UpdateSamplerMapping(unsigned short index, unsigned short diffuseId, unsigned short specularId, unsigned short parallaxId, unsigned short normalId)
 	{
-		if (id >= SamplerMappings.size()) return;
+		if (index >= MAX_SAMPLER_MAPPINGS) return;
 
-		SamplerMappings[id].diffuseIndex = diffuseId;
-		SamplerMappings[id].specularIndex = specularId;
-		SamplerMappings[id].parallaxIndex = parallaxId;
-		SamplerMappings[id].normalIndex = normalId;
+		if (!IsMappingUsed(index)) {
+			LOG_CORE_WARN("Editing a sampler mapping that is not assigned to an object.");
+		}
 
-		SamplerMappingsBuffer->SetData(SamplerMappings.data(), SamplerMappings.size() * sizeof(SamplerMapping));
+		SamplerMapping mapping;
+		mapping.diffuseIndex = diffuseId;
+		mapping.specularIndex = specularId;
+		mapping.parallaxIndex = parallaxId;
+		mapping.normalIndex = normalId;
+
+		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), index * sizeof(SamplerMapping));
 	}
 
 	unsigned short DeferredSamplerRegistry::CreateSamplerMapping(
@@ -224,10 +228,11 @@ namespace Cast {
 		mapping.parallaxIndex = parallaxId;
 		mapping.normalIndex = normalId;
 
-		SamplerMappings.push_back(mapping);
-		SamplerMappingsBuffer->SetData(SamplerMappings.data(), SamplerMappings.size() * sizeof(SamplerMapping));
+		int index = GetUnusedMapping();
+		SetMappingUsed(index);
+		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), index * sizeof(SamplerMapping));
 
-		return SamplerMappingCounter++;
+		return index;
 	}
 
 	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetDiffuseTexture(unsigned short id) {
@@ -244,10 +249,6 @@ namespace Cast {
 
 	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetNormalTexture(unsigned short id) {
 		return (NormalTextures.count(id)) ? NormalTextures[id] : NormalTextures[0];
-	}
-
-	SamplerMapping& DeferredSamplerRegistry::GetSamplerMapping(unsigned short id) {
-		return (id < SamplerMappings.size()) ? SamplerMappings[id] : SamplerMappings[0];
 	}
 
 	void DeferredSamplerRegistry::MakeTexturesResidentIdempotent() {

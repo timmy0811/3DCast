@@ -16,44 +16,28 @@ namespace Cast {
 		}
 		~TransformRegistry() = default;
 
-		void InvalidateEntry(uid key) {
-			auto it = RegisteredNodeMapping.find(key);
-			if (it == RegisteredNodeMapping.end())
-				return;
-
-			isValid[it->second / sizeof(uint64_t)] &= ~(1ULL << it->second % 64);
-			RegisteredNodeMapping.erase(it);
+		void InvalidateEntry(int index) {
+			SetTransformUnused(index);
 		}
 
-		void ShrinkToFit() {
-			// Implement algorithm to repack buffer content
+		int RegisterTransform(glm::mat4* transform) {
+			int index = GetUnusedIndex();
+			SSBO->AddData(transform, sizeof(glm::mat4), index * sizeof(glm::mat4));
+			SetTransformUsed(index);
+			return index;
 		}
 
-		uid RegisterTransform(glm::mat4* transform) {
-			int bufferPosition = SSBO->GetSize();
-			SSBO->AddData(transform, sizeof(glm::mat4));
-			int transformRegistryIndex = (unsigned short)(bufferPosition / sizeof(glm::mat4));
-			isValid[transformRegistryIndex / sizeof(uint64_t)] |= (1ULL << transformRegistryIndex % 64);
-			uid key = UID::Create();
-			RegisteredNodeMapping[key] = transformRegistryIndex;
-			return key;
-		}
-
-		void EditTransform(uid key, glm::mat4* transform) {
-			auto it = RegisteredNodeMapping.find(key);
-
-			if (it == RegisteredNodeMapping.end()) {
-				LOG_CORE_ERROR("Transform key not found in registry.");
-				return;
+		void EditTransform(int index, glm::mat4* transform) {
+			if (!IsTransformUsed(index)) {
+				LOG_CORE_WARN("Editing a transform that is not assigned to an object.");
 			}
 
-			int index = it->second;
 			SSBO->AddData(transform, sizeof(glm::mat4), index * sizeof(glm::mat4));
-			isValid[index / sizeof(uint64_t)] |= (1ULL << index % 64);
 		}
 
 		void Clear() {
 			SSBO->Empty();
+			memset(isUsed, 0, sizeof(isUsed));
 		}
 
 		void BindBase(int slot) const {
@@ -61,17 +45,37 @@ namespace Cast {
 		}
 
 		inline Cast::Ref<API::Core::Buffer> GetSSBO() { return SSBO; }
-		inline int GetPosition(uid key) {
-			auto it = RegisteredNodeMapping.find(key);
-			if (it == RegisteredNodeMapping.end())
-				return -1;
 
-			return it->second;
+	private:
+		int GetUnusedIndex() {
+			for (int i = 0; i < MAX_TRANSFORMS / 64; i++) {
+				if (isUsed[i] != 0xFFFFFFFFFFFFFFFF) {
+					for (int j = 0; j < 64; j++) {
+						if ((isUsed[i] & (1ULL << j)) == 0) {
+							return i * 64 + j;
+						}
+					}
+				}
+			}
+
+			LOG_CORE_WARN("TransformRegistry is full, cannot register more transforms.");
+			return -1;
+		}
+
+		inline void SetTransformUsed(int index) {
+			isUsed[index / sizeof(uint64_t)] |= (1ULL << index % 64);
+		}
+
+		inline void SetTransformUnused(int index) {
+			isUsed[index / sizeof(uint64_t)] &= ~(1ULL << index % 64);
+		}
+
+		inline bool IsTransformUsed(int index) {
+			return (isUsed[index / sizeof(uint64_t)] & (1ULL << index % 64)) != 0;
 		}
 
 	private:
 		Cast::Ref<API::Core::Buffer> SSBO;
-		uint64_t isValid[MAX_TRANSFORMS / 64] = {};
-		std::unordered_map<uid, int> RegisteredNodeMapping;
+		uint64_t isUsed[MAX_TRANSFORMS / 64] = {};
 	};
 }
