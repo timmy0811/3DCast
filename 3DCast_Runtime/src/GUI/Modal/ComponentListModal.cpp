@@ -31,7 +31,7 @@ Runtime::GUI::ComponentList::ModalResult Runtime::GUI::ComponentList::OnImGuiRen
 
 	ModalResult res = ModalResult::None;
 
-	if (ImGui::BeginPopupModal("Add Component Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal("Add Component Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 	{
 		ImGui::InputText("Search", g_SearchBuffer, IM_ARRAYSIZE(g_SearchBuffer));
 

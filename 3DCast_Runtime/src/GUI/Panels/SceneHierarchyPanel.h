@@ -20,6 +20,7 @@ namespace Runtime::GUI {
 		void DrawComponents(Cast::Ref<Cast::Entity> entity);
 
 		void DispatchComponent(int id);
+		void RemoveEntity();
 
 	private:
 		Cast::Ref<Cast::Scene> Context;

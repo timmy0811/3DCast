@@ -2,6 +2,7 @@
 
 #include "LinearBatchStorage.h"
 #include "3DCast/Renderer/Renderer.h"
+#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
 Cast::Memory::LinearBatchStorage::LinearBatchStorage(size_t capacity)
 {
@@ -11,7 +12,7 @@ Cast::Memory::LinearBatchStorage::LinearBatchStorage(size_t capacity)
 	Capacity = capacity;
 }
 
-int Cast::Memory::LinearBatchStorage::AddObject(uid object, void* data, size_t size)
+int Cast::Memory::LinearBatchStorage::CreateBatchObject(uid object, void* data, size_t size)
 {
 	int offset = BatchMemory->AddData(data, (int)size);
 	if (offset == -1) {
@@ -55,10 +56,22 @@ void Cast::Memory::LinearBatchStorage::EditObject(size_t offset, void* data, siz
 	BatchMemory->AddData(data, (int)size, (int)offset);
 }
 
+int Cast::Memory::LinearBatchStorage::RetransferVertexEntity(uid object, void* data, size_t size)
+{
+	if (Objects.find(object) == Objects.end()) {
+		LOG_CORE_ERROR("Object queued for retransfer that does not exists in the current batch storage");
+		return -1;
+	}
+
+	return CreateBatchObject(object, data, size);
+}
+
 void Cast::Memory::LinearBatchStorage::Render(Cast::Ref<API::Core::Shader> shader)
 {
+	constexpr double stride_rez = 1.0 / sizeof(Memory::BatchVertex);
+
 	BatchMemory->Bind();
-	VertexArray->SetVBCount(BatchMemory->GetSize() / Layout->GetStride());
+	VertexArray->SetVBCount(std::ceil(BatchMemory->GetSize() * stride_rez));
 
 	Renderer::RendererContext::Submit(VertexArray, shader);
 }

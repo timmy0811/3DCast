@@ -8,15 +8,16 @@
 #include <imgui.h>
 
 namespace Cast::Component {
-	struct CustomMeshComponent : public Component
+	struct CustomMeshComponent : public Component, public IVertexEntity
 	{
 #pragma region DATA
-		uid BatchId = UID::Create();
+		uid BatchId = UID::None();
 		Memory::MemoryPosition memPos{};
 		bool IsAvailableInMemory = true;
 
 		float* vertexData = nullptr;
 		unsigned int* indexData = nullptr;
+		bool isIndexed = false;
 
 		size_t vertexDataSize = 0;
 		size_t indexDataSize = 0;
@@ -37,6 +38,11 @@ namespace Cast::Component {
 			if (isHeapAlloc) {
 				free(vertexData);
 				free(indexData);
+			}
+
+			if (BatchId != UID::None()) {
+				Cast::Memory::BatchMemoryHandler.RemoveObject(BatchId);
+				BatchId = UID::None();
 			}
 		}
 #pragma endregion
@@ -94,17 +100,35 @@ namespace Cast::Component {
 		}
 
 		void AddToBatchMemory() {
-			memPos = Cast::Memory::BatchMemoryHandler.AddObject(BatchId, vertexData, vertexDataSize);
+			BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize);
+
+			if (BatchId != Cast::UID::None())
+			{
+				Shared.VertexEntities[BatchId] = this;
+			}
 		}
 
 		void AddToIndexedBatchMemory() {
-			memPos = Cast::Memory::BatchMemoryHandler.AddIndexedObject(BatchId, vertexData, vertexDataSize, indexData, (int)indexDataSize);
+			BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize, indexData, (int)indexDataSize);
+			isIndexed = true;
+
+			if (BatchId != Cast::UID::None())
+			{
+				Shared.VertexEntities[BatchId] = this;
+			}
 		}
 #pragma endregion
 
 #pragma region OVERRIDE
 		static inline const Type GetType() { return Type::CustomMesh; }
 		static inline std::string GetName() { return "Custom Mesh"; }
+
+		void RetransferToBatchMemory() override {
+			if (isIndexed)
+				Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize, indexData, indexDataSize / sizeof(int));
+			else
+				Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize);
+		}
 
 		virtual UIResponse OnImGuiRender() override {
 			bool isOpen = ImGui::CollapsingHeader("Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);

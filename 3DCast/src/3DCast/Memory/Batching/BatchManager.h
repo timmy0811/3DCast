@@ -22,13 +22,15 @@ namespace Cast::Memory
 
 		void Init(size_t defaultStorageSize, int maxIndices);
 
-		MemoryPosition AddObject(uid objectId, void* data, size_t size);
-		MemoryPosition AddIndexedObject(uid objectId, void* data, size_t size, void* indices, int count);
+		uid CreateBatchObject(void* data, size_t size);
+		uid CreateBatchObject(void* data, size_t size, void* indices, int count);
 
 		void EditObject(uid objectId, void* data, size_t size);
-		void EditObject(MemoryPosition pos, void* data, size_t size);
+		void EditObject(uid objectId, void* data, size_t size, void* indices, int count);
 
-		std::vector<uid> RemoveIndexedObject(uid objectId);
+		void OnBatchEmptyRetransfer(uid objectId, void* data, size_t size);
+		void OnBatchEmptyRetransfer(uid objectId, void* data, size_t size, void* indices, int count);
+
 		std::vector<uid> RemoveObject(uid objectId);
 
 		void Clear();
@@ -37,6 +39,14 @@ namespace Cast::Memory
 		void Render(Cast::Ref<API::Core::Shader> shader);
 		void RenderIndexed(Cast::Ref<API::Core::Shader> shader);
 
+		inline bool IsEntityInBatchStorage(uid entityId)
+		{
+			return EntityIdToMemoryPosition.find(entityId) != EntityIdToMemoryPosition.end();
+		}
+
+	private:
+		void QueueRetransfers(std::vector<uid>& ids);
+
 	private:
 		bool HasBeenInitialized = false;
 
@@ -44,6 +54,7 @@ namespace Cast::Memory
 		int MaxIndices;
 		std::vector<LinearBatchStorage> BatchStorages;
 		std::vector<LinearBatchStorageIndexed> BatchStoragesIndexed;
+		std::unordered_map<uid, MemoryPosition> EntityIdToMemoryPosition;
 
 		Cast::Ref<API::Core::VertexBufferLayout> Layout;
 	};

@@ -14,11 +14,13 @@ namespace Cast::Memory
 		LinearBatchStorageIndexed(size_t capacity, size_t indexCapacity);
 		~LinearBatchStorageIndexed() = default;
 
-		int AddObject(uid object, void* data, size_t size, void* indices, int count);
+		int CreateBatchObject(uid object, void* data, size_t size, void* indices, int count);
 		std::vector<uid> RemoveObject(uid object);
 
 		bool EditObject(uid object, void* data, size_t size);
-		void EditObject(size_t offset, void* data, size_t size);
+		bool EditObject(uid object, void* data, size_t size, void* indices, int count);
+
+		int RetransferVertexEntity(uid object, void* data, size_t size, void* indices, int count);
 
 		inline size_t GetCapacity() const { return Capacity; }
 		inline size_t GetSize() const { return BatchMemory->GetSize(); }
@@ -33,9 +35,14 @@ namespace Cast::Memory
 		void SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout);
 
 	private:
+		struct Offset {
+			int vertexOffset;
+			int indexOffset;
+		};
+
 		size_t Capacity;
 		size_t IndexCapacity;
-		std::unordered_map<uid, int> Objects;
+		std::unordered_map<uid, Offset> Objects;
 
 		Cast::Ref<API::Core::Buffer> BatchMemory;
 		Cast::Ref<API::Core::Buffer> BatchIndices;

@@ -77,6 +77,7 @@ namespace Cast {
 		void RemoveChild(Ref<Entity> child) { Children.erase(std::remove(Children.begin(), Children.end(), child), Children.end()); }
 
 		void SetParent(Ref<Entity> parent) { Parent = parent; }
+		Ref<Entity> GetParent() { return Parent; }
 
 		std::vector<Ref<Entity>>& GetChildren() { return Children; }
 		bool IsChild() { return Parent != nullptr; }

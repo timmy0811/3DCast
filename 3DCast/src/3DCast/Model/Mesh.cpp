@@ -1,9 +1,10 @@
 #include "castpch.h"
 #include "Mesh.h"
 
+#include "3DCast/Data/GlobalShared.h"
+
 Cast::Mesh::Mesh()
 {
-	BatchId = UID::Create();
 }
 
 void Cast::Mesh::SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>& textures)
@@ -11,15 +12,17 @@ void Cast::Mesh::SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>
 	Textures = textures;
 }
 
-void Cast::Mesh::SetupVertexData(const std::vector<Memory::BatchVertex>& vertices, const std::vector<unsigned int>& indices)
+void Cast::Mesh::SetupVertexData()
 {
-	Vertices = vertices;
-	Indices = indices;
-
 	if (Indices.empty())
-		MemPos = Cast::Memory::BatchMemoryHandler.AddObject(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * vertices.size());
+		BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
 	else
-		MemPos = Cast::Memory::BatchMemoryHandler.AddIndexedObject(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * vertices.size(), Indices.data(), (int)Indices.size());
+		BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
+
+	if (BatchId != Cast::UID::None())
+	{
+		Shared.VertexEntities[BatchId] = this;
+	}
 }
 
 void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
@@ -46,4 +49,20 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 			}
 		}
 	}
+}
+
+void Cast::Mesh::RemoveFromBatchStorage()
+{
+	if (BatchId != Cast::UID::None()) {
+		Cast::Memory::BatchMemoryHandler.RemoveObject(BatchId);
+		BatchId = Cast::UID::None();
+	}
+}
+
+void Cast::Mesh::RetransferToBatchMemory()
+{
+	if (Indices.empty())
+		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
+	else
+		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
 }

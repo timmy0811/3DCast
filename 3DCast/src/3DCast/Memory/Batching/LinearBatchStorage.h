@@ -16,11 +16,13 @@ namespace Cast::Memory
 		LinearBatchStorage(size_t capacity);
 		~LinearBatchStorage() = default;
 
-		int AddObject(uid object, void* data, size_t size);
+		int CreateBatchObject(uid object, void* data, size_t size);
 		std::vector<uid> RemoveObject(uid object);
 
 		bool EditObject(uid object, void* data, size_t size);
 		void EditObject(size_t offset, void* data, size_t size);
+
+		int RetransferVertexEntity(uid object, void* data, size_t size);
 
 		inline size_t GetCapacity() const { return Capacity; }
 		inline size_t GetSize() const { return BatchMemory->GetSize(); }

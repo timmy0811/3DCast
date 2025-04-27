@@ -149,10 +149,10 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	material.UpdateSamplerMapping();
 	unsigned short samplerSlot = material.samplerIndex;
 
-	std::vector<Memory::BatchVertex> vertices;
+	auto& vertices = castMesh->GetVertices();
 	vertices.reserve(mesh->mNumVertices);
 
-	std::vector<unsigned int> indices;
+	auto& indices = castMesh->GetIndices();
 	indices.reserve(mesh->mNumFaces * 3);
 
 	glm::vec3 center = BoundsMin + (BoundsMax - BoundsMin) * 0.5f;
@@ -228,7 +228,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		}
 	}
 
-	castMesh->SetupVertexData(vertices, indices);
+	castMesh->SetupVertexData();
 
 	return castMesh;
 }

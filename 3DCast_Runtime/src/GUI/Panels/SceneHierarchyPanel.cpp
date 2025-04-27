@@ -57,8 +57,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::SameLine();
 	ImGui::BeginDisabled(!SelectionContext);
 	if (ImGui::Button("Remove", { ImGui::GetContentRegionAvail().x - 5.f, 0.f })) {
-		Context->RemoveEntity(*SelectionContext);
-		SelectionContext = {};
+		RemoveEntity();
 	}
 	ImGui::EndDisabled();
 
@@ -71,8 +70,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::SameLine();
 	ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f);
 	if (ImGui::Button("Remove Entity")) {
-		Context->RemoveEntity(*SelectionContext);
-		SelectionContext = {};
+		RemoveEntity();
 	}
 	ImGui::Separator();
 
@@ -132,8 +130,9 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 
 	if (isOpen)
 	{
-		for (auto& child : entity->GetChildren())
+		for (auto& child : entity->GetChildren()) {
 			DrawEntityNode(child);
+		}
 
 		ImGui::TreePop();
 	}
@@ -273,4 +272,13 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(int id)
 	default:
 		LOG_CORE_WARN("Trying to add component with unknown id.");
 	}
+}
+
+void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
+{
+	Context->RemoveEntity(*SelectionContext);
+	if (SelectionContext->IsChild())
+		SelectionContext->GetParent()->RemoveChild(SelectionContext);
+
+	SelectionContext = {};
 }

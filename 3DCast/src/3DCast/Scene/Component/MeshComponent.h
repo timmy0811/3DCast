@@ -5,6 +5,7 @@
 #include "3DCast/Data/GlobalShared.h"
 
 #include "3DCast/ImGui/UIComponents.h"
+#include "3DCast/Model/IVertexEntity.h"
 
 #include <imgui.h>
 
@@ -51,6 +52,11 @@ namespace Cast::Component {
 			RootModel = CreateRef<Cast::Model>();
 			RootModel->Load(path, Ref<Entity>(EntityNode));
 			header = "Model Root Node";
+		}
+
+		~MeshComponent() {
+			if (Mesh)
+				Mesh->RemoveFromBatchStorage();
 		}
 #pragma endregion
 

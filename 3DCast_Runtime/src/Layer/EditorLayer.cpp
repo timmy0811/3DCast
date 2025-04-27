@@ -278,4 +278,5 @@ void EditorLayer::SampleContent()
 	//Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 
 	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
+	Cast::Create::Cube("Cube_2", Cast::Shared.ActiveScene.get());
 }
