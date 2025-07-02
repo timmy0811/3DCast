@@ -1,17 +1,21 @@
 #pragma once
 
 #include "Viewport.h"
+#include "3DCast/Event/MouseEvent.h"
 
-namespace Runtime {
-	class RasterizationViewport : public Viewport
+namespace Runtime
+{
+	class RasterizationViewport final : public Viewport
 	{
 	public:
 		RasterizationViewport() = default;
-		RasterizationViewport(Cast::Layer* parent);
-		virtual ~RasterizationViewport() = default;
+		explicit RasterizationViewport(Cast::Layer* parent);
+		~RasterizationViewport() override = default;
 
 		void Init() override;
 		void Destroy() override;
+
+		inline void FindWindow() { SetPositionOnNextDraw = true; }
 
 		void OnUpdate(Cast::Timestep ts) override;
 		void OnRender() override;
@@ -21,11 +25,11 @@ namespace Runtime {
 		void OnEvent(Cast::Event& e) override;
 
 	private:
-		void RenderGeometryPass();
-		void RenderLightingPass();
-		void RenderForwardPass();
+		void RenderGeometryPass() const;
+		void RenderLightingPass() const;
+		void RenderForwardPass() const;
 
-		void CompileShaders();
+		static void CompileShaders();
 
 		// Event Handlers
 		bool OnMouseMoved(Cast::MouseMovedEvent& e);
@@ -33,8 +37,9 @@ namespace Runtime {
 	private:
 		Cast::Renderer::RasterizationPipelineObjects PipelineData;
 
+		bool SetPositionOnNextDraw = false;
 		bool IsInitFrame = true;
 		bool IsCameraRotating = false;
-		glm::vec2 RelativeMousePosition = { 0.0f, 0.f };
+		glm::vec2 RelativeMousePosition = {0.0f, 0.f};
 	};
 }

@@ -7,7 +7,7 @@
 
 namespace Cast::Component
 {
-	struct TagComponent : public Component
+	struct TagComponent final : public Component
 	{
 #pragma region DATA
 		std::string Tag;
@@ -17,7 +17,8 @@ namespace Cast::Component
 #pragma region CONSTRUCTOR
 		TagComponent() { Tag.reserve(MAX_TAG_SIZE); };
 		TagComponent(const TagComponent&) = default;
-		TagComponent(const std::string& tag) {
+
+		explicit TagComponent(const std::string& tag) {
 			Tag = tag.empty() ? "Untagged" : tag;
 			Tag.reserve(MAX_TAG_SIZE);
 		}
@@ -27,10 +28,10 @@ namespace Cast::Component
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Tag; }
+		static inline Type GetType() { return Type::Tag; }
 		static inline std::string GetName() { return "Tag"; }
 
-		virtual UIResponse OnImGuiRender() override
+		UIResponse OnImGuiRender() override
 		{
 			ImGui::Text("Name:");
 			ImGui::SameLine(SAMELINE_WIDGET_OFFSET);

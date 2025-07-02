@@ -1,7 +1,8 @@
-#include "C:/Git/3DCast/3DCast/CMakeFiles/3DCast.dir/Debug/cmake_pch.hxx"
+#include "castpch.h"
 #include "SceneShaderCache.h"
 
-namespace Cast {
+namespace Cast
+{
 	SceneShaderCache AssetCache{};
 }
 
@@ -11,35 +12,44 @@ Cast::SceneShaderCache::SceneShaderCache()
 	Shaders.reserve(0x1000);
 }
 
-Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(unsigned short id)
+Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(const unsigned short id)
 {
-	try {
+	try
+	{
 		return Shaders.at(id);
 	}
-	catch (...) {
-		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with id: " + std::to_string(id));
+	catch (...)
+	{
+		LOG_CORE_ERROR(
+			"SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with id: " + std::to_string(id));
 	}
 	return nullptr;
 }
 
 Cast::Ref<API::Core::Shader> Cast::SceneShaderCache::GetShaderHandle(const std::string& identifier)
 {
-	try {
+	try
+	{
 		return Shaders.at(ShaderIdentifierMap.at(identifier));
 	}
-	catch (...) {
-		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
+	catch (...)
+	{
+		LOG_CORE_ERROR(
+			"SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
 	}
 	return nullptr;
 }
 
-unsigned int Cast::SceneShaderCache::GetShaderId(const std::string& identifier)
+unsigned int Cast::SceneShaderCache::GetShaderId(const std::string& identifier) const
 {
-	try {
+	try
+	{
 		return ShaderIdentifierMap.at(identifier);
 	}
-	catch (...) {
-		LOG_CORE_ERROR("SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
+	catch (...)
+	{
+		LOG_CORE_ERROR(
+			"SceneShaderCache::GetShaderHandle(unsigned short id) - No shader with identifiert: " + identifier);
 	}
 	return 0;
 }

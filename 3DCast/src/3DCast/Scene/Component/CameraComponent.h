@@ -6,7 +6,7 @@
 #include <imgui.h>
 
 namespace Cast::Component {
-	struct CameraComponent : public Component
+	struct CameraComponent final : public Component
 	{
 #pragma region DATA
 		Renderer::Camera Camera;
@@ -15,7 +15,7 @@ namespace Cast::Component {
 #pragma region CONSTRUCTOR
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
-		CameraComponent(const Renderer::Camera& camera)
+		explicit CameraComponent(const Renderer::Camera& camera)
 			: Camera(camera) {}
 #pragma endregion
 
@@ -23,14 +23,14 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Camera; }
+		static inline Type GetType() { return Type::Camera; }
 		static inline std::string GetName() { return "Camera"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override {
+			const bool isOpen = ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}

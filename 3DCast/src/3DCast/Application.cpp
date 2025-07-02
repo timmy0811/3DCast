@@ -11,107 +11,114 @@
 
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
-namespace Cast {
-	Application* Application::Instance = nullptr;
+namespace Cast
+{
+    Application* Application::Instance = nullptr;
 }
 
 Cast::Application::Application(const WindowProperties& properties)
 {
-	CAST_CORE_ASSERT(!Instance, "Application is a singleton and cannot be instanced multiple times!");
-	Instance = this;
+    CAST_CORE_ASSERT(!Instance, "Application is a singleton and cannot be instanced multiple times!");
+    Instance = this;
 
-	AppWindow = std::unique_ptr<Window>(Window::Create(properties));
-	AppWindow->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
+    AppWindow = std::unique_ptr(Window::Create(properties));
+    AppWindow->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
 
-	Renderer::RendererContext::Init();
+    Renderer::RendererContext::Init();
 
-	GuiLayer = new ImGuiLayer();
-	PushOverlay(GuiLayer);
+    GuiLayer = new ImGuiLayer();
+    PushOverlay(GuiLayer);
 }
 
 void Cast::Application::Run()
 {
-	while (Running) {
-		float time = (float)glfwGetTime();
-		Timestep timestep = time - LastFrameTime;
-		LastFrameTime = time;
+    while (Running)
+    {
+        const auto time = static_cast<float>(glfwGetTime());
+        const Timestep timestep = time - LastFrameTime;
+        LastFrameTime = time;
 
-		if (!Minimized) {
-			for (Layer* layer : LayerStack) {
-				layer->OnUpdate(timestep);
-			}
-		}
+        if (!Minimized)
+        {
+            for (Layer* layer : LStack)
+            {
+                layer->OnUpdate(timestep);
+            }
+        }
 
-		GuiLayer->Begin();
-		for (Layer* layer : LayerStack) {
-			layer->OnImGuiRender();
-		}
-		GuiLayer->End();
+        Cast::ImGuiLayer::Begin();
+        for (Layer* layer : LStack)
+        {
+            layer->OnImGuiRender();
+        }
+        Cast::ImGuiLayer::End();
 
-		AppWindow->OnUpdate();
-	}
+        AppWindow->OnUpdate();
+    }
 
-	LOG_INFO("Terminating Application");
+    LOG_INFO("Terminating Application");
 }
 
 void Cast::Application::OnEvent(Event& e)
 {
-	EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(OnWindowClose));
-	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(OnWindowResize));
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(OnWindowClose));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(OnWindowResize));
 
-	for (auto iter = LayerStack.end(); iter != LayerStack.begin();) {
-		(*--iter)->OnEvent(e);
-		if (e.handled)
-			break;
-	}
+    for (auto iter = LStack.end(); iter != LStack.begin();)
+    {
+        (*--iter)->OnEvent(e);
+        if (e.handled)
+            break;
+    }
 }
 
 void Cast::Application::Close()
 {
-	Running = false;
+    Running = false;
 }
 
 void Cast::Application::PushLayer(Layer* layer)
 {
-	layer->SetParentWindow(AppWindow);
-	LayerStack.PushLayer(layer);
-	layer->OnAttach();
+    layer->SetParentWindow(AppWindow);
+    LStack.PushLayer(layer);
+    layer->OnAttach();
 }
 
 void Cast::Application::PushOverlay(Layer* overlay)
 {
-	LayerStack.PushOverlay(overlay);
-	overlay->OnAttach();
+    LStack.PushOverlay(overlay);
+    overlay->OnAttach();
 }
 
 void Cast::Application::PopLayer(Layer* layer)
 {
-	LayerStack.PopLayer(layer);
-	layer->OnDetach();
+    LStack.PopLayer(layer);
+    layer->OnDetach();
 }
 
 void Cast::Application::PopOverlay(Layer* overlay)
 {
-	LayerStack.PopOverlay(overlay);
-	overlay->OnDetach();
+    LStack.PopOverlay(overlay);
+    overlay->OnDetach();
 }
 
 bool Cast::Application::OnWindowClose(WindowCloseEvent& e)
 {
-	Running = false;
-	return true;
+    Running = false;
+    return true;
 }
 
-bool Cast::Application::OnWindowResize(WindowResizeEvent& e)
+bool Cast::Application::OnWindowResize(const WindowResizeEvent& e)
 {
-	if (e.GetWidth() == 0 || e.GetHeight() == 0) {
-		Minimized = true;
-		return false;
-	}
+    if (e.GetWidth() == 0 || e.GetHeight() == 0)
+    {
+        Minimized = true;
+        return false;
+    }
 
-	Minimized = false;
-	Renderer::RendererContext::OnWindowResize(e.GetWidth(), e.GetHeight());
+    Minimized = false;
+    Renderer::RendererContext::OnWindowResize(e.GetWidth(), e.GetHeight());
 
-	return false;
+    return false;
 }

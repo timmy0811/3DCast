@@ -5,16 +5,18 @@
 #include <API/core/Shader.h>
 
 #include "3DCast/Core.h"
-#include "3DCast/Misc/Helper.h"
 
-namespace Cast {
-	class SceneShaderCache {
+namespace Cast
+{
+	class SceneShaderCache
+	{
 	public:
 		SceneShaderCache();
 		~SceneShaderCache() = default;
 
 #pragma region TEXTURE
-		enum TextureType {
+		enum TextureType
+		{
 			Diffuse,
 			Specular,
 			Ambient,
@@ -26,64 +28,80 @@ namespace Cast {
 			Reflectance
 		};
 
-		Ref<API::Texture::Texture> AddTexture(Ref<API::Texture::Texture> texture, bool useCached = true) {
-			if (useCached) {
-				auto it = TextureIdentifierMap.find(texture->GetPath());
-				if (it != TextureIdentifierMap.end()) {
+		Ref<API::Texture::Texture> AddTexture(Ref<API::Texture::Texture> texture, const bool useCached = true)
+		{
+			if (useCached)
+			{
+				const auto it = TextureIdentifierMap.find(texture->GetPath());
+				if (it != TextureIdentifierMap.end())
+				{
 					auto itTex = Textures.find(it->second);
 					if (itTex != Textures.end())
 						return itTex->second;
-					else {
-						LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+					else
+					{
+						LOG_CORE_ERROR(
+							"Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
 						return nullptr;
 					}
 				}
 			}
 
-			Textures.insert({ IdCounterTextures, texture });
-			TextureIdentifierMap.insert({ texture->GetPath(), IdCounterTextures++ });
+			Textures.insert({IdCounterTextures, texture});
+			TextureIdentifierMap.insert({texture->GetPath(), IdCounterTextures++});
 			return texture;
 		}
 
-		Ref<API::Texture::Texture> AddTexture(const std::string& path, bool flipUV = false) {
-			auto itId = TextureIdentifierMap.find(path);
-			if (itId != TextureIdentifierMap.end()) {
+		Ref<API::Texture::Texture> AddTexture(const std::string& path, bool const flipUV = false)
+		{
+			const auto itId = TextureIdentifierMap.find(path);
+			if (itId != TextureIdentifierMap.end())
+			{
 				auto itTex = Textures.find(itId->second);
-				if (itTex != Textures.end()) {
+				if (itTex != Textures.end())
+				{
 					return itTex->second;
 				}
-				else {
-					LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+				else
+				{
+					LOG_CORE_ERROR(
+						"Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
 					return nullptr;
 				}
 			}
 
 			LOG_CORE_TRACE("Loading uncached texture: {0}", path);
-			Ref<API::Texture::Texture> texture = Ref<API::Texture::Texture>(API::Texture::Texture::Create(path, API::Texture::TextureFilter::LINEAR, flipUV));
+			auto texture = Ref<API::Texture::Texture>(
+				API::Texture::Texture::Create(path, API::Texture::TextureFilter::LINEAR, flipUV));
 			if (texture->GetError())
 				return nullptr;
 
-			Textures.insert({ IdCounterTextures, texture });
-			TextureIdentifierMap.insert({ path, IdCounterTextures++ });
+			Textures.insert({IdCounterTextures, texture});
+			TextureIdentifierMap.insert({path, IdCounterTextures++});
 			return texture;
 		}
 
-		Ref<API::Texture::Texture> GetTexture(const std::string& path) {
-			auto it = TextureIdentifierMap.find(path);
-			if (it != TextureIdentifierMap.end()) {
+		Ref<API::Texture::Texture> GetTexture(const std::string& path)
+		{
+			const auto it = TextureIdentifierMap.find(path);
+			if (it != TextureIdentifierMap.end())
+			{
 				auto itTex = Textures.find(it->second);
 				if (itTex != Textures.end())
 					return itTex->second;
-				else {
-					LOG_CORE_ERROR("Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
+				else
+				{
+					LOG_CORE_ERROR(
+						"Texture identifier found without matching texture. Consider removing it. Returning NULL handle.");
 					return nullptr;
 				}
 			}
 			return nullptr;
 		}
 
-		Ref<API::Texture::Texture> GetTexture(unsigned int textureId) {
-			auto it = Textures.find(textureId);
+		Ref<API::Texture::Texture> GetTexture(unsigned int const textureId)
+		{
+			const auto it = Textures.find(textureId);
 			if (it != Textures.end())
 				return it->second;
 			return nullptr;
@@ -91,12 +109,14 @@ namespace Cast {
 #pragma endregion
 
 #pragma region SHADER
-		unsigned short AddShader(API::Core::Shader* shader) {
+		unsigned short AddShader(API::Core::Shader* shader)
+		{
 			Shaders[IdCounterShaders].reset(shader);
 			return IdCounterShaders++;
 		}
 
-		unsigned short AddShader(const std::string identifier, API::Core::Shader* shader) {
+		unsigned short AddShader(const std::string& identifier, API::Core::Shader* shader)
+		{
 			Shaders[IdCounterShaders].reset(shader);
 			ShaderIdentifierMap[identifier] = IdCounterShaders;
 			return IdCounterShaders++;
@@ -105,7 +125,7 @@ namespace Cast {
 		Ref<API::Core::Shader> GetShaderHandle(unsigned short id);
 		Ref<API::Core::Shader> GetShaderHandle(const std::string& identifier);
 
-		unsigned int GetShaderId(const std::string& identifier);
+		unsigned int GetShaderId(const std::string& identifier) const;
 #pragma endregion
 
 	private:

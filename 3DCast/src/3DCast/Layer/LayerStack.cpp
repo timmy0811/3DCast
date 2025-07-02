@@ -1,13 +1,11 @@
 #include "castpch.h"
 #include "LayerStack.h"
 
-Cast::LayerStack::LayerStack()
-{
-}
+Cast::LayerStack::LayerStack() = default;
 
 Cast::LayerStack::~LayerStack()
 {
-	for (Layer* layer : layers) {
+	for (const Layer* layer : layers) {
 		delete layer;
 	}
 }
@@ -22,7 +20,7 @@ void Cast::LayerStack::PushOverlay(Layer* overlay)
 	layers.emplace_back(overlay);
 }
 
-void Cast::LayerStack::PopLayer(Layer* layer)
+void Cast::LayerStack::PopLayer(const Layer* layer)
 {
 	auto iter = std::find(layers.begin(), layers.end(), layer);
 	if (iter != layers.end()) {
@@ -31,7 +29,7 @@ void Cast::LayerStack::PopLayer(Layer* layer)
 	}
 }
 
-void Cast::LayerStack::PopOverlay(Layer* overlay)
+void Cast::LayerStack::PopOverlay(const Layer* overlay)
 {
 	auto iter = std::find(layers.begin(), layers.end(), overlay);
 	if (iter != layers.end()) {

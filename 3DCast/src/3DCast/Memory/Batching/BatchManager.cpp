@@ -1,22 +1,25 @@
 #include "castpch.h"
 #include "BatchManager.h"
 
-#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 #include "3DCast/Data/GlobalShared.h"
+#include "3DCast/Scene/Component/CustomMeshComponent.h"
 
 namespace Cast::Memory
 {
 	BatchManager BatchMemoryHandler = {};
 }
 
-void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
+void Cast::Memory::BatchManager::Init(const size_t defaultStorageSize, const int maxIndices)
 {
-	if (HasBeenInitialized) {
+	if (HasBeenInitialized)
+	{
 		LOG_CORE_WARN("Batch manager has already been initialized. Ignoring the initialization request.");
 		return;
 	}
 
-	LOG_CORE_INFO("Initializing batch manager with default storage size " + std::to_string(defaultStorageSize) + " and max indices " + std::to_string(maxIndices));
+	LOG_CORE_INFO(
+		"Initializing batch manager with default storage size " + std::to_string(defaultStorageSize) +
+		" and max indices " + std::to_string(maxIndices));
 
 	BatchStorageSize = defaultStorageSize;
 	MaxIndices = maxIndices;
@@ -30,30 +33,35 @@ void Cast::Memory::BatchManager::Init(size_t defaultStorageSize, int maxIndices)
 	Layout->Push(API::Core::ShaderDataType::Float);
 	Layout->Push(API::Core::ShaderDataType::Float);
 
-	BatchStorages.push_back(LinearBatchStorage(defaultStorageSize));
+	BatchStorages.emplace_back(defaultStorageSize);
 	BatchStorages[BatchStorages.size() - 1].SetLayout(Layout);
 
-	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(defaultStorageSize, maxIndices * sizeof(unsigned int)));
+	BatchStoragesIndexed.emplace_back(defaultStorageSize, maxIndices * sizeof(unsigned int));
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
+
+	HasBeenInitialized = true;
 }
 
-Cast::uid Cast::Memory::BatchManager::CreateBatchObject(void* data, size_t size)
+Cast::uid Cast::Memory::BatchManager::CreateBatchObject(const void* data, const size_t size)
 {
 	if (size > BatchStorageSize)
 	{
-		LOG_CORE_ERROR("Object size is larger than the batch storage size. Object will not be added to the batch storage.");
+		LOG_CORE_ERROR(
+			"Object size is larger than the batch storage size. Object will not be added to the batch storage.");
 		return UID::None();
 	}
 
-	uid id = UID::Create();
+	const uid id = UID::Create();
 	LOG_CORE_INFO("Adding object with ID " + std::to_string(id) + " to the batch storage.");
 
 	// Add object to the first batch storage that has enough space
 	int offset = -3;
-	for (int i = 0; i < BatchStorages.size(); i++) {
-		int offset = BatchStorages[i].CreateBatchObject(id, data, size);
-		if (offset != -1) {
-			EntityIdToMemoryPosition[id] = MemoryPosition{ i, -1, offset };
+	for (int i = 0; i < BatchStorages.size(); i++)
+	{
+		offset = BatchStorages[i].CreateBatchObject(id, data, size);
+		if (offset != -1)
+		{
+			EntityIdToMemoryPosition[id] = MemoryPosition{i, -1, offset};
 			return id;
 		}
 	}
@@ -67,36 +75,41 @@ Cast::uid Cast::Memory::BatchManager::CreateBatchObject(void* data, size_t size)
 
 	LOG_CORE_INFO("Creating new batch storage for object with ID " + std::to_string(id) + " | Cause: " + cause);
 
-	BatchStorages.push_back(LinearBatchStorage(BatchStorageSize));
+	BatchStorages.emplace_back(BatchStorageSize);
 	BatchStorages[BatchStorages.size() - 1].SetLayout(Layout);
 	offset = BatchStorages[BatchStorages.size() - 1].CreateBatchObject(id, data, size);
-	EntityIdToMemoryPosition[id] = MemoryPosition{ (int)BatchStorages.size() - 1, -1, offset };
+	EntityIdToMemoryPosition[id] = MemoryPosition{static_cast<int>(BatchStorages.size()) - 1, -1, offset};
 
 	return id;
 }
 
-Cast::uid Cast::Memory::BatchManager::CreateBatchObject(void* data, size_t size, void* indices, int count)
+Cast::uid Cast::Memory::BatchManager::CreateBatchObject(const void* data, const size_t size, const void* indices,
+                                                        const int count)
 {
 	if (size > BatchStorageSize)
 	{
-		LOG_CORE_ERROR("Object size is larger than the batch storage size. Object will not be added to the batch storage.");
+		LOG_CORE_ERROR(
+			"Object size is larger than the batch storage size. Object will not be added to the batch storage.");
 		return UID::None();
 	}
 	else if (count > MaxIndices)
 	{
-		LOG_CORE_ERROR("Object indices size is larger than the batch storage index size. Object will not be added to the batch storage.");
+		LOG_CORE_ERROR(
+			"Object indices size is larger than the batch storage index size. Object will not be added to the batch storage.");
 		return UID::None();
 	}
 
-	uid id = UID::Create();
+	const uid id = UID::Create();
 	LOG_CORE_INFO("Adding indexed object with ID " + std::to_string(id) + " to the batch storage.");
 
 	// Add object to the first batch storage that has enough space
 	int offset = -3;
-	for (int i = 0; i < BatchStoragesIndexed.size(); i++) {
+	for (int i = 0; i < BatchStoragesIndexed.size(); i++)
+	{
 		offset = BatchStoragesIndexed[i].CreateBatchObject(id, data, size, indices, count);
-		if (offset >= 0) {
-			EntityIdToMemoryPosition[id] = MemoryPosition{ -1, i, offset };
+		if (offset >= 0)
+		{
+			EntityIdToMemoryPosition[id] = MemoryPosition{-1, i, offset};
 			return id;
 		}
 	}
@@ -112,83 +125,104 @@ Cast::uid Cast::Memory::BatchManager::CreateBatchObject(void* data, size_t size,
 
 	LOG_CORE_INFO("Creating new batch storage for object with ID " + std::to_string(id) + " | Cause: " + cause);
 
-	BatchStoragesIndexed.push_back(LinearBatchStorageIndexed(BatchStorageSize, MaxIndices));
+	BatchStoragesIndexed.emplace_back(BatchStorageSize, MaxIndices);
 	BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].SetLayout(Layout);
 	offset = BatchStoragesIndexed[BatchStoragesIndexed.size() - 1].CreateBatchObject(id, data, size, indices, count);
-	EntityIdToMemoryPosition[id] = MemoryPosition{ -1, (int)BatchStoragesIndexed.size() - 1, offset };
+	EntityIdToMemoryPosition[id] = MemoryPosition{-1, static_cast<int>(BatchStoragesIndexed.size()) - 1, offset};
 
 	return id;
 }
 
-void Cast::Memory::BatchManager::EditObject(uid objectId, void* data, size_t size)
+void Cast::Memory::BatchManager::EditObject(const uid objectId, const void* data, const size_t size)
 {
-	if (!IsEntityInBatchStorage(objectId)) {
-		LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Edit an object that is always part of the batch storage");
+	if (!IsEntityInBatchStorage(objectId))
+	{
+		LOG_CORE_WARN(
+			"Object with ID " + std::to_string(objectId) +
+			" not found in any batch storage. Edit an object that is always part of the batch storage.");
 		return;
 	}
 
 	MemoryPosition pos = EntityIdToMemoryPosition[objectId];
 
-	if (pos.batchStorageId != -1) {
+	if (pos.batchStorageId != -1)
+	{
 		if (BatchStorages[pos.batchStorageId].EditObject(objectId, data, size))
 			return;
 	}
-	else if (pos.batchStorageInstancedId != -1) {
-		if (BatchStoragesIndexed[pos.batchStorageInstancedId].EditObject(objectId, data, size))
+	else if (pos.batchStorageIndexedId != -1)
+	{
+		if (BatchStoragesIndexed[pos.batchStorageIndexedId].EditObject(objectId, data, size))
 			return;
 	}
 
-	LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Could not update the object.");
+	LOG_CORE_WARN(
+		"Object with ID " + std::to_string(objectId) + " not found in any batch storage. Could not update the object.");
 }
 
-void Cast::Memory::BatchManager::EditObject(uid objectId, void* data, size_t size, void* indices, int count)
+void Cast::Memory::BatchManager::EditObject(const uid objectId, const void* data, const size_t size, void* indices,
+                                            const int count)
 {
-	if (!IsEntityInBatchStorage(objectId)) {
-		LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Edit an object that is always part of the batch storage");
+	if (!IsEntityInBatchStorage(objectId))
+	{
+		LOG_CORE_WARN(
+			"Object with ID " + std::to_string(objectId) +
+			" not found in any batch storage. Edit an object that is always part of the batch storage");
 		return;
 	}
 
-	MemoryPosition pos = EntityIdToMemoryPosition[objectId];
+	const MemoryPosition pos = EntityIdToMemoryPosition[objectId];
 
-	if (pos.batchStorageInstancedId != -1) {
-		if (BatchStoragesIndexed[pos.batchStorageInstancedId].EditObject(objectId, data, size, indices, count))
+	if (pos.batchStorageIndexedId != -1)
+	{
+		if (BatchStoragesIndexed[pos.batchStorageIndexedId].EditObject(objectId, data, size, indices, count))
 			return;
 	}
 
-	LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Could not update the object.");
+	LOG_CORE_WARN(
+		"Object with ID " + std::to_string(objectId) + " not found in any batch storage. Could not update the object.");
 }
 
-void Cast::Memory::BatchManager::OnBatchEmptyRetransfer(uid objectId, void* data, size_t size)
+void Cast::Memory::BatchManager::OnBatchEmptyRetransfer(const uid objectId, const void* data, const size_t size)
 {
-	if (!IsEntityInBatchStorage(objectId)) {
-		LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Retransfer an object that is always part of the batch storage");
+	if (!IsEntityInBatchStorage(objectId))
+	{
+		LOG_CORE_WARN(
+			"Object with ID " + std::to_string(objectId) +
+			" not found in any batch storage. Retransfer an object that is always part of the batch storage");
 		return;
 	}
 
-	MemoryPosition pos = EntityIdToMemoryPosition[objectId];
+	const MemoryPosition pos = EntityIdToMemoryPosition[objectId];
 
-	if (pos.batchStorageId != -1) {
+	if (pos.batchStorageId != -1)
+	{
 		BatchStorages[pos.batchStorageId].RetransferVertexEntity(objectId, data, size);
 	}
 }
 
-void Cast::Memory::BatchManager::OnBatchEmptyRetransfer(uid objectId, void* data, size_t size, void* indices, int count)
+void Cast::Memory::BatchManager::OnBatchEmptyRetransfer(const uid objectId, const void* data, const size_t size,
+                                                        const void* indices, const int count)
 {
-	if (!IsEntityInBatchStorage(objectId)) {
-		LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage. Retransfer an object that is always part of the indexed batch storage");
+	if (!IsEntityInBatchStorage(objectId))
+	{
+		LOG_CORE_WARN(
+			"Object with ID " + std::to_string(objectId) +
+			" not found in any batch storage. Retransfer an object that is always part of the indexed batch storage");
 		return;
 	}
 
-	MemoryPosition pos = EntityIdToMemoryPosition[objectId];
+	const MemoryPosition pos = EntityIdToMemoryPosition[objectId];
 
-	if (pos.batchStorageInstancedId != -1) {
-		BatchStoragesIndexed[pos.batchStorageInstancedId].RetransferVertexEntity(objectId, data, size, indices, count);
+	if (pos.batchStorageIndexedId != -1)
+	{
+		BatchStoragesIndexed[pos.batchStorageIndexedId].RetransferVertexEntity(objectId, data, size, indices, count);
 	}
 }
 
-std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveObject(uid objectId)
+std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveObject(const uid objectId)
 {
-	Memory::MemoryPosition position = EntityIdToMemoryPosition[objectId];
+	const MemoryPosition position = EntityIdToMemoryPosition[objectId];
 
 	if (position.batchStorageId != -1)
 	{
@@ -199,9 +233,9 @@ std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveObject(uid objectId)
 			QueueRetransfers(ids);
 		return ids;
 	}
-	else if (position.batchStorageInstancedId != -1)
+	else if (position.batchStorageIndexedId != -1)
 	{
-		auto ids = BatchStoragesIndexed[position.batchStorageInstancedId].RemoveObject(objectId);
+		auto ids = BatchStoragesIndexed[position.batchStorageIndexedId].RemoveObject(objectId);
 		EntityIdToMemoryPosition.erase(objectId);
 
 		if (!ids.empty() && ids[0] != UID::None())
@@ -210,49 +244,57 @@ std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveObject(uid objectId)
 	}
 
 	LOG_CORE_WARN("Object with ID " + std::to_string(objectId) + " not found in any batch storage.");
-	return std::vector<uid>();
+	return {};
 }
 
 void Cast::Memory::BatchManager::Clear()
 {
-	for (int i = 0; i < BatchStorages.size(); i++) {
-		BatchStorages[i].Clear();
+	for (auto& BatchStorage : BatchStorages)
+	{
+		BatchStorage.Clear();
 	}
 }
 
 void Cast::Memory::BatchManager::DeleteUnused()
 {
-	for (int i = 0; i < BatchStorages.size(); i++) {
-		if (BatchStorages[i].GetObjectCount() == 0) {
+	for (int i = 0; i < BatchStorages.size(); i++)
+	{
+		if (BatchStorages[i].GetObjectCount() == 0)
+		{
 			BatchStorages.erase(BatchStorages.begin() + i);
 			i--;
 		}
 	}
 
-	for (int i = 0; i < BatchStoragesIndexed.size(); i++) {
-		if (BatchStoragesIndexed[i].GetObjectCount() == 0) {
+	for (int i = 0; i < BatchStoragesIndexed.size(); i++)
+	{
+		if (BatchStoragesIndexed[i].GetObjectCount() == 0)
+		{
 			BatchStoragesIndexed.erase(BatchStoragesIndexed.begin() + i);
 			i--;
 		}
 	}
 }
 
-void Cast::Memory::BatchManager::Render(Cast::Ref<API::Core::Shader> shader)
+void Cast::Memory::BatchManager::Render(const Ref<API::Core::Shader> shader) const
 {
-	for (int i = 0; i < BatchStorages.size(); i++) {
-		BatchStorages[i].Render(shader);
+	for (const auto& BatchStorage : BatchStorages)
+	{
+		BatchStorage.Render(shader);
 	}
 }
 
-void Cast::Memory::BatchManager::RenderIndexed(Cast::Ref<API::Core::Shader> shader)
+void Cast::Memory::BatchManager::RenderIndexed(const Ref<API::Core::Shader> shader) const
 {
-	for (int i = 0; i < BatchStoragesIndexed.size(); i++) {
-		BatchStoragesIndexed[i].Render(shader);
+	for (const auto& i : BatchStoragesIndexed)
+	{
+		i.Render(shader);
 	}
 }
 
-void Cast::Memory::BatchManager::QueueRetransfers(std::vector<uid>& ids)
+void Cast::Memory::BatchManager::QueueRetransfers(const std::vector<uid>& ids)
 {
+	LOG_CORE_INFO("queueingg");
 	for (uid id : ids)
 	{
 		if (Shared.VertexEntities.find(id) != Shared.VertexEntities.end())

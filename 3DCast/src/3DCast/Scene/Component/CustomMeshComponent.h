@@ -7,11 +7,16 @@
 
 #include <imgui.h>
 
-namespace Cast::Component {
-	struct CustomMeshComponent : public Component, public IVertexEntity
+namespace Cast::Component
+{
+	struct CustomMeshComponent final : public Component, public IVertexEntity
 	{
 #pragma region DATA
+
+	private:
 		uid BatchId = UID::None();
+
+	public:
 		Memory::MemoryPosition memPos{};
 		bool IsAvailableInMemory = true;
 
@@ -25,72 +30,147 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region CONSTRUCTOR
-		CustomMeshComponent() {	}
+		explicit CustomMeshComponent() = default;
 		CustomMeshComponent(const CustomMeshComponent&) = default;
-		CustomMeshComponent(size_t vertexBufferSize, size_t indexBufferSize) {
-			vertexData = (float*)malloc(vertexBufferSize);
-			indexData = (unsigned int*)malloc(indexBufferSize);
+
+		explicit CustomMeshComponent(const size_t vertexBufferSize, const size_t indexBufferSize)
+		{
+			vertexData = static_cast<float*>(malloc(vertexBufferSize));
+			indexData = static_cast<unsigned int*>(malloc(indexBufferSize));
 
 			isHeapAlloc = true;
 		}
 
-		~CustomMeshComponent() {
-			if (isHeapAlloc) {
+		CustomMeshComponent(CustomMeshComponent&& other) noexcept
+			: BatchId(other.BatchId), memPos(other.memPos),
+			  IsAvailableInMemory(other.IsAvailableInMemory),
+			  vertexData(other.vertexData), indexData(other.indexData),
+			  isIndexed(other.isIndexed), vertexDataSize(other.vertexDataSize),
+			  indexDataSize(other.indexDataSize), isHeapAlloc(other.isHeapAlloc)
+		{
+			if (BatchId != UID::None())
+			{
+				Shared.VertexEntities[BatchId] = this;
+			}
+
+			other.vertexData = nullptr;
+			other.indexData = nullptr;
+			other.BatchId = UID::None();
+			other.isHeapAlloc = false;
+		}
+
+		CustomMeshComponent& operator=(CustomMeshComponent&& other) noexcept
+		{
+			if (this != &other)
+			{
+				if (isHeapAlloc)
+				{
+					free(vertexData);
+					free(indexData);
+				}
+
+				if (BatchId != UID::None())
+				{
+					Shared.VertexEntities.erase(BatchId);
+				}
+
+				BatchId = other.BatchId;
+				memPos = other.memPos;
+				IsAvailableInMemory = other.IsAvailableInMemory;
+				vertexData = other.vertexData;
+				indexData = other.indexData;
+				isIndexed = other.isIndexed;
+				vertexDataSize = other.vertexDataSize;
+				indexDataSize = other.indexDataSize;
+				isHeapAlloc = other.isHeapAlloc;
+
+				// entt transfers ownership of the last added component to the deleted componen (pointer) to reduce memory size
+				// references to it need to be updated
+				if (BatchId != UID::None())
+				{
+					Shared.VertexEntities[BatchId] = this;
+				}
+
+				// Invalidate the source component
+				other.vertexData = nullptr;
+				other.indexData = nullptr;
+				other.BatchId = UID::None();
+				other.isHeapAlloc = false;
+			}
+			return *this;
+		}
+
+		~CustomMeshComponent() override
+		{
+			if (isHeapAlloc)
+			{
 				free(vertexData);
 				free(indexData);
 			}
 
-			if (BatchId != UID::None()) {
-				Cast::Memory::BatchMemoryHandler.RemoveObject(BatchId);
+			if (BatchId != UID::None())
+			{
+				Memory::BatchMemoryHandler.RemoveObject(BatchId);
+				Shared.VertexEntities.erase(BatchId);
 				BatchId = UID::None();
 			}
 		}
 #pragma endregion
 
 #pragma region UTILITY
-		void OnAfterEntitySetBehaviour() override {
+		void OnAfterEntitySetBehaviour() override
+		{
 			Shared.ActiveScene->RegisterTransformComponent(EntityNode);
 		}
 
-		void AllocVertexData(size_t size) {
+		void AllocVertexData(const size_t size)
+		{
 			free(vertexData);
-			vertexData = (float*)malloc(size);
+			vertexData = static_cast<float*>(malloc(size));
 			vertexDataSize = size;
 		}
 
-		void AllocIndexData(size_t size) {
+		void AllocIndexData(const size_t size)
+		{
 			free(indexData);
-			indexData = (unsigned int*)malloc(size);
+			indexData = static_cast<unsigned int*>(malloc(size));
 			indexDataSize = size;
 		}
 
-		void SwapToDisk() {
+		void SwapToDisk()
+		{
 			IsAvailableInMemory = false;
 		}
 
-		void SwapToMemory() {
+		void SwapToMemory()
+		{
 			IsAvailableInMemory = true;
 		}
 
-		void AddAndAllocVertexData(float* data, size_t size) {
+		void AddAndAllocVertexData(const float* data, const size_t size)
+		{
 			AllocVertexData(size);
 			memcpy(vertexData, data, size);
 		}
 
-		void AddAndAllocIndexData(unsigned int* data, size_t size) {
+		void AddAndAllocIndexData(const unsigned int* data, const size_t size)
+		{
 			AllocIndexData(size);
 			memcpy(indexData, data, size);
 		}
 
-		void AddVertexData(float* data, size_t size) {
+		void AddVertexData(const float* data, const size_t size) const
+		{
 			memcpy(vertexData, data, size);
 		}
 
-		void AddIndexData(unsigned int* data, size_t size) {
+		void AddIndexData(const unsigned int* data, const size_t size) const
+		{
 			memcpy(indexData, data, size);
 		}
 
-		void Clear() {
+		void Clear()
+		{
 			free(vertexData);
 			free(indexData);
 			vertexData = nullptr;
@@ -99,20 +179,22 @@ namespace Cast::Component {
 			indexDataSize = 0;
 		}
 
-		void AddToBatchMemory() {
-			BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize);
+		void AddToBatchMemory()
+		{
+			BatchId = Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize);
 
-			if (BatchId != Cast::UID::None())
+			if (BatchId != UID::None())
 			{
 				Shared.VertexEntities[BatchId] = this;
 			}
 		}
 
-		void AddToIndexedBatchMemory() {
-			BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize, indexData, (int)indexDataSize);
+		void AddToIndexedBatchMemory()
+		{
+			BatchId = Memory::BatchMemoryHandler.CreateBatchObject(vertexData, vertexDataSize, indexData, static_cast<int>(indexDataSize));
 			isIndexed = true;
 
-			if (BatchId != Cast::UID::None())
+			if (BatchId != UID::None())
 			{
 				Shared.VertexEntities[BatchId] = this;
 			}
@@ -120,29 +202,33 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::CustomMesh; }
+		static inline Type GetType() { return Type::CustomMesh; }
 		static inline std::string GetName() { return "Custom Mesh"; }
 
-		void RetransferToBatchMemory() override {
+		void RetransferToBatchMemory() override
+		{
 			if (isIndexed)
-				Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize, indexData, indexDataSize / sizeof(int));
+				Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize, indexData, indexDataSize / sizeof(int));
 			else
-				Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize);
+				Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, vertexData, vertexDataSize);
 		}
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override
+		{
+			const bool isOpen = ImGui::CollapsingHeader("Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
 			if (ImGui::SmallButton("Remove##CustomMesh"))
-				return { UIResponse::Code::Remove, Type::CustomMesh };
+				return {UIResponse::Code::Remove, Type::CustomMesh};
 
-			if (isOpen) {
+			if (isOpen)
+			{
 				ImGui::Text("No content to show here :)");
 			}
 

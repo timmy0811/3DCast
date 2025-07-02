@@ -14,6 +14,6 @@ namespace Cast
 		inline static uid None() { return 0; }
 
 	private:
-		static inline uint32_t GlobalId = 1;
+		static inline uint32_t GlobalId = 0x100;
 	};
 }

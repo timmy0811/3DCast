@@ -7,28 +7,38 @@
 
 #define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3.0f
 
-namespace Cast {
+namespace Cast
+{
 	class Entity;
 }
 
-namespace Cast::Component {
+namespace Cast::Component
+{
 	struct Component
 	{
-		virtual ~Component() = default;
+		virtual ~Component()
+		{
+		}
 
 		virtual UIResponse OnImGuiRender() { return {}; };
-		virtual void Print() {};
-		virtual void OnAfterEntitySetBehaviour() {};
 
-		void SetEntity(Entity* entity) { EntityNode = entity; }
+		virtual void Print()
+		{
+		};
 
-		virtual std::string GetName() const
+		virtual void OnAfterEntitySetBehaviour()
+		{
+		};
+
+		void SetEntity(Ref<Entity> entity) { EntityNode = entity; }
+
+		static std::string GetName()
 		{
 			return "Component";
 		}
 
 	protected:
-		Entity* EntityNode = nullptr;
+		Ref<Entity> EntityNode = nullptr;
 
 		friend class Entity;
 	};

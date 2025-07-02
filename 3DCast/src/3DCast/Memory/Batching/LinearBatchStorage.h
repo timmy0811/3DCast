@@ -13,34 +13,34 @@ namespace Cast::Memory
 	class LinearBatchStorage
 	{
 	public:
-		LinearBatchStorage(size_t capacity);
+		explicit LinearBatchStorage(size_t capacity);
 		~LinearBatchStorage() = default;
 
-		int CreateBatchObject(uid object, void* data, size_t size);
+		int CreateBatchObject(uid object, const void* data, size_t size);
 		std::vector<uid> RemoveObject(uid object);
 
-		bool EditObject(uid object, void* data, size_t size);
-		void EditObject(size_t offset, void* data, size_t size);
+		bool EditObject(uid object, const void* data, size_t size);
+		void EditObject(size_t offset, const void* data, size_t size) const;
 
-		int RetransferVertexEntity(uid object, void* data, size_t size);
+		int RetransferVertexEntity(uid object, const void* data, size_t size);
 
 		inline size_t GetCapacity() const { return Capacity; }
 		inline size_t GetSize() const { return BatchMemory->GetSize(); }
 		inline size_t GetObjectCount() const { return Objects.size(); }
 		inline size_t GetAvailableMemory() const { return Capacity - BatchMemory->GetSize(); }
 
-		void Render(Cast::Ref<API::Core::Shader> shader);
+		void Render(Ref<API::Core::Shader> shader) const;
 
 		void Clear();
 
-		void SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout);
+		void SetLayout(Ref<API::Core::VertexBufferLayout> layout);
 
 	private:
 		size_t Capacity;
 		std::unordered_map<uid, int> Objects;
 
-		Cast::Ref<API::Core::Buffer> BatchMemory;
-		Cast::Ref<API::Core::VertexBufferLayout> Layout;
-		Cast::Ref<API::Core::VertexArray> VertexArray;
+		Ref<API::Core::Buffer> BatchMemory;
+		Ref<API::Core::VertexBufferLayout> Layout;
+		Ref<API::Core::VertexArray> VertexArray;
 	};
 }

@@ -6,9 +6,9 @@
 #include <imgui.h>
 
 namespace Cast::GUI {
-	class NotificationModal : public TempGuiElement {
+	class NotificationModal final : public TempGuiElement {
 	public:
-		NotificationModal(const char* title, const char* message, ImVec2 size = ImVec2(0, 0))
+		NotificationModal(const char* title, const char* message, const ImVec2 size = ImVec2(0, 0))
 			: title(title), message(message), size(size) {}
 
 		bool Render() override {

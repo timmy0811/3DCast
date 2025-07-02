@@ -5,7 +5,7 @@
 #include <imgui.h>
 
 namespace Cast::Component {
-	struct RasterizableComponent : public Component
+	struct RasterizableComponent final : public Component
 	{
 #pragma region DATA
 		bool Renderable{ true };
@@ -14,7 +14,8 @@ namespace Cast::Component {
 #pragma region CONSTRUCTOR
 		RasterizableComponent() = default;
 		RasterizableComponent(const RasterizableComponent&) = default;
-		RasterizableComponent(bool enable)
+
+		explicit RasterizableComponent(const bool enable)
 			: Renderable(enable) {}
 #pragma endregion
 
@@ -22,14 +23,14 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Raster; }
+		static inline Type GetType() { return Type::Raster; }
 		static inline std::string GetName() { return "Rasterizable"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Rasterizable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override {
+			const bool isOpen = ImGui::CollapsingHeader("Rasterizable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
@@ -46,7 +47,7 @@ namespace Cast::Component {
 #pragma endregion
 	};
 
-	struct PBRComponent : public Component
+	struct PBRComponent final : public Component
 	{
 #pragma region DATA
 		bool Renderable{ true };
@@ -55,7 +56,8 @@ namespace Cast::Component {
 #pragma region CONSTRUCTOR
 		PBRComponent() = default;
 		PBRComponent(const PBRComponent&) = default;
-		PBRComponent(bool enable)
+
+		explicit PBRComponent(const bool enable)
 			: Renderable(enable) {}
 #pragma endregion
 
@@ -63,11 +65,11 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::PBR; }
+		static inline Type GetType() { return Type::PBR; }
 		static inline std::string GetName() { return "PBR Renderable"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("PBR Renderable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override {
+			const bool isOpen = ImGui::CollapsingHeader("PBR Renderable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
 			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;

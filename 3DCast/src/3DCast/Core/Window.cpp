@@ -3,6 +3,8 @@
 
 #ifdef CAST_PLATFORM_WINDOWS
 #include "3DCast/Platform/Windows/WindowsWindow.h"
+#elif CAST_PLATFORM_LINUX
+#include "3DCast/Platform/Linux/LinuxWindow.h"
 #endif
 
 namespace Cast
@@ -11,6 +13,8 @@ namespace Cast
 	{
 #ifdef CAST_PLATFORM_WINDOWS
 		return CreateScope<WindowsWindow>(props);
+#elif CAST_PLATFORM_LINUX
+		return CreateScope<LinuxWindow>(props);
 #else
 		CAST_ASSERT(false, "Unknown platform!");
 		return nullptr;

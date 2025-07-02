@@ -7,25 +7,25 @@
 namespace Cast {
 	class KeyEvent : public Event {
 	public:
-		inline int GetKeyCode() const { return keyCode; }
+		[[nodiscard]] inline int GetKeyCode() const { return keyCode; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput);
 
 	protected:
-		KeyEvent(int keycode)
+		explicit KeyEvent(const int keycode)
 			:keyCode(keycode) {}
 
 		int keyCode;
 	};
 
-	class KeyPressedEvent : public KeyEvent {
+	class KeyPressedEvent final : public KeyEvent {
 	public:
-		KeyPressedEvent(int keyCode, int repeatCount)
+		KeyPressedEvent(const int keyCode, const int repeatCount)
 			:KeyEvent(keyCode), m_RepeatCount(repeatCount) {}
 
-		inline int GetRepeatCount() const { return m_RepeatCount; }
+		[[nodiscard]] inline int GetRepeatCount() const { return m_RepeatCount; }
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "KeyPressedEvent: " << keyCode << " (" << GetRepeatCount() << " repeats)";
 			return ss.str();
@@ -37,12 +37,12 @@ namespace Cast {
 		int m_RepeatCount;
 	};
 
-	class KeyReleasedEvent : public KeyEvent {
+	class KeyReleasedEvent final : public KeyEvent {
 	public:
-		KeyReleasedEvent(int keyCode)
+		explicit KeyReleasedEvent(const int keyCode)
 			:KeyEvent(keyCode) {}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "KeyReleasedEvent: " << keyCode;
 			return ss.str();
@@ -51,12 +51,12 @@ namespace Cast {
 		EVENT_CLASS_TYPE(KeyReleased);
 	};
 
-	class KeyTypedEvent : public KeyEvent {
+	class KeyTypedEvent final : public KeyEvent {
 	public:
-		KeyTypedEvent(int keyCode)
+		explicit KeyTypedEvent(const int keyCode)
 			:KeyEvent(keyCode) {}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "KeyTypedEvent: " << keyCode;
 			return ss.str();

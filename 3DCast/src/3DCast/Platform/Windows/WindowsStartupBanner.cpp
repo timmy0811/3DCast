@@ -6,7 +6,7 @@
 
 bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 {
-	int result = glfwInit();
+	const int result = glfwInit();
 
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
@@ -18,7 +18,7 @@ bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 	CAST_ASSERT(result, "Could not initialize GLFW.");
 
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	window = glfwCreateWindow(666, 442, "", NULL, NULL);
+	window = glfwCreateWindow(666, 442, "", nullptr, nullptr);
 	if (!window)
 	{
 		LOG_CORE_ERROR("Could not initialize Window.");
@@ -32,8 +32,8 @@ bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 	int windowWidth, windowHeight;
 	glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
-	int posX = (mode->width - windowWidth) / 2;
-	int posY = (mode->height - windowHeight) / 2;
+	const int posX = (mode->width - windowWidth) / 2;
+	const int posY = (mode->height - windowHeight) / 2;
 
 	glfwSetWindowPos(window, posX, posY);
 	glfwMakeContextCurrent(window);
@@ -42,7 +42,7 @@ bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 	context->Init();
 
 	screenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(880, 660));
-	shader.reset(API::Core::Shader::Create("../3DCast/ressources/shader/sprite/basic_img.vert", "../3DCast/ressources/shader/sprite/basic_img.frag"));
+	shader.reset(API::Core::Shader::Create("../3DCast/resources/shader/sprite/basic_img.vert", "../3DCast/resources/shader/sprite/basic_img.frag"));
 	texture.reset(API::Texture::Texture::Create(imgPath, API::Texture::TextureFilter::LINEAR, true));
 	texture->Bind();
 	shader->Bind();
@@ -51,14 +51,13 @@ bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 	return true;
 }
 
-void Cast::Core::WindowsStartupBanner::Blit(unsigned long ms)
+void Cast::Core::WindowsStartupBanner::Blit(const unsigned long ms)
 {
-	double startTime = glfwGetTime();
+	const double startTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(window))
 	{
-		double currentTime = glfwGetTime();
-		if ((currentTime - startTime) * 1000.0 >= ms)
+		if ((glfwGetTime() - startTime) * 1000.0 >= ms)
 			break;
 
 		glClear(GL_COLOR_BUFFER_BIT);

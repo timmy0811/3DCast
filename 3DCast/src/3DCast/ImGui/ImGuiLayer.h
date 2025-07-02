@@ -2,24 +2,21 @@
 
 #include "3DCast/Layer/Layer.h"
 
-#include "3DCast/Event/KeyEvent.h"
-#include "3DCast/Event/MouseEvent.h"
-#include "3DCast/Event/ApplicationEvent.h"
-
-namespace Cast {
-	class ImGuiLayer : public Layer
+namespace Cast
+{
+	class ImGuiLayer final : public Layer
 	{
 	public:
 		ImGuiLayer();
-		~ImGuiLayer();
+		~ImGuiLayer() override;
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
+		void OnAttach() override;
+		void OnDetach() override;
 
-		virtual void OnImGuiRender() override;
+		void OnImGuiRender() override;
 
-		void Begin();
-		void End();
+		static void Begin();
+		static void End();
 
 	private:
 		float time = 0.f;

@@ -1,35 +1,34 @@
 #pragma once
 
 #include "3DCast.h"
+#include "3DCast/Event/MouseEvent.h"
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
 
 #include "Layer/Blocks/RasterizationViewport.h"
 #include "Layer/Blocks/PBRViewport.h"
 
-#include <vendor/glm/glm.hpp>
-
-class EditorLayer : public Cast::Layer
+class EditorLayer final : public Cast::Layer
 {
 public:
 	EditorLayer();
-	virtual ~EditorLayer() = default;
+	~EditorLayer() override = default;
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
+	void OnAttach() override;
+	void OnDetach() override;
 
-	virtual void OnUpdate(Cast::Timestep ts) override;
-	virtual void OnImGuiRender() override;
-	virtual void OnEvent(Cast::Event& e) override;
+	void OnUpdate(Cast::Timestep ts) override;
+	void OnImGuiRender() override;
+	void OnEvent(Cast::Event& e) override;
 
 private:
 	void Render();
 
 	// Temporary
-	void SampleContent();
+	static void SampleContent();
 
 	// Event Handlers
-	bool OnMouseScrolled(Cast::MouseScrolledEvent& e);
+	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
 
 private:
 	float DeltaTime = 0.0f;

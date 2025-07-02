@@ -3,11 +3,13 @@
 
 #include "SceneShaderCache.h"
 
-namespace Cast {
+namespace Cast
+{
 	// Global instance
 	DeferredSamplerRegistry SamplerRegistry;
 
-	DeferredSamplerRegistry::DeferredSamplerRegistry() {
+	DeferredSamplerRegistry::DeferredSamplerRegistry()
+	{
 		DiffuseTextures.reserve(32);
 		SpecularTextures.reserve(32);
 		ParallaxTextures.reserve(32);
@@ -20,10 +22,10 @@ namespace Cast {
 		ParallaxTexIdCache.reserve(0x1000);
 	}
 
-	DeferredSamplerRegistry::~DeferredSamplerRegistry() {
-	}
+	DeferredSamplerRegistry::~DeferredSamplerRegistry() = default;
 
-	void DeferredSamplerRegistry::InitAfterDriverSetup() {
+	void DeferredSamplerRegistry::InitAfterDriverSetup()
+	{
 		constexpr unsigned int MAX_TEXTURES_PER_SLOT = 128;
 
 		DiffuseSamplersBuffer.reset(API::Core::Buffer::Create(
@@ -57,22 +59,26 @@ namespace Cast {
 		));
 
 		// Default samplers
-		AddDiffuseTexture(AssetCache.AddTexture("../3DCast/ressources/img/default_samplers/default_diffuse.png"));
-		AddSpecularTexture(AssetCache.AddTexture("../3DCast/ressources/img/default_samplers/default_specular.png"));
-		AddParallaxTexture(AssetCache.AddTexture("../3DCast/ressources/img/default_samplers/default_parallax.png"));
-		AddNormalTexture(AssetCache.AddTexture("../3DCast/ressources/img/default_samplers/default_normal.png"));
+		AddDiffuseTexture(AssetCache.AddTexture(std::string(ASSET_DIR) + "img/default_samplers/default_diffuse.png"));
+		AddSpecularTexture(AssetCache.AddTexture(std::string(ASSET_DIR) + "img/default_samplers/default_specular.png"));
+		AddParallaxTexture(AssetCache.AddTexture(std::string(ASSET_DIR) + "img/default_samplers/default_parallax.png"));
+		AddNormalTexture(AssetCache.AddTexture(std::string(ASSET_DIR) + "img/default_samplers/default_normal.png"));
 
 		CreateSamplerMapping(0, 0, 0, 0);
 	}
 
 #pragma region ADDERS
-	TextureInformation DeferredSamplerRegistry::AddDiffuseTexture(Ref<API::Texture::Texture> texture) {
+	TextureInformation DeferredSamplerRegistry::AddDiffuseTexture(Ref<API::Texture::Texture> texture)
+	{
 		if (!texture) return {}; // Return default texture index if null
 
-		if (std::find(DiffuseTexIdCache.begin(), DiffuseTexIdCache.end(), texture->GetRendererID()) != DiffuseTexIdCache.end()) {
-			for (const auto& pair : DiffuseTextures) {
-				if (pair.second->GetRendererID() == texture->GetRendererID())
-					return { pair.first, texture->GetRendererID() };
+		if (std::find(DiffuseTexIdCache.begin(), DiffuseTexIdCache.end(), texture->GetRendererID()) != DiffuseTexIdCache
+			.end())
+		{
+			for (const auto& [fst, snd] : DiffuseTextures)
+			{
+				if (snd->GetRendererID() == texture->GetRendererID())
+					return {fst, (int)texture->GetRendererID()};
 			}
 
 			LOG_CORE_ERROR("Texture found in Id-Cache but not in texture storage. Check the implementation");
@@ -85,21 +91,26 @@ namespace Cast {
 		DiffuseTexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> diffuseSamplerIds(DiffuseCounter + 1);
-		for (const auto& pair : DiffuseTextures) {
-			diffuseSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : DiffuseTextures)
+		{
+			diffuseSamplerIds[fst] = snd->GenerateHandle();
 		}
 		DiffuseSamplersBuffer->SetData(diffuseSamplerIds.data(), diffuseSamplerIds.size() * sizeof(uint64_t));
 
-		return { DiffuseCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
+		return {DiffuseCounter++, (int)texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()}};
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddSpecularTexture(Ref<API::Texture::Texture> texture) {
+	TextureInformation DeferredSamplerRegistry::AddSpecularTexture(Ref<API::Texture::Texture> texture)
+	{
 		if (!texture) return {};
 
-		if (std::find(SpecularTexIdCache.begin(), SpecularTexIdCache.end(), texture->GetRendererID()) != SpecularTexIdCache.end()) {
-			for (const auto& pair : SpecularTextures) {
-				if (pair.second->GetRendererID() == texture->GetRendererID())
-					return { pair.first, texture->GetRendererID() };
+		if (std::find(SpecularTexIdCache.begin(), SpecularTexIdCache.end(), texture->GetRendererID()) !=
+			SpecularTexIdCache.end())
+		{
+			for (const auto& [fst, snd] : SpecularTextures)
+			{
+				if (snd->GetRendererID() == texture->GetRendererID())
+					return {fst, (int)texture->GetRendererID()};
 			}
 
 			LOG_CORE_ERROR("Texture found in Id-Cache but not in texture storage. Check the implementation");
@@ -109,24 +120,29 @@ namespace Cast {
 		texture->SetType(API::Texture::TextureType::SPECULAR);
 		SpecularTextures[SpecularCounter] = texture;
 		texture->MakeResident();
-		SpecularTexIdCache.push_back(texture->GetRendererID());
+		SpecularTexIdCache.push_back((int)texture->GetRendererID());
 
 		std::vector<uint64_t> specularSamplerIds(SpecularCounter + 1);
-		for (const auto& pair : SpecularTextures) {
-			specularSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : SpecularTextures)
+		{
+			specularSamplerIds[fst] = snd->GenerateHandle();
 		}
 		SpecularSamplersBuffer->SetData(specularSamplerIds.data(), specularSamplerIds.size() * sizeof(uint64_t));
 
-		return { SpecularCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
+		return {SpecularCounter++, (int)texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()}};
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddParallaxTexture(Ref<API::Texture::Texture> texture) {
+	TextureInformation DeferredSamplerRegistry::AddParallaxTexture(Ref<API::Texture::Texture> texture)
+	{
 		if (!texture) return {};
 
-		if (std::find(ParallaxTexIdCache.begin(), ParallaxTexIdCache.end(), texture->GetRendererID()) != ParallaxTexIdCache.end()) {
-			for (const auto& pair : ParallaxTextures) {
-				if (pair.second->GetRendererID() == texture->GetRendererID())
-					return { pair.first, texture->GetRendererID() };
+		if (std::find(ParallaxTexIdCache.begin(), ParallaxTexIdCache.end(), texture->GetRendererID()) !=
+			ParallaxTexIdCache.end())
+		{
+			for (const auto& [fst, snd] : ParallaxTextures)
+			{
+				if (snd->GetRendererID() == texture->GetRendererID())
+					return {fst, (int)texture->GetRendererID()};
 			}
 
 			LOG_CORE_ERROR("Texture found in Id-Cache but not in texture storage. Check the implementation");
@@ -139,21 +155,26 @@ namespace Cast {
 		ParallaxTexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> shininessSamplerIds(ParallaxCounter + 1);
-		for (const auto& pair : ParallaxTextures) {
-			shininessSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : ParallaxTextures)
+		{
+			shininessSamplerIds[fst] = snd->GenerateHandle();
 		}
 		ParallaxSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
 
-		return { ParallaxCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
+		return {ParallaxCounter++, (int)texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()}};
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddNormalTexture(Ref<API::Texture::Texture> texture) {
+	TextureInformation DeferredSamplerRegistry::AddNormalTexture(Ref<API::Texture::Texture> texture)
+	{
 		if (!texture) return {};
 
-		if (std::find(NormalTexIdCache.begin(), NormalTexIdCache.end(), texture->GetRendererID()) != NormalTexIdCache.end()) {
-			for (const auto& pair : NormalTextures) {
-				if (pair.second->GetRendererID() == texture->GetRendererID())
-					return { pair.first, texture->GetRendererID() };
+		if (std::find(NormalTexIdCache.begin(), NormalTexIdCache.end(), texture->GetRendererID()) != NormalTexIdCache.
+			end())
+		{
+			for (const auto& [fst, snd] : NormalTextures)
+			{
+				if (snd->GetRendererID() == texture->GetRendererID())
+					return {fst, (int)texture->GetRendererID()};
 			}
 
 			LOG_CORE_ERROR("Texture found in Id-Cache but not in texture storage. Check the implementation");
@@ -166,44 +187,52 @@ namespace Cast {
 		NormalTexIdCache.push_back(texture->GetRendererID());
 
 		std::vector<uint64_t> normalSamplerIds(NormalCounter + 1);
-		for (const auto& pair : NormalTextures) {
-			normalSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : NormalTextures)
+		{
+			normalSamplerIds[fst] = snd->GenerateHandle();
 		}
 		NormalSamplersBuffer->SetData(normalSamplerIds.data(), normalSamplerIds.size() * sizeof(uint64_t));
 
-		return { NormalCounter++, texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()} };
+		return {NormalCounter++, (int)texture->GetRendererID(), {texture->GetWidth(), texture->GetHeight()}};
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddDiffuseTexture(const std::string& path, bool flipUV) {
-		if (path.empty()) return{};
+	TextureInformation DeferredSamplerRegistry::AddDiffuseTexture(const std::string& path, const bool flipUV)
+	{
+		if (path.empty()) return {};
 
 		return AddDiffuseTexture(AssetCache.AddTexture(path, flipUV));
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddSpecularTexture(const std::string& path, bool flipUV) {
+	TextureInformation DeferredSamplerRegistry::AddSpecularTexture(const std::string& path, const bool flipUV)
+	{
 		if (path.empty()) return {};
 
 		return AddSpecularTexture(AssetCache.AddTexture(path, flipUV));
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddParallaxTexture(const std::string& path, bool flipUV) {
+	TextureInformation DeferredSamplerRegistry::AddParallaxTexture(const std::string& path, const bool flipUV)
+	{
 		if (path.empty()) return {};
 
 		return AddParallaxTexture(AssetCache.AddTexture(path, flipUV));
 	}
 
-	TextureInformation DeferredSamplerRegistry::AddNormalTexture(const std::string& path, bool flipUV) {
+	TextureInformation DeferredSamplerRegistry::AddNormalTexture(const std::string& path, const bool flipUV)
+	{
 		if (path.empty()) return {};
 
 		return AddNormalTexture(AssetCache.AddTexture(path, flipUV));
 	}
 #pragma endregion
 
-	void DeferredSamplerRegistry::UpdateSamplerMapping(unsigned short index, unsigned short diffuseId, unsigned short specularId, unsigned short parallaxId, unsigned short normalId)
+	void DeferredSamplerRegistry::UpdateSamplerMapping(const unsigned short index, const unsigned short diffuseId,
+	                                                   const unsigned short specularId, const unsigned short parallaxId,
+	                                                   const unsigned short normalId) const
 	{
 		if (index >= MAX_SAMPLER_MAPPINGS) return;
 
-		if (!IsMappingUsed(index)) {
+		if (!IsMappingUsed(index))
+		{
 			LOG_CORE_WARN("Editing a sampler mapping that is not assigned to an object.");
 		}
 
@@ -213,14 +242,14 @@ namespace Cast {
 		mapping.parallaxIndex = parallaxId;
 		mapping.normalIndex = normalId;
 
-		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), index * sizeof(SamplerMapping));
+		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), (int)(index * sizeof(SamplerMapping)));
 	}
 
 	unsigned short DeferredSamplerRegistry::CreateSamplerMapping(
-		unsigned short diffuseId,
-		unsigned short specularId,
-		unsigned short parallaxId,
-		unsigned short normalId)
+		const unsigned short diffuseId,
+		const unsigned short specularId,
+		const unsigned short parallaxId,
+		const unsigned short normalId)
 	{
 		SamplerMapping mapping;
 		mapping.diffuseIndex = diffuseId;
@@ -228,75 +257,88 @@ namespace Cast {
 		mapping.parallaxIndex = parallaxId;
 		mapping.normalIndex = normalId;
 
-		int index = GetUnusedMapping();
+		const int index = GetUnusedMapping();
 		SetMappingUsed(index);
-		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), index * sizeof(SamplerMapping));
+		SamplerMappingsBuffer->AddData(&mapping, sizeof(SamplerMapping), (int)(index * sizeof(SamplerMapping)));
 
 		return index;
 	}
 
-	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetDiffuseTexture(unsigned short id) {
-		return (DiffuseTextures.count(id)) ? DiffuseTextures[id] : DiffuseTextures[0];
+	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetDiffuseTexture(const unsigned short id)
+	{
+		return DiffuseTextures.count(id) ? DiffuseTextures[id] : DiffuseTextures[0];
 	}
 
-	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetSpecularTexture(unsigned short id) {
-		return (SpecularTextures.count(id)) ? SpecularTextures[id] : SpecularTextures[0];
+	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetSpecularTexture(const unsigned short id)
+	{
+		return SpecularTextures.count(id) ? SpecularTextures[id] : SpecularTextures[0];
 	}
 
-	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetParallaxTexture(unsigned short id) {
-		return (ParallaxTextures.count(id)) ? ParallaxTextures[id] : ParallaxTextures[0];
+	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetParallaxTexture(const unsigned short id)
+	{
+		return ParallaxTextures.count(id) ? ParallaxTextures[id] : ParallaxTextures[0];
 	}
 
-	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetNormalTexture(unsigned short id) {
-		return (NormalTextures.count(id)) ? NormalTextures[id] : NormalTextures[0];
+	Ref<API::Texture::Texture> DeferredSamplerRegistry::GetNormalTexture(const unsigned short id)
+	{
+		return NormalTextures.count(id) ? NormalTextures[id] : NormalTextures[0];
 	}
 
-	void DeferredSamplerRegistry::MakeTexturesResidentIdempotent() {
-		for (const auto& pair : DiffuseTextures) {
-			pair.second->MakeResident();
+	void DeferredSamplerRegistry::MakeTexturesResidentIdempotent() const
+	{
+		for (const auto& [fst, snd] : DiffuseTextures)
+		{
+			snd->MakeResident();
 		}
 
-		for (const auto& pair : SpecularTextures) {
-			pair.second->MakeResident();
+		for (const auto& [fst, snd] : SpecularTextures)
+		{
+			snd->MakeResident();
 		}
 
-		for (const auto& pair : ParallaxTextures) {
-			pair.second->MakeResident();
+		for (const auto& [fst, snd] : ParallaxTextures)
+		{
+			snd->MakeResident();
 		}
 
-		for (const auto& pair : NormalTextures) {
-			pair.second->MakeResident();
+		for (const auto& [fst, snd] : NormalTextures)
+		{
+			snd->MakeResident();
 		}
 	}
 
-	void DeferredSamplerRegistry::UpdateBufferData()
+	void DeferredSamplerRegistry::UpdateBufferData() const
 	{
 		std::vector<uint64_t> diffuseSamplerIds(DiffuseCounter);
-		for (const auto& pair : DiffuseTextures) {
-			diffuseSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : DiffuseTextures)
+		{
+			diffuseSamplerIds[fst] = snd->GenerateHandle();
 		}
 		DiffuseSamplersBuffer->SetData(diffuseSamplerIds.data(), diffuseSamplerIds.size() * sizeof(uint64_t));
 
 		std::vector<uint64_t> specularSamplerIds(SpecularCounter);
-		for (const auto& pair : SpecularTextures) {
-			specularSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : SpecularTextures)
+		{
+			specularSamplerIds[fst] = snd->GenerateHandle();
 		}
 		SpecularSamplersBuffer->SetData(specularSamplerIds.data(), specularSamplerIds.size() * sizeof(uint64_t));
 
 		std::vector<uint64_t> shininessSamplerIds(ParallaxCounter);
-		for (const auto& pair : ParallaxTextures) {
-			shininessSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : ParallaxTextures)
+		{
+			shininessSamplerIds[fst] = snd->GenerateHandle();
 		}
 		ParallaxSamplersBuffer->SetData(shininessSamplerIds.data(), shininessSamplerIds.size() * sizeof(uint64_t));
 
 		std::vector<uint64_t> normalSamplerIds(NormalCounter);
-		for (const auto& pair : NormalTextures) {
-			normalSamplerIds[pair.first] = pair.second->GenerateHandle();
+		for (const auto& [fst, snd] : NormalTextures)
+		{
+			normalSamplerIds[fst] = snd->GenerateHandle();
 		}
 		NormalSamplersBuffer->SetData(normalSamplerIds.data(), normalSamplerIds.size() * sizeof(uint64_t));
 	}
 
-	void DeferredSamplerRegistry::BindSamplerBuffersToShaderPoints()
+	void DeferredSamplerRegistry::BindSamplerBuffersToShaderPoints() const
 	{
 		DiffuseSamplersBuffer->BindBase(1);
 		SpecularSamplersBuffer->BindBase(2);

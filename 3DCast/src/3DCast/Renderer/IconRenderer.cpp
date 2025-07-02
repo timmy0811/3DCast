@@ -13,7 +13,7 @@ Cast::IconRenderer::IconRenderer(const std::string& palleteConfigPath, const std
 
 	ParsePalleteConfig(palleteConfigPath);
 
-	float vertices[] = {
+	constexpr float vertices[] = {
 		-0.5f, -0.5f, 0.0f, 2.f,
 		 0.5f, -0.5f, 0.0f, 3.f,
 		 0.5f,  0.5f, 0.0f, 1.f,
@@ -34,17 +34,17 @@ Cast::IconRenderer::IconRenderer(const std::string& palleteConfigPath, const std
 	Va->SetVBCount(6);
 }
 
-void Cast::IconRenderer::AddIcon(Icon icon, const glm::vec3& position)
+void Cast::IconRenderer::AddIcon(const Icon icon, const glm::vec3& position)
 {
-	BillboardSource source = { position, 1.0, (int)icon };
+	const BillboardSource source = { position, 1.0, (int)icon };
 	SourceSSBO->AddData(&source, sizeof(BillboardSource));
 
 	IconsToBeRendered++;
 }
 
-void Cast::IconRenderer::RenderAll()
+void Cast::IconRenderer::RenderAll() const
 {
-	auto shader = AssetCache.GetShaderHandle("icon_billboard");
+	const auto shader = AssetCache.GetShaderHandle("icon_billboard");
 	shader->Bind();
 	Pallete->Bind(0);
 	shader->SetUniform1i("u_Pallete", Pallete->GetBoundPort());
@@ -55,7 +55,7 @@ void Cast::IconRenderer::RenderAll()
 void Cast::IconRenderer::ParsePalleteConfig(const std::string& palletePath)
 {
 	LOG_CORE_INFO("Loading icons");
-	YAML::Node mainNode = YAML::LoadFile(palletePath)["icons"];
+	const YAML::Node mainNode = YAML::LoadFile(palletePath)["icons"];
 
 	ParseSingleIcon(mainNode, "light_directional", Icon::LightDirectional);
 	ParseSingleIcon(mainNode, "light_point", Icon::LightPoint);
@@ -65,16 +65,16 @@ void Cast::IconRenderer::ParsePalleteConfig(const std::string& palletePath)
 	IconDataSSBO->AddData(Icons.data(), (int)(Icons.size() * sizeof(IconData)));
 }
 
-void Cast::IconRenderer::ParseSingleIcon(const YAML::Node& node, const std::string& iconId, Icon icon)
+void Cast::IconRenderer::ParseSingleIcon(const YAML::Node& node, const std::string& iconId, const Icon icon)
 {
-	glm::vec4 uvx = {
+	const glm::vec4 uvx = {
 		node[iconId]["uv0"][0].as<float>(),
 		node[iconId]["uv1"][0].as<float>(),
 		node[iconId]["uv0"][0].as<float>(),
 		node[iconId]["uv1"][0].as<float>()
 	};
 
-	glm::vec4 uvy = {
+	const glm::vec4 uvy = {
 		node[iconId]["uv0"][1].as<float>(),
 		node[iconId]["uv0"][1].as<float>(),
 		node[iconId]["uv1"][1].as<float>(),

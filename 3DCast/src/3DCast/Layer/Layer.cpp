@@ -1,11 +1,11 @@
 #include "castpch.h"
 #include "Layer.h"
 
-Cast::Layer::Layer(const std::string& name)
-	:debugName(name)
+#include <utility>
+
+Cast::Layer::Layer(std::string  name)
+	:debugName(std::move(name))
 {
 }
 
-Cast::Layer::~Layer()
-{
-}
+Cast::Layer::~Layer() = default;

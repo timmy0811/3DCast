@@ -4,16 +4,21 @@
 
 #include "Event.h"
 
-namespace Cast {
-	class WindowResizeEvent : public Event {
+namespace Cast
+{
+	class WindowResizeEvent final : public Event
+	{
 	public:
-		WindowResizeEvent(unsigned int width, unsigned int height)
-			:m_Width(width), m_Height(height) {}
+		WindowResizeEvent(const unsigned int width, const unsigned int height)
+			: m_Width(width), m_Height(height)
+		{
+		}
 
-		inline unsigned int GetWidth() const { return m_Width; }
-		inline unsigned int GetHeight() const { return m_Height; }
+		[[nodiscard]] inline unsigned int GetWidth() const { return m_Width; }
+		[[nodiscard]] inline unsigned int GetHeight() const { return m_Height; }
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override
+		{
 			std::stringstream ss;
 			ss << "WindowResizeEvent: " << m_Width << ", " << m_Height;
 			return ss.str();
@@ -26,15 +31,19 @@ namespace Cast {
 		unsigned int m_Width, m_Height;
 	};
 
-	class WindowMovedEvent : public Event {
+	class WindowMovedEvent final : public Event
+	{
 	public:
-		WindowMovedEvent(int x, int y)
-			:xPos(x), yPos(y) {}
+		WindowMovedEvent(const int x, const int y)
+			: xPos(x), yPos(y)
+		{
+		}
 
-		inline int GetxPos() const { return xPos; }
-		inline int GetyPos() const { return yPos; }
+		[[nodiscard]] inline int GetxPos() const { return xPos; }
+		[[nodiscard]] inline int GetyPos() const { return yPos; }
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override
+		{
 			std::stringstream ss;
 			ss << "WindowMovedEvent: " << xPos << ", " << yPos;
 			return ss.str();
@@ -47,33 +56,37 @@ namespace Cast {
 		int xPos, yPos;
 	};
 
-	class WindowCloseEvent : public Event {
+	class WindowCloseEvent final : public Event
+	{
 	public:
-		WindowCloseEvent() {}
+		WindowCloseEvent() = default;
 
 		EVENT_CLASS_TYPE(WindowClose);
 		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 	};
 
-	class AppTickEvent : public Event {
+	class AppTickEvent final : public Event
+	{
 	public:
-		AppTickEvent() {}
+		AppTickEvent() = default;
 
 		EVENT_CLASS_TYPE(WindowClose);
 		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 	};
 
-	class AppUpdateEvent : public Event {
+	class AppUpdateEvent final : public Event
+	{
 	public:
-		AppUpdateEvent() {}
+		AppUpdateEvent() = default;
 
 		EVENT_CLASS_TYPE(AppUpdate);
 		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 	};
 
-	class AppRenderEvent : public Event {
+	class AppRenderEvent final : public Event
+	{
 	public:
-		AppRenderEvent() {}
+		AppRenderEvent() = default;
 
 		EVENT_CLASS_TYPE(AppRender);
 		EVENT_CLASS_CATEGORY(EventCategoryApplication);

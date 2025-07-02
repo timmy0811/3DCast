@@ -2,22 +2,23 @@
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
 
-#include <Vendor/glm/glm.hpp>
+#include <vendor/glm/glm.hpp>
 #include <vendor/glm/gtx/euler_angles.hpp>
-#include <Vendor/glm/gtx/matrix_decompose.hpp>
+#include <vendor/glm/gtx/matrix_decompose.hpp>
 
 #include "3DCast/Scene/TransformRegistry.h"
 
 #include <imgui.h>
 
-namespace Cast::Component {
-	struct TransformComponent : public Component
+namespace Cast::Component
+{
+	struct TransformComponent final : public Component
 	{
 #pragma region DATA
-		glm::mat4 Transform{ 1.0f };
-		glm::vec3 translation{ 0.0f };
-		glm::vec3 scale{ 1.0f };
-		glm::vec3 rotation{ 0.0f };
+		glm::mat4 Transform{1.0f};
+		glm::vec3 translation{0.0f};
+		glm::vec3 scale{1.0f};
+		glm::vec3 rotation{0.0f};
 
 		TransformRegistry* transformRegistry = nullptr;
 
@@ -29,15 +30,22 @@ namespace Cast::Component {
 #pragma region CONSTRUCTOR
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const glm::mat4& transform)
-			: Transform(transform) {}
-		TransformComponent(const glm::vec3& translation, const glm::vec3& scale, const glm::vec3& rotation)
+
+		explicit TransformComponent(const glm::mat4& transform)
+			: Transform(transform)
 		{
-			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 		}
 
-		~TransformComponent() {
-			if (transformRegistry && isRegistered) {
+		TransformComponent(const glm::vec3& translation, const glm::vec3& scale, const glm::vec3& rotation)
+		{
+			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) *
+				glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+		}
+
+		~TransformComponent() override
+		{
+			if (transformRegistry && isRegistered)
+			{
 				transformRegistry->InvalidateEntry(transformRegistryIndex);
 				isRegistered = false;
 			}
@@ -49,7 +57,8 @@ namespace Cast::Component {
 		{
 			this->transformRegistry = transformRegistry;
 
-			if (transformRegistry) {
+			if (transformRegistry)
+			{
 				transformRegistryIndex = transformRegistry->RegisterTransform(&Transform);
 				isRegistered = true;
 				return true;
@@ -58,28 +67,28 @@ namespace Cast::Component {
 			return false;
 		}
 
-		inline glm::mat4 GetTransform() const
+		[[nodiscard]] inline glm::mat4 GetTransform() const
 		{
 			return Transform;
 		}
 
-		inline glm::vec3 GetTranslation() const
+		[[nodiscard]] inline glm::vec3 GetTranslation() const
 		{
 			return glm::vec3(Transform[3]);
 		}
 
-		glm::vec3 GetScale() const
+		[[nodiscard]] glm::vec3 GetScale() const
 		{
-			return glm::vec3(glm::length(glm::vec3(Transform[0])),
-				glm::length(glm::vec3(Transform[1])),
-				glm::length(glm::vec3(Transform[2])));
+			return {glm::length(glm::vec3(Transform[0])),
+			                 glm::length(glm::vec3(Transform[1])),
+			                 glm::length(glm::vec3(Transform[2]))};
 		}
 
-		glm::vec3 GetRotation() const
+		[[nodiscard]] glm::vec3 GetRotation() const
 		{
-			glm::vec3 scale = GetScale();
+			const glm::vec3 scale = GetScale();
 
-			glm::mat3 rotationMatrix = glm::mat3(
+			const auto rotationMatrix = glm::mat3(
 				Transform[0] / scale.x,
 				Transform[1] / scale.y,
 				Transform[2] / scale.z
@@ -97,42 +106,47 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Transform; }
+		static inline Type GetType() { return Type::Transform; }
 		static inline std::string GetName() { return "Transform"; }
 
-		virtual UIResponse OnImGuiRender() override
+		UIResponse OnImGuiRender() override
 		{
-			bool isOpen = ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader("Transform",
+			                                      ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
 			if (ImGui::SmallButton("Remove##Transform"))
-				return { UIResponse::Code::Remove, Type::Camera };
+				return {UIResponse::Code::Remove, Type::Camera};
 
 			if (isOpen)
 			{
 				bool edited = false;
 				ImGui::Text("Translation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f)) {
+				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
+				{
 					UpdateTransformMatrix();
 					edited = true;
 				}
 
 				ImGui::Text("Scale:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f)) {
+				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
+				{
 					UpdateTransformMatrix();
 					edited = true;
 				}
 
 				ImGui::Text("Rotation:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
-				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f)) {
+				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
+				{
 					UpdateTransformMatrix();
 					edited = true;
 				}

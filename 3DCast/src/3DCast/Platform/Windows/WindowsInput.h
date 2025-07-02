@@ -2,13 +2,15 @@
 
 #include "3DCast/Input/Input.h"
 
-namespace Cast {
-	class WindowsInput : public Input {
+namespace Cast
+{
+	class WindowsInput final : public Input
+	{
 	protected:
-		virtual bool IsKeyPressedImpl(int keyCode) override;
-		virtual bool IsMouseButtonPressedImpl(int keyCode) override;
-		virtual float GetMouseYImpl() override;
-		virtual float GetMouseXImpl() override;
+		bool IsKeyPressedImpl(int keyCode) override;
+		bool IsMouseButtonPressedImpl(int keyCode) override;
+		float GetMouseYImpl() override;
+		float GetMouseXImpl() override;
 
 		// Inherited via Input
 		std::pair<float, float> GetMousePosImpl() override;

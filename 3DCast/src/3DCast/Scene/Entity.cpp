@@ -5,12 +5,12 @@
 #include "3DCast/ImGui/TempElements/TempGuiElementCollection.h"
 #include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
 
-Cast::Entity::Entity(entt::entity handle, Cast::Scene* scene)
-	: EntityHandle(handle), Scene(scene)
+Cast::Entity::Entity(const entt::entity handle, Scene* scene)
+	: EntityHandle(handle), Scene_(scene)
 {
 }
 
-bool Cast::Entity::EntityHasRequiredComponents(Component::Type type)
+bool Cast::Entity::EntityHasRequiredComponents(const Component::Type type)
 {
 	switch (type) {
 	case Component::Type::Mesh:

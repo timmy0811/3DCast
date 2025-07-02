@@ -5,15 +5,15 @@
 #include "Event.h"
 
 namespace Cast {
-	class MouseMovedEvent : public Event {
+	class MouseMovedEvent final : public Event {
 	public:
-		MouseMovedEvent(float x, float y)
+		MouseMovedEvent(const float x, const float y)
 			:mouseX(x), mouseY(y) {}
 
-		inline float GetX() const { return mouseX; }
-		inline float GetY() const { return mouseY; }
+		[[nodiscard]] inline float GetX() const { return mouseX; }
+		[[nodiscard]] inline float GetY() const { return mouseY; }
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "MouseMovedEvent: " << mouseX << ", " << mouseY;
 			return ss.str();
@@ -26,15 +26,15 @@ namespace Cast {
 		float mouseX, mouseY;
 	};
 
-	class MouseScrolledEvent : public Event {
+	class MouseScrolledEvent final : public Event {
 	public:
-		MouseScrolledEvent(float xOffset, float yOffset)
+		MouseScrolledEvent(const float xOffset, const float yOffset)
 			:xOffset(xOffset), yOffset(yOffset) {}
 
-		inline float GetXOffset() const { return xOffset; }
-		inline float GetYOffset() const { return yOffset; }
+		[[nodiscard]] inline float GetXOffset() const { return xOffset; }
+		[[nodiscard]] inline float GetYOffset() const { return yOffset; }
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
 			return ss.str();
@@ -49,23 +49,23 @@ namespace Cast {
 
 	class MouseButtonEvent : public Event {
 	public:
-		inline int GetMouseButton() const { return button; }
+		[[nodiscard]] inline int GetMouseButton() const { return button; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
 
 	protected:
-		MouseButtonEvent(int button)
+		explicit MouseButtonEvent(const int button)
 			:button(button) {}
 
 		int button;
 	};
 
-	class MouseButtonPressedEvent : public MouseButtonEvent {
+	class MouseButtonPressedEvent final : public MouseButtonEvent {
 	public:
-		MouseButtonPressedEvent(int button)
+		explicit MouseButtonPressedEvent(const int button)
 			:MouseButtonEvent(button) {}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "MouseButtonPressedEvent: " << GetMouseButton();
 			return ss.str();
@@ -74,12 +74,12 @@ namespace Cast {
 		EVENT_CLASS_TYPE(MouseButtonPressed);
 	};
 
-	class MouseButtonReleasedEvent : public MouseButtonEvent {
+	class MouseButtonReleasedEvent final : public MouseButtonEvent {
 	public:
-		MouseButtonReleasedEvent(int button)
+		explicit MouseButtonReleasedEvent(const int button)
 			:MouseButtonEvent(button) {}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "MouseButtonReleasedEvent: " << GetMouseButton();
 			return ss.str();

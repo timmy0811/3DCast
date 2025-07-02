@@ -3,12 +3,12 @@
 #include "Viewport.h"
 
 namespace Runtime {
-	class PBRViewport : public Viewport
+	class PBRViewport final : public Viewport
 	{
 	public:
 		PBRViewport() = default;
-		PBRViewport(Cast::Layer* parent);
-		virtual ~PBRViewport() = default;
+		explicit PBRViewport(Cast::Layer* parent);
+		~PBRViewport() override = default;
 
 		void Init() override;
 		void Destroy() override;

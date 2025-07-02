@@ -9,8 +9,12 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "3DCast/Event/MouseEvent.h"
+
 Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
-	: Viewport(parent) {}
+	: Viewport(parent)
+{
+}
 
 void Runtime::RasterizationViewport::Init()
 {
@@ -18,16 +22,23 @@ void Runtime::RasterizationViewport::Init()
 	constexpr size_t DefaultStorageSize = sizeof(Cast::Memory::BatchVertex) * 1000000;
 	Cast::Memory::BatchMemoryHandler.Init(DefaultStorageSize, MaxIndices);
 
-	PipelineData.GBufferScreenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
-	PipelineData.Framebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT)));
-	PipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT));
+	PipelineData.GBufferScreenGeometry.reset(
+		API::Advanced::GBufferScreenGeometry::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));
+	PipelineData.Framebuffer.reset(
+		API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT)));
+	PipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));
 
 	PipelineData.GBuffer->Bind();
-	PipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT, API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16, API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
 
 	PipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
 	PipelineData.GBuffer->AddStencilTarget();
@@ -38,13 +49,14 @@ void Runtime::RasterizationViewport::Init()
 
 	CompileShaders();
 
-	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
-	shader->SetUniform1i("gBuf_Position", PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	shader->SetUniform1i("gBuf_Normal", PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	shader->SetUniform1i("gBuf_Albedo", PipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
-	shader->SetUniform1i("gBuf_Specular", PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
-	shader->SetUniform1i("gBuf_Shine_Reflectance", PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
+	shader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
+	shader->SetUniform1i("gBuf_Normal", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
+	shader->SetUniform1i("gBuf_Albedo", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
+	shader->SetUniform1i("gBuf_Specular", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
+	shader->SetUniform1i("gBuf_Shine_Reflectance",
+	                     (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
 	shader->Unbind();
 }
 
@@ -55,24 +67,27 @@ void Runtime::RasterizationViewport::Destroy()
 void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 {
 	static bool initCameraRotation = true;
-	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsHovered) {
-		if (initCameraRotation) {
+	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsMainComponentHovered)
+	{
+		if (initCameraRotation)
+		{
 			ParentLayer->GetParentWindow()->SetInputModeDisabled();
 			IsCameraRotating = true;
 			initCameraRotation = false;
 			IsInitFrame = true;
 		}
 	}
-	else {
+	else
+	{
 		ParentLayer->GetParentWindow()->SetInputModeNormal();
 		IsCameraRotating = false;
 		initCameraRotation = true;
 	}
 
-	auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
+	const auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
 	iconShader->Bind();
-	iconShader->SetUniformMat4f("u_ViewProjection", Runtime::EditorContext.ActiveCamera->GetViewProjectionMat());
-	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
+	const auto camPos = EditorContext.ActiveCamera->GetPosition();
 	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
 
 	Cast::Shared.ActiveScene->OnUpdate();
@@ -86,58 +101,89 @@ void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
 
 void Runtime::RasterizationViewport::OnImGuiRender()
 {
-	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoTitleBar);
+	if (SetPositionOnNextDraw)
+	{
+		ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_Always);
+		SetPositionOnNextDraw = false;
+	}
+
+	if (IsMainComponentHovered)
+		ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoMove);
+	else
+		ImGui::Begin("Viewport", nullptr);
+
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-	static ImVec2 lastViewportSize = ImVec2(0, 0);
+	static auto lastViewportSize = ImVec2(0, 0);
 	if (viewportSize.x != lastViewportSize.x || viewportSize.y != lastViewportSize.y)
 	{
 		lastViewportSize = viewportSize;
 
 		//Framebuffer->Resize({ static_cast<uint32_t>(viewportSize.x), static_cast<uint32_t>(viewportSize.y) });
 
-		switch (Runtime::EditorContext.ActiveCamera->GetType()) {
+		switch (EditorContext.ActiveCamera->GetType())
+		{
 		case Cast::Renderer::Camera::Type::Orthographic:
-			((Cast::Renderer::OrthographicCamera*)Runtime::EditorContext.ActiveCamera.get())->SetFrustumOnResized(lastViewportSize.x, lastViewportSize.y);
+			((Cast::Renderer::OrthographicCamera*)EditorContext.ActiveCamera.get())->SetFrustumOnResized(
+				lastViewportSize.x, lastViewportSize.y);
 			break;
 		case Cast::Renderer::Camera::Type::Perspective:
-			((Cast::Renderer::PerspectiveCamera*)Runtime::EditorContext.ActiveCamera.get())->SetAspectRatio(lastViewportSize.x / lastViewportSize.y);
+			((Cast::Renderer::PerspectiveCamera*)EditorContext.ActiveCamera.get())->SetAspectRatio(
+				lastViewportSize.x / lastViewportSize.y);
 		}
 	}
 
-	uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
-	ImGui::Image((unsigned long long)textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
+	const uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
+	ImGui::Image(textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
 
+	IsMainComponentHovered = ImGui::IsItemHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 
-	Size = { viewportSize.x, viewportSize.y };
+	Size = {viewportSize.x, viewportSize.y};
+
+#ifdef CAST_DESKTOP_WAYLAND
+	auto viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+	glm::vec2 applicationAbsPos = ParentLayer->GetParentWindow()->GetPosition();
+
+	Position = viewportAbsPos; // ImGui positions are already relative to the application window -> misleading signature
+#else
 	glm::vec2 viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 	glm::vec2 applicationAbsPos = (glm::vec2)ParentLayer->GetParentWindow()->GetPosition();
-	Position = viewportAbsPos - applicationAbsPos;
-	Cast::Shared.WindowCenter = { applicationAbsPos.x + (float)ParentLayer->GetParentWindow()->GetWidth() * 0.5f, applicationAbsPos.y + (float)ParentLayer->GetParentWindow()->GetHeight() * 0.5f };
 
-	RelativeMousePosition = { ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y };
+	Position = viewportAbsPos - applicationAbsPos;
+#endif
+
+	Cast::Shared.WindowCenter = {
+		applicationAbsPos.x + (float)ParentLayer->GetParentWindow()->GetWidth() * 0.5f,
+		applicationAbsPos.y + (float)ParentLayer->GetParentWindow()->GetHeight() * 0.5f
+	};
+
+	RelativeMousePosition = {ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y};
 
 	ImGui::End();
 }
 
 void Runtime::RasterizationViewport::OnRender()
 {
-	Cast::Renderer::RendererContext::BeginScene(*Runtime::EditorContext.ActiveCamera);
+	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera);
 
 	RenderGeometryPass();
-	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(), PipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(),
+	                                            PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH,
+	                                            (int)conf.WIN_HEIGHT);
 	RenderLightingPass();
-	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(), PipelineData.Framebuffer->GetInternalId(), Runtime::conf.WIN_WIDTH, Runtime::conf.WIN_HEIGHT);
+	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(),
+	                                          PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH,
+	                                          (int)conf.WIN_HEIGHT);
 	RenderForwardPass();
 
 	Cast::Renderer::RendererContext::EndScene();
 }
 
-void Runtime::RasterizationViewport::RenderGeometryPass()
+void Runtime::RasterizationViewport::RenderGeometryPass() const
 {
 	// Color for bleeding areas
-	API::Core::RenderCommand::SetClearColor({ 0.1f, 0.9f, 0.1f, 1.0f });
+	API::Core::RenderCommand::SetClearColor({0.1f, 0.9f, 0.1f, 1.0f});
 	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
@@ -148,15 +194,15 @@ void Runtime::RasterizationViewport::RenderGeometryPass()
 
 	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
 	shader->Bind();
-	glm::vec3 camPos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	const glm::vec3 camPos = EditorContext.ActiveCamera->GetPosition();
 	shader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
-	shader->SetUniform1f("u_ParallaxScale", Runtime::EditorContext.ViewSettings.ParallaxScale);
+	shader->SetUniform1f("u_ParallaxScale", EditorContext.ViewSettings.ParallaxScale);
 
 	Cast::Shared.ActiveScene->OnDeferredRender();
 	PipelineData.GBuffer->Unbind();
 }
 
-void Runtime::RasterizationViewport::RenderLightingPass()
+void Runtime::RasterizationViewport::RenderLightingPass() const
 {
 	PipelineData.Framebuffer->BindAndClear();
 	PipelineData.GBuffer->BindDepthTexture(0);
@@ -165,16 +211,16 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	Cast::Shared.ActiveScene->BindSSBOforShadingPass();
 
 	// Lighting Pass Uniforms
-	Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
-	shader->SetUniform2f("u_Resolution", (float)Runtime::conf.WIN_WIDTH, (float)Runtime::conf.WIN_HEIGHT);
-	const glm::vec3& pos = Runtime::EditorContext.ActiveCamera->GetPosition();
+	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	const glm::vec3& pos = EditorContext.ActiveCamera->GetPosition();
 	shader->SetUniform3f("u_ViewPosition", pos.x, pos.y, pos.z);
 
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
 	// Viewport Background Color
-	API::Core::RenderCommand::SetClearColor({ 0.10f, 0.10f, 0.10f, 1.0f });
+	API::Core::RenderCommand::SetClearColor({0.10f, 0.10f, 0.10f, 1.0f});
 	API::Core::RenderCommand::Clear();
 
 	PipelineData.Framebuffer->Bind();
@@ -186,7 +232,7 @@ void Runtime::RasterizationViewport::RenderLightingPass()
 	API::Core::RenderCommand::SetStencilTest(false);
 }
 
-void Runtime::RasterizationViewport::RenderForwardPass()
+void Runtime::RasterizationViewport::RenderForwardPass() const
 {
 	PipelineData.Framebuffer->Bind();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
@@ -197,31 +243,49 @@ void Runtime::RasterizationViewport::RenderForwardPass()
 
 void Runtime::RasterizationViewport::CompileShaders()
 {
-	Cast::AssetCache.AddShader("shader_geometry_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/geometry_pass.vert", "../3DCast/ressources/shader/deferred/geometry_pass.frag"));
-	Cast::AssetCache.AddShader("shader_shading_pass", API::Core::Shader::Create("../3DCast/ressources/shader/deferred/shading_pass.vert", "../3DCast/ressources/shader/deferred/shading_pass.frag"));
-	Cast::AssetCache.AddShader("icon_billboard", API::Core::Shader::Create("../3DCast/ressources/shader/sprite/icon.vert", "../3DCast/ressources/shader/sprite/icon.frag"));
+	Cast::AssetCache.AddShader("shader_geometry_pass",
+	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/geometry_pass.vert",
+	                                                     std::string(ASSET_DIR) +
+	                                                     "shader/deferred/geometry_pass.frag"));
+	Cast::AssetCache.AddShader("shader_shading_pass",
+	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/shading_pass.vert",
+	                                                     std::string(ASSET_DIR) + "shader/deferred/shading_pass.frag"));
+	Cast::AssetCache.AddShader("icon_billboard",
+	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/icon.vert",
+	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag"));
 }
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
-	if (IsCameraRotating) {
-		glm::vec2 center = Position + Size * 0.5f;
-
-		if (!IsInitFrame) {
+	if (IsCameraRotating)
+	{
+		static glm::vec2 lastMousePos = {0.f, 0.f};
+		if (!IsInitFrame)
+		{
+#ifndef CAST_DESKTOP_WAYLAND
+			glm::vec2 center = Position + Size * 0.5f;
 			glm::vec2 offset = {
 				e.GetX() - center.x,
 				e.GetY() - center.y
 			};
 
-			offset *= Runtime::conf.MOUSE_SENSITIVITY;
+			ParentLayer->GetParentWindow()->SetCursorPosition(center.x, center.y); // Relative to application window
+#else
+			glm::vec2 offset = {
+				e.GetX() - lastMousePos.x,
+				e.GetY() - lastMousePos.y
+			};
+#endif
 
-			float yaw = Runtime::EditorContext.ActiveCamera->GetYaw() + offset.x;
-			float pitch = glm::clamp(Runtime::EditorContext.ActiveCamera->GetPitch() - offset.y, -89.99f, 89.99f);
-
-			Runtime::EditorContext.ActiveCamera->SetRotation({ pitch, yaw, Runtime::EditorContext.ActiveCamera->GetRoll() });
+			offset *= conf.MOUSE_SENSITIVITY;
+			float yaw = EditorContext.ActiveCamera->GetYaw() + offset.x;
+			float pitch = glm::clamp(EditorContext.ActiveCamera->GetPitch() - offset.y, -89.99f, 89.99f);
+			EditorContext.ActiveCamera->SetRotation({
+				pitch, yaw, EditorContext.ActiveCamera->GetRoll()
+			});
 		}
+		lastMousePos = {e.GetX(), e.GetY()};
 
-		ParentLayer->GetParentWindow()->SetCursorPosition(center.x, center.y); // Relative to application window
 		IsInitFrame = false;
 	}
 

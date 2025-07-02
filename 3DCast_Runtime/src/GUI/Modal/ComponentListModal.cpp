@@ -13,12 +13,12 @@ bool MatchesSearch(const std::string& text, const char* search)
 
 	std::string lowerText, lowerSearch;
 	lowerText.resize(text.size());
-	std::transform(text.begin(), text.end(), lowerText.begin(), ::tolower);
+	std::transform(text.begin(), text.end(), lowerText.begin(), tolower);
 
 	lowerSearch.resize(strlen(search));
-	std::transform(search, search + strlen(search), lowerSearch.begin(), ::tolower);
+	std::transform(search, search + strlen(search), lowerSearch.begin(), tolower);
 
-	return (lowerText.find(lowerSearch) != std::string::npos);
+	return lowerText.find(lowerSearch) != std::string::npos;
 }
 
 Runtime::GUI::ComponentList::ModalResult Runtime::GUI::ComponentList::OnImGuiRender()
@@ -29,7 +29,7 @@ Runtime::GUI::ComponentList::ModalResult Runtime::GUI::ComponentList::OnImGuiRen
 		g_ShowAddComponentModal = false;
 	}
 
-	ModalResult res = ModalResult::None;
+	auto res = ModalResult::None;
 
 	if (ImGui::BeginPopupModal("Add Component Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 	{

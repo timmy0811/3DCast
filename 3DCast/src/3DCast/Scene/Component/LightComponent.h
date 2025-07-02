@@ -1,11 +1,14 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
+#include "3DCast/Data/ShaderDataObjects/Light.h"
 
 #include <imgui.h>
 
-namespace Cast::Component {
-	struct LightComponent : public Component
+
+namespace Cast::Component
+{
+	struct LightComponent final : public Component
 	{
 		enum Type
 		{
@@ -18,9 +21,9 @@ namespace Cast::Component {
 		glm::vec3 EntityPosition{};
 		glm::vec3 LastEntityPosition{};
 
-		Type LightType{ Type::Directional };
-		AbstractLight* Light;
-		Cast::Ref<Cast::Scene> Scene;
+		Type LightType{Directional};
+		AbstractLight* Light{};
+		Ref<Scene> SceneInstance;
 
 		size_t BufferPos = 0;
 		unsigned int BufferIndex = 0;
@@ -29,40 +32,43 @@ namespace Cast::Component {
 #pragma region CONSTRUCTOR
 		LightComponent() = default;
 		LightComponent(const LightComponent&) = default;
-		LightComponent(const DirectionalLight& light, Cast::Ref<Cast::Scene> scene)
-			: Light(new DirectionalLight(light)), Scene(scene)
+
+		LightComponent(const DirectionalLight& light, Ref<Scene> scene)
+			: Light(new DirectionalLight(light)), SceneInstance(scene)
 		{
-			LightType = Type::Directional;
+			LightType = Directional;
 			SetupDirLight();
 		}
 
-		LightComponent(const SpotLight& light, Cast::Ref<Cast::Scene> scene)
-			: Light(new SpotLight(light)), Scene(scene)
+		LightComponent(const SpotLight& light, Ref<Scene> scene)
+			: Light(new SpotLight(light)), SceneInstance(scene)
 		{
-			LightType = Type::Spot;
+			LightType = Spot;
 			SetupSpotLight();
 		}
 
-		LightComponent(const PointLight& light, Cast::Ref<Cast::Scene> scene)
-			: Light(new PointLight(light)), Scene(scene)
+		LightComponent(const PointLight& light, Ref<Scene> scene)
+			: Light(new PointLight(light)), SceneInstance(scene)
 		{
-			LightType = Type::Point;
+			LightType = Point;
 			SetupPointLight();
 		}
 
-		~LightComponent() {
-			if (Light)
-				delete Light; // TODO: Throws exception
+		~LightComponent() override
+		{
+			delete Light; // TODO: Throws exception
 		}
 #pragma endregion
 
 #pragma region UTILITY
-		void Reallocate() {
-			switch (LightType) {
-			case Type::Directional:
+		void Reallocate()
+		{
+			switch (LightType)
+			{
+			case Directional:
 				SetupDirLight();
 				break;
-			case Type::Point:
+			case Point:
 				SetupPointLight();
 				break;
 			case Type::Spot:
@@ -72,47 +78,55 @@ namespace Cast::Component {
 		}
 
 	private:
-		void SetupDirLight() {
-			BufferPos = Scene->GetDirLightsBuffer()->GetSize();
+		void SetupDirLight()
+		{
+			BufferPos = SceneInstance->GetDirLightsBuffer()->GetSize();
 			BufferIndex = (unsigned int)(BufferPos / sizeof(DirectionalLight));
-			Scene->GetDirLightsBuffer()->AddData(Light, sizeof(DirectionalLight));
+			SceneInstance->GetDirLightsBuffer()->AddData(Light, sizeof(DirectionalLight));
 		}
 
-		void SetupSpotLight() {
-			BufferPos = Scene->GetSpotLightsBuffer()->GetSize();
+		void SetupSpotLight()
+		{
+			BufferPos = SceneInstance->GetSpotLightsBuffer()->GetSize();
 			BufferIndex = (unsigned int)(BufferPos / sizeof(SpotLight));
-			Scene->GetSpotLightsBuffer()->AddData(Light, sizeof(SpotLight));
+			SceneInstance->GetSpotLightsBuffer()->AddData(Light, sizeof(SpotLight));
 		}
 
-		void SetupPointLight() {
-			BufferPos = Scene->GetPointLightsBuffer()->GetSize();
+		void SetupPointLight()
+		{
+			BufferPos = SceneInstance->GetPointLightsBuffer()->GetSize();
 			BufferIndex = (unsigned int)(BufferPos / sizeof(PointLight));
-			Scene->GetPointLightsBuffer()->AddData(Light, sizeof(PointLight));
+			SceneInstance->GetPointLightsBuffer()->AddData(Light, sizeof(PointLight));
 		}
 #pragma endregion
 
 #pragma region OVERRIDE
+
 	public:
-		static inline const Cast::Component::Type GetType() { return Cast::Component::Type::Light; }
+		static inline Cast::Component::Type GetType() { return Cast::Component::Type::Light; }
 		static inline std::string GetName() { return "Light"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override
+		{
+			const bool isOpen = ImGui::CollapsingHeader(
+				"Light", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
 			if (ImGui::SmallButton("Remove##Light"))
-				return { UIResponse::Code::Remove, Cast::Component::Type::Light };
+				return {UIResponse::Code::Remove, Cast::Component::Type::Light};
 
-			if (isOpen) {
+			if (isOpen)
+			{
 				ImGui::Text("Type:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 
-				Type oldType = LightType;
+				const Type oldType = LightType;
 				bool changed = ImGui::Combo("##LightType", (int*)&LightType, "Directional\0Point\0Spot\0");
 
 				if (!Light) return {};
@@ -121,10 +135,12 @@ namespace Cast::Component {
 				SpotLight* spotLight;
 				DirectionalLight* dirLight;
 
-				switch (LightType) {
+				switch (LightType)
+				{
 				case Type::Directional:
-					if (changed) {
-						Scene->ReallocateLights(oldType);
+					if (changed)
+					{
+						SceneInstance->ReallocateLights(oldType);
 						delete Light;
 						Light = new DirectionalLight();
 						SetupDirLight();
@@ -149,14 +165,17 @@ namespace Cast::Component {
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 					changed |= ImGui::ColorEdit3("##Specular", &dirLight->specular.x);
 
-					if (changed) {
-						Scene->GetDirLightsBuffer()->AddData(dirLight, sizeof(DirectionalLight), (int)BufferPos);
+					if (changed)
+					{
+						SceneInstance->GetDirLightsBuffer()->
+						               AddData(dirLight, sizeof(DirectionalLight), (int)BufferPos);
 					}
 
 					break;
 				case Type::Point:
-					if (changed) {
-						Scene->ReallocateLights(oldType);
+					if (changed)
+					{
+						SceneInstance->ReallocateLights(oldType);
 						delete Light;
 						Light = new PointLight();
 						SetupPointLight();
@@ -192,15 +211,17 @@ namespace Cast::Component {
 					changed |= EntityPosition != LastEntityPosition;
 					LastEntityPosition = EntityPosition;
 
-					if (changed) {
+					if (changed)
+					{
 						pointLight->position = EntityPosition;
-						Scene->GetPointLightsBuffer()->AddData(pointLight, sizeof(PointLight), (int)BufferPos);
+						SceneInstance->GetPointLightsBuffer()->AddData(pointLight, sizeof(PointLight), (int)BufferPos);
 					}
 
 					break;
 				case Type::Spot:
-					if (changed) {
-						Scene->ReallocateLights(oldType);
+					if (changed)
+					{
+						SceneInstance->ReallocateLights(oldType);
 						delete Light;
 						Light = new SpotLight();
 						SetupSpotLight();
@@ -252,9 +273,10 @@ namespace Cast::Component {
 					changed |= EntityPosition != LastEntityPosition;
 					LastEntityPosition = EntityPosition;
 
-					if (changed) {
+					if (changed)
+					{
 						spotLight->position = EntityPosition;
-						Scene->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
+						SceneInstance->GetSpotLightsBuffer()->AddData(spotLight, sizeof(SpotLight), (int)BufferPos);
 					}
 
 					break;

@@ -9,7 +9,7 @@ namespace Cast::Core {
 	class StartupBanner
 	{
 	public:
-		virtual ~StartupBanner() {};
+		virtual ~StartupBanner() = default;
 
 		virtual bool Init(const std::string& imgPath) = 0;
 		virtual void Blit(unsigned long ms) = 0;
@@ -17,7 +17,7 @@ namespace Cast::Core {
 		static Scope<StartupBanner> Create();
 
 	protected:
-		GraphicsContext* context;
+		GraphicsContext* context = nullptr;
 
 		Ref<API::Advanced::GBufferScreenGeometry> screenGeometry;
 		Ref<API::Core::Shader> shader;

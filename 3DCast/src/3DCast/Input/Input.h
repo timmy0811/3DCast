@@ -1,12 +1,19 @@
 #pragma once
 
-#include "3DCast/Core.h"
-
-namespace Cast {
-	class Input {
+namespace Cast
+{
+	class Input
+	{
 	public:
-		inline static bool IsKeyPressed(int keyCode) { return instance->IsKeyPressedImpl(keyCode); }
-		inline static bool IsMouseButtonPressed(int keyCode) { return instance->IsMouseButtonPressedImpl(keyCode); }
+		virtual ~Input() = default;
+
+		inline static bool IsKeyPressed(const int keyCode) { return instance->IsKeyPressedImpl(keyCode); }
+
+		inline static bool IsMouseButtonPressed(const int keyCode)
+		{
+			return instance->IsMouseButtonPressedImpl(keyCode);
+		}
+
 		inline static float GetMouseX() { return instance->GetMouseXImpl(); }
 		inline static float GetMouseY() { return instance->GetMouseYImpl(); }
 		inline static std::pair<float, float> GetMousePos() { return instance->GetMousePosImpl(); }

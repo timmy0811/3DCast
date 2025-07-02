@@ -11,36 +11,35 @@
 #include <GLFW/glfw3.h>
 
 Cast::ImGuiLayer::ImGuiLayer()
-	:Layer("ImGuiLayer")
+	: Layer("ImGuiLayer")
 {
 }
 
-Cast::ImGuiLayer::~ImGuiLayer()
-{
-}
+Cast::ImGuiLayer::~ImGuiLayer() = default;
 
 void Cast::ImGuiLayer::OnAttach()
 {
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+	ImGuiIO& io = ImGui::GetIO();
+	(void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
+#ifdef CAST_PLATFORM_WINDOWS
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+#endif
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-	ImFont* myFont = io.Fonts->AddFontFromFileTTF("../3DCast/ressources/font/roboto/ubuntu.ttf", 15.5f);
+	const ImFont* myFont = io.Fonts->AddFontFromFileTTF((std::string(ASSET_DIR) + "font/roboto/ubuntu.ttf").c_str(),
+	                                                    15.5f);
 	if (myFont == nullptr)
 		myFont = io.Fonts->AddFontDefault();
 
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
 
-	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 	ImGuiStyle& style = ImGui::GetStyle();
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
@@ -48,10 +47,9 @@ void Cast::ImGuiLayer::OnAttach()
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
 
-	Application& app = Application::Get();
-	GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+	const Application& app = Application::Get();
+	auto* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
-	// Setup Platform/Renderer bindings
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
 }
@@ -77,7 +75,7 @@ void Cast::ImGuiLayer::Begin()
 void Cast::ImGuiLayer::End()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	Application& app = Application::Get();
+	const Application& app = Application::Get();
 	io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
 	// Rendering

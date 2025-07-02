@@ -22,7 +22,7 @@ void Cast::GUI::TempGuiElementCollection::OnImGuiRender()
 
 void Cast::GUI::TempGuiElementCollection::Clear()
 {
-	for (auto& element : Elements)
+	for (const auto& element : Elements)
 	{
 		delete element;
 	}

@@ -8,20 +8,22 @@
 #include <API/texture/Texture.h>
 #include <vector>
 
-namespace Cast {
-	class Mesh : public IVertexEntity {
+namespace Cast
+{
+	class Mesh final : public IVertexEntity
+	{
 	public:
 		Mesh();
-		~Mesh() = default;
+		~Mesh() override = default;
 
-		void SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>& textures);
+		void SetTextures(const std::vector<Ref<API::Texture::Texture>>& textures);
 		void SetupVertexData();
 		void SetMaterial(Component::MaterialComponent* material);
 
-		int GetVertexCount() const { return (int)Vertices.size(); }
-		bool HasIndices() const { return !Indices.empty(); }
-		bool MaterialAssigned() const { return Material != nullptr; }
-		bool LoadedSuccessfully() const { return BatchId != UID::None(); }
+		[[nodiscard]] int GetVertexCount() const { return (int)Vertices.size(); }
+		[[nodiscard]] bool HasIndices() const { return !Indices.empty(); }
+		[[nodiscard]] bool MaterialAssigned() const { return Material != nullptr; }
+		[[nodiscard]] bool LoadedSuccessfully() const { return BatchId != UID::None(); }
 
 		void RemoveFromBatchStorage();
 		void RetransferToBatchMemory() override;
@@ -34,7 +36,7 @@ namespace Cast {
 
 		std::vector<Memory::BatchVertex> Vertices;
 		std::vector<unsigned int> Indices;
-		std::vector<Cast::Ref<API::Texture::Texture>> Textures;
+		std::vector<Ref<API::Texture::Texture>> Textures;
 
 		Component::MaterialComponent* Material = nullptr;
 	};

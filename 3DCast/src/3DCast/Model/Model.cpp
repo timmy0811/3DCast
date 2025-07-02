@@ -7,27 +7,28 @@
 #include "3DCast/Scene/SceneShaderCache.h"
 
 #include <filesystem>
+#include <assimp/postprocess.h>
 
-Cast::Model::Model()
+Cast::Model::Model(): ModelSize(), ModelOffset(), BoundsMin(), BoundsMax()
 {
 	Meshes.reserve(8);
 }
 
-bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
+bool Cast::Model::Load(const std::string& path, Ref<Entity> entity)
 {
-	this->Entity = entity;
+	this->EntityContainer = entity;
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path,
-		aiProcess_Triangulate |
-		aiProcess_FlipUVs |
-		aiProcess_CalcTangentSpace |
-		aiProcess_GenNormals |
-		aiProcess_FixInfacingNormals |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_OptimizeMeshes |
-		aiProcess_OptimizeGraph |
-		aiProcess_GenBoundingBoxes
+	                                         aiProcess_Triangulate |
+	                                         aiProcess_FlipUVs |
+	                                         aiProcess_CalcTangentSpace |
+	                                         aiProcess_GenNormals |
+	                                         aiProcess_FixInfacingNormals |
+	                                         aiProcess_JoinIdenticalVertices |
+	                                         aiProcess_OptimizeMeshes |
+	                                         aiProcess_OptimizeGraph |
+	                                         aiProcess_GenBoundingBoxes
 	);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -39,7 +40,7 @@ bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 	CalcModelBounds(scene->mRootNode, scene);
 
 	DirPath = path.substr(0, path.find_last_of("/\\"));
-	ProcessNode(scene->mRootNode, scene, this->Entity);
+	ProcessNode(scene->mRootNode, scene, this->EntityContainer);
 	IsLoaded = true;
 
 	return true;
@@ -47,16 +48,19 @@ bool Cast::Model::Load(const std::string& path, Ref<Cast::Entity> entity)
 
 void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
 {
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	{
+		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		auto bBox = mesh->mAABB;
 
-		if (IsFirstBoundCheck) {
+		if (IsFirstBoundCheck)
+		{
 			BoundsMin = glm::vec3(bBox.mMin.x, bBox.mMin.y, bBox.mMin.z);
 			BoundsMax = glm::vec3(bBox.mMax.x, bBox.mMax.y, bBox.mMax.z);
 			IsFirstBoundCheck = false;
 		}
-		else {
+		else
+		{
 			BoundsMin.x = std::min(BoundsMin.x, bBox.mMin.x);
 			BoundsMin.y = std::min(BoundsMin.y, bBox.mMin.y);
 			BoundsMin.z = std::min(BoundsMin.z, bBox.mMin.z);
@@ -67,15 +71,16 @@ void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
 		}
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
 		CalcModelBounds(node->mChildren[i], scene);
 	}
 }
 
-Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> parent)
+Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiScene* scene, Ref<Entity> parent)
 {
-	std::string nodeName = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed Node";
-	Ref<Cast::Entity> currentEntity = Cast::Shared.ActiveScene->CreateEntity(nodeName);
+	const std::string nodeName = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed Node";
+	Ref<Entity> currentEntity = Shared.ActiveScene->CreateEntity(nodeName);
 
 	if (parent)
 	{
@@ -85,13 +90,13 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
-		Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity(nodeName + "_" + std::to_string(i));
+		const Ref<Entity> meshEntity = Shared.ActiveScene->CreateEntity(nodeName + "_" + std::to_string(i));
 		meshEntity->SetParent(currentEntity);
 		currentEntity->AddChild(meshEntity);
 
-		meshEntity->AddComponents<Cast::Component::MaterialComponent>();
-		auto& meshComp = meshEntity->AddComponents<Cast::Component::MeshComponent>(false);
-		auto& transformComp = meshEntity->GetComponent<Cast::Component::TransformComponent>();
+		meshEntity->AddComponents<Component::MaterialComponent>();
+		auto& meshComp = meshEntity->AddComponents<Component::MeshComponent>(false);
+		const auto& transformComp = meshEntity->GetComponent<Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.transformRegistryIndex);
@@ -107,7 +112,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		Ref<Cast::Entity> childEntity = ProcessNode(node->mChildren[i], scene, currentEntity);
+		const Ref<Entity> childEntity = ProcessNode(node->mChildren[i], scene, currentEntity);
 		if (!childEntity)
 		{
 			LOG_CORE_WARN("Detected empty mesh node. Ignoring.");
@@ -117,34 +122,40 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(aiNode* node, const aiScene* sc
 	return currentEntity;
 }
 
-Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context, unsigned short transformIndex)
+Cast::Mesh* Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Entity> context,
+                                     unsigned short transformIndex) const
 {
-	Ref<Cast::Mesh> castMesh = CreateRef<Cast::Mesh>();
-	std::vector<Cast::Ref<API::Texture::Texture>> textures;
+	auto* castMesh = new Mesh();
+	std::vector<Ref<API::Texture::Texture>> textures;
 	textures.reserve(8);
 
-	if (mesh->mMaterialIndex >= 0)
+	if (mesh->mMaterialIndex < scene->mNumMaterials)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<Cast::Ref<API::Texture::Texture>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, API::Texture::TextureType::DIFFUSE);
+		std::vector<Ref<API::Texture::Texture>> diffuseMaps = LoadMaterialTextures(
+			material, aiTextureType_DIFFUSE, API::Texture::TextureType::DIFFUSE);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, API::Texture::TextureType::SPECULAR);
+		std::vector<Ref<API::Texture::Texture>> specularMaps = LoadMaterialTextures(
+			material, aiTextureType_SPECULAR, API::Texture::TextureType::SPECULAR);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> shineMaps = LoadMaterialTextures(material, aiTextureType_SHININESS, API::Texture::TextureType::SHINE);
+		std::vector<Ref<API::Texture::Texture>> shineMaps = LoadMaterialTextures(
+			material, aiTextureType_SHININESS, API::Texture::TextureType::SHINE);
 		textures.insert(textures.end(), shineMaps.begin(), shineMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_NORMALS, API::Texture::TextureType::NORMAL);
+		std::vector<Ref<API::Texture::Texture>> normalMaps = LoadMaterialTextures(
+			material, aiTextureType_NORMALS, API::Texture::TextureType::NORMAL);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-		std::vector<Cast::Ref<API::Texture::Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, API::Texture::TextureType::HEIGHT);
+		std::vector<Ref<API::Texture::Texture>> heightMaps = LoadMaterialTextures(
+			material, aiTextureType_HEIGHT, API::Texture::TextureType::HEIGHT);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	castMesh->SetTextures(textures);
-	auto& material = context->GetComponent<Cast::Component::MaterialComponent>();
+	auto& material = context->GetComponent<Component::MaterialComponent>();
 	castMesh->SetMaterial(&material);
 	material.UpdateSamplerMapping();
 	unsigned short samplerSlot = material.samplerIndex;
@@ -158,15 +169,17 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	glm::vec3 center = BoundsMin + (BoundsMax - BoundsMin) * 0.5f;
 	glm::vec3 size = BoundsMax - BoundsMin;
 
-	float maxDim = std::max({ size.x, size.y, size.z });
+	float maxDim = std::max({size.x, size.y, size.z});
 	float invDim = (1.0f / maxDim) * 5.f;
 
-	if (!mesh->HasNormals()) {
+	if (!mesh->HasNormals())
+	{
 		LOG_CORE_WARN("Mesh does not have normals. Returning without vertex data.");
 		return castMesh;
 	}
 
-	if (!mesh->HasTangentsAndBitangents()) {
+	if (!mesh->HasTangentsAndBitangents())
+	{
 		LOG_CORE_WARN("Mesh does not have tangents and bitangents. Returning without vertex data.");
 		return castMesh;
 	}
@@ -174,7 +187,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	// Process vertices
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		Memory::BatchVertex vertex;
+		Memory::BatchVertex vertex{};
 
 		vertex.Position = {
 			mesh->mVertices[i].x,
@@ -212,7 +225,7 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		}
 		else
 		{
-			vertex.TexCoords = { 0.0f, 0.0f };
+			vertex.TexCoords = {0.0f, 0.0f};
 		}
 
 		vertex.SamplerIndex = samplerSlot;
@@ -221,9 +234,11 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		vertices.push_back(vertex);
 	}
 
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
 		aiFace face = mesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++) {
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
+		{
 			indices.push_back(face.mIndices[j]);
 		}
 	}
@@ -233,9 +248,10 @@ Cast::Ref<Cast::Mesh> Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	return castMesh;
 }
 
-std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI)
+std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
+	const aiMaterial* mat, const aiTextureType type, const API::Texture::TextureType typeAPI) const
 {
-	std::vector<Cast::Ref<API::Texture::Texture>> textures;
+	std::vector<Ref<API::Texture::Texture>> textures;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;

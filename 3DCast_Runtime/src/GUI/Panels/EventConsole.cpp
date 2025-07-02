@@ -9,13 +9,11 @@ void Runtime::GUI::EventConsole::OnImGuiRender()
 
 	ImGui::Begin("Log Output");
 
-	// Retrieve our custom sink instance.
-	auto imguiSink = Cast::Log::GetImGuiSink();
+	const auto imguiSink = Cast::Log::GetImGuiSink();
 	const auto& logBuffer = imguiSink->GetLog();
-	size_t totalLines = logBuffer.size();
+	const size_t totalLines = logBuffer.size();
 
-	// Only show the last 50 lines.
-	size_t startIndex = totalLines > 50 ? totalLines - 50 : 0;
+	const size_t startIndex = totalLines > 50 ? totalLines - 50 : 0;
 
 	ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -24,7 +22,6 @@ void Runtime::GUI::EventConsole::OnImGuiRender()
 		ImGui::TextUnformatted(logBuffer[i].c_str());
 	}
 
-	// If new lines have been added, scroll automatically to the bottom.
 	if (totalLines != prevLogSize)
 	{
 		ImGui::SetScrollHereY(1.0f);

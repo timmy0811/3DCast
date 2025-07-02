@@ -5,74 +5,138 @@
 #include "3DCast/Data/GlobalShared.h"
 
 #include "3DCast/ImGui/UIComponents.h"
-#include "3DCast/Model/IVertexEntity.h"
 
 #include <imgui.h>
 
-namespace Cast::Component {
-	struct MeshComponent : public Component
+namespace Cast::Component
+{
+	struct MeshComponent final : public Component
 	{
 #pragma region DATA
 		std::string Path;
 		std::string Filename;
 		std::string header;
 
-		Ref<Cast::Model> RootModel; // Complex intermediate and leafs do not need a model instance
-		Ref<Cast::Mesh> Mesh;
+		Ref<Model> RootModel; // Complex intermediate and leafs do not need a model instance
 		bool IsRootNode = false;
 		bool IsMeshLeaf = false;
 
 		int _load = false;
 		int _loadC = 0;
+
+	private:
+		Mesh* MeshInstance = nullptr;
+
+	public:
 #pragma endregion
 
 #pragma region CONSTRUCTOR
-		MeshComponent(const MeshComponent&) {};
-		MeshComponent(bool isRootNode = true) {
-			if (isRootNode) {
-				RootModel = Ref<Cast::Model>();
+		MeshComponent(const MeshComponent&)
+		{
+		};
+
+		explicit MeshComponent(const bool isRootNode = true)
+		{
+			if (isRootNode)
+			{
+				RootModel = Ref<Model>();
 				IsRootNode = true;
 				header = "Model Root Node";
 			}
-			else {
+			else
+			{
 				IsMeshLeaf = true;
 				header = "Mesh Leaf Node";
 			}
 		}
 
-		MeshComponent(Ref<Cast::Mesh> mesh)
-			: Mesh(mesh) {
+		explicit MeshComponent(Cast::Mesh* mesh)
+			: MeshInstance(mesh)
+		{
 			IsMeshLeaf = true;
 			header = "Mesh Leaf Node";
+
+			LOG_CORE_ERROR("MeshComponent constructor called (this={0}, Mesh={1})",
+			               (void*)this, (void*)MeshInstance);
 		}
 
-		MeshComponent(const std::string& path)
-			: Path(path) {
+		explicit MeshComponent(const std::string& path)
+			: Path(path)
+		{
 			IsRootNode = true;
-			RootModel = CreateRef<Cast::Model>();
-			RootModel->Load(path, Ref<Entity>(EntityNode));
+			RootModel = CreateRef<Model>();
+			RootModel->Load(path, EntityNode);
 			header = "Model Root Node";
 		}
 
-		~MeshComponent() {
-			if (Mesh)
-				Mesh->RemoveFromBatchStorage();
+		MeshComponent(MeshComponent&& other) noexcept
+			: Path(std::move(other.Path)), Filename(std::move(other.Filename)),
+			  header(std::move(other.header)), RootModel(std::move(other.RootModel)),
+			  IsRootNode(other.IsRootNode), IsMeshLeaf(other.IsMeshLeaf),
+			  _load(other._load), _loadC(other._loadC),
+			  MeshInstance(other.MeshInstance)
+		{
+			other.MeshInstance = nullptr;
+		}
+
+		MeshComponent& operator=(MeshComponent&& other) noexcept
+		{
+			if (this != &other)
+			{
+				if (MeshInstance)
+				{
+					MeshInstance->RemoveFromBatchStorage();
+					delete MeshInstance;
+				}
+
+				Path = std::move(other.Path);
+				Filename = std::move(other.Filename);
+				header = std::move(other.header);
+				RootModel = std::move(other.RootModel);
+				IsRootNode = other.IsRootNode;
+				IsMeshLeaf = other.IsMeshLeaf;
+				_load = other._load;
+				_loadC = other._loadC;
+				MeshInstance = other.MeshInstance;
+
+				other.MeshInstance = nullptr;
+			}
+			return *this;
+		}
+
+		~MeshComponent() override
+		{
+			/*static int counter = 0;
+			counter++;
+			LOG_CORE_ERROR("MeshComponent destructor called (#{0}, this={1}, Mesh={2})",
+				counter, (void*)this, (void*)Mesh.get());*/
+
+			if (MeshInstance)
+			{
+				MeshInstance->RemoveFromBatchStorage();
+				delete MeshInstance;
+			}
 		}
 #pragma endregion
 
 #pragma region UTILITY
-		void SetMeshAsChildNode(Ref<Cast::Mesh> mesh) {
-			Mesh = mesh;
+		void SetMeshAsChildNode(Cast::Mesh* mesh)
+		{
+			MeshInstance = mesh;
 			IsMeshLeaf = true;
+
+			LOG_CORE_ERROR("MeshComponent::SetMeshAsChildNode called (this={0}, Mesh={1})",
+			               (void*)this, (void*)MeshInstance);
 		}
 
-		std::string OpenFileDialoge() {
+		static std::string OpenFileDialogue()
+		{
 			nfdu8char_t* outPath;
-			nfdu8filteritem_t filters[1] = { { "Model", "3d,3ds,csm,dae,dxf,fbx,md2,mesh,nff,obj,stl" } };
-			nfdopendialogu8args_t args = { 0 };
+			constexpr nfdu8filteritem_t filters[1] = {{"Model", "3d,3ds,csm,dae,dxf,fbx,md2,mesh,nff,obj,stl"}};
+			nfdopendialogu8args_t args = {nullptr};
 			args.filterList = filters;
 			args.filterCount = 1;
-			nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+			const nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
 			if (result == NFD_OKAY)
 			{
 				std::string outPathStr(outPath);
@@ -92,50 +156,64 @@ namespace Cast::Component {
 			return "";
 		}
 
-		std::string ExtractFilename(const std::string& path) {
-			size_t found = path.find_last_of("/\\");
+		static std::string ExtractFilename(const std::string& path)
+		{
+			const size_t found = path.find_last_of("/\\");
 			return path.substr(found + 1);
 		}
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Mesh; }
+		static inline Type GetType() { return Type::Mesh; }
 		static inline std::string GetName() { return "Mesh"; }
 
-		void OnAfterEntitySetBehaviour() override {
+		void OnAfterEntitySetBehaviour() override
+		{
 			if (IsMeshLeaf)
 				Shared.ActiveScene->RegisterTransformComponent(EntityNode);
 		}
 
-		virtual UIResponse OnImGuiRender() override {
-			if (_load) { // ImGui needs to swap buffer once to make modal window show up
+		UIResponse OnImGuiRender() override
+		{
+			if (_load)
+			{
+				// ImGui needs to swap buffer once to make modal window show up
 				UI::ModalImportInProgress(Path);
 				_loadC++;
 			}
 
-			if (_loadC > 2) {
-				RootModel = CreateRef<Cast::Model>();
-				RootModel->Load(Path, Ref<Entity>(EntityNode));
+			if (_loadC > 2)
+			{
+				RootModel = CreateRef<Model>();
+				RootModel->Load(Path, EntityNode);
 				UI::ModalImportInProgress(Path, true);
 
 				_load = false;
 				_loadC = 0;
 			}
 
-			bool isOpen = ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader(header.c_str(),
+			                                            ImGuiTreeNodeFlags_DefaultOpen |
+			                                            ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
 			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
 			if (ImGui::SmallButton("Remove##Mesh"))
-				return { UIResponse::Code::Remove, Type::Mesh };
+				return {UIResponse::Code::Remove, Type::Mesh};
 
-			if (isOpen) {
-				if (IsRootNode) { // Is the model root node
-					if (RootModel && RootModel->IsModelLoaded()) { // The model is loaded
+			if (isOpen)
+			{
+				if (IsRootNode)
+				{
+					// Is the model root node
+					if (RootModel && RootModel->IsModelLoaded())
+					{
+						// The model is loaded
 						ImGui::Text("Model: %s", Filename.c_str());
 						ImGui::Text("Submesh Count: %d", RootModel->GetMeshCount());
 						ImGui::Text("Vertex Count: %d", RootModel->GetTotalVertexCount());
@@ -143,24 +221,31 @@ namespace Cast::Component {
 						ImGui::Text("Material Assigned: %s", RootModel->MaterialAssigned() ? "Yes" : "No");
 						ImGui::Text("Texture Count: %d", RootModel->GetTextureCount());
 					}
-					else {
+					else
+					{
 						ImGui::Text("No model loaded");
 						ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 
-						if (ImGui::Button("Load from file")) {
-							Path = OpenFileDialoge();
+						if (ImGui::Button("Load from file"))
+						{
+							Path = OpenFileDialogue();
 							Filename = ExtractFilename(Path);
 							_load = true;
 						}
 					}
 				}
-				else {
-					if (IsMeshLeaf) { // Is a leaf node representing a single mesh without children
-						ImGui::Text("Vertex Count: %d", Mesh->GetVertexCount());
-						ImGui::Text("Indexed: %s", Mesh->HasIndices() ? "Yes" : "No");
-						ImGui::Text("Material Assigned: %s", Mesh->MaterialAssigned() ? "Yes" : "No");
+				else
+				{
+					if (IsMeshLeaf)
+					{
+						// Is a leaf node representing a single mesh without children
+						ImGui::Text("Vertex Count: %d", MeshInstance->GetVertexCount());
+						ImGui::Text("Indexed: %s", MeshInstance->HasIndices() ? "Yes" : "No");
+						ImGui::Text("Material Assigned: %s", MeshInstance->MaterialAssigned() ? "Yes" : "No");
 					}
-					else { // Is a node with children
+					else
+					{
+						// Is a node with children
 						ImGui::Text("Summed up Vertex Count: %d", 10); // TODO: replace placeholder
 					}
 				}

@@ -5,10 +5,10 @@
 #include <imgui.h>
 
 namespace Cast::Component {
-	struct PBRMaterialComponent : public Component
+	struct PBRMaterialComponent final : public Component
 	{
 #pragma region DATA
-		bool placeholder;
+		bool placeholder = false;
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -20,14 +20,14 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::PBRMat; }
+		static inline Type GetType() { return Type::PBRMat; }
 		static inline std::string GetName() { return "PBR Material"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("PBR Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override {
+			const bool isOpen = ImGui::CollapsingHeader("PBR Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}

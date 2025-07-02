@@ -10,12 +10,12 @@ void Cast::Renderer::RendererContext::Init()
 	// API::Core::RenderCommand::Init(); Obsolete
 }
 
-void Cast::Renderer::RendererContext::OnWindowResize(uint32_t width, uint32_t height)
+void Cast::Renderer::RendererContext::OnWindowResize(const uint32_t width, const uint32_t height)
 {
 	API::Core::RenderCommand::SetViewport(0, 0, width, height);
 }
 
-void Cast::Renderer::RendererContext::BeginScene(Camera& camera)
+void Cast::Renderer::RendererContext::BeginScene(const Camera& camera)
 {
 	sceneDataCache->viewProjectionMat = camera.GetViewProjectionMat();
 	sceneDataCache->viewMat = camera.GetViewMat();

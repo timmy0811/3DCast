@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Core.h"
 #include "Core/Window.h"
 
 #include "3DCast/Event/Event.h"
@@ -8,13 +7,12 @@
 #include "3DCast/Layer/LayerStack.h"
 #include "3DCast/ImGui/ImGuiLayer.h"
 
-#include "3DCast/Core/Timestep.h"
-
-namespace Cast {
+namespace Cast
+{
 	class Application
 	{
 	public:
-		Application(const WindowProperties& properties);
+		explicit Application(const WindowProperties& properties);
 		~Application() = default;
 
 		void Run();
@@ -27,12 +25,17 @@ namespace Cast {
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
 
-		inline static Application& Get() { return *Instance; }
-		inline Window& GetWindow() { return *AppWindow; }
+		static Application& Get()
+		{
+			if (!Instance) throw std::runtime_error("Application instance is not initialized!");
+			return *Instance;
+		}
+
+		[[nodiscard]] Window& GetWindow() const { return *AppWindow; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnWindowResize(const WindowResizeEvent& e);
 
 	private:
 		static Application* Instance;
@@ -41,7 +44,7 @@ namespace Cast {
 		ImGuiLayer* GuiLayer;
 		bool Running = true;
 		bool Minimized = false;
-		LayerStack LayerStack;
+		LayerStack LStack;
 
 		float LastFrameTime = 0.f;
 	};

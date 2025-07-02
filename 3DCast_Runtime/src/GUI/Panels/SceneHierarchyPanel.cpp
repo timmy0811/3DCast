@@ -21,21 +21,21 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 {
 	ImGui::Begin("Scene Hierarchy");
 
-	ImVec2 windowSize = ImGui::GetWindowSize();
-	ImVec2 availableRegion = ImGui::GetContentRegionAvail();
-	ImGuiStyle& style = ImGui::GetStyle();
+	const ImVec2 windowSize = ImGui::GetWindowSize();
+	const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+	const ImGuiStyle& style = ImGui::GetStyle();
 
-	float buttonHeight = 20.0f;
-	float padding = 10.0f;
-	float childHeight = availableRegion.y - (buttonHeight + padding);
+	constexpr float buttonHeight = 20.0f;
+	constexpr float padding = 10.0f;
+	const float childHeight = availableRegion.y - (buttonHeight + padding);
 
 	// Begin scrollable region
 	ImGui::BeginChild("EntityList", ImVec2(0, childHeight), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
 
-	for (Cast::Ref<Cast::Entity> handle : Context->GetEntityDescriptors())
+	for (const auto& [handle, entity] : Context->GetEntityDescriptors())
 	{
-		if (!handle->IsChild())
-			DrawEntityNode(handle);
+		if (!entity->IsChild())
+			DrawEntityNode(entity);
 	}
 
 	ImGui::EndChild();
@@ -44,7 +44,8 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 		SelectionContext = {};
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
-	if (ImGui::Button("New Entity", { ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f })) {
+	if (ImGui::Button("New Entity", {ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f}))
+	{
 		Context->CreateEntity("New Entity", false);
 	}
 	if (ImGui::IsItemHovered())
@@ -56,7 +57,8 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 	ImGui::SameLine();
 	ImGui::BeginDisabled(!SelectionContext);
-	if (ImGui::Button("Remove", { ImGui::GetContentRegionAvail().x - 5.f, 0.f })) {
+	if (ImGui::Button("Remove", {ImGui::GetContentRegionAvail().x - 5.f, 0.f}))
+	{
 		RemoveEntity();
 	}
 	ImGui::EndDisabled();
@@ -68,10 +70,13 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::Begin("Properties");
 	ImGui::Checkbox("Render View", &Cast::Shared.ActiveScene->GetInRenderView());
 	ImGui::SameLine();
+	ImGui::BeginDisabled(!SelectionContext);
 	ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f);
-	if (ImGui::Button("Remove Entity")) {
+	if (ImGui::Button("Remove Entity"))
+	{
 		RemoveEntity();
 	}
+	ImGui::EndDisabled();
 	ImGui::Separator();
 
 	if (SelectionContext)
@@ -79,13 +84,14 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 		DrawComponents(SelectionContext);
 		ImGui::Separator();
 
-		float size = ImGui::CalcTextSize("Add Component").x + style.FramePadding.x * 2.0f;
+		const float size = ImGui::CalcTextSize("Add Component").x + style.FramePadding.x * 2.0f;
 
-		float off = (availableRegion.x - size) * 0.5f;
+		const float off = (availableRegion.x - size) * 0.5f;
 		if (off > 0.0f)
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-		if (ImGui::Button("Add Component")) {
+		if (ImGui::Button("Add Component"))
+		{
 			GUI::ComponentList::Reset();
 			drawAddComponentModal = true;
 		}
@@ -95,12 +101,12 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 	if (drawAddComponentModal)
 	{
-		auto res = GUI::ComponentList::OnImGuiRender();
-		drawAddComponentModal = res == GUI::ComponentList::ModalResult::None;
+		const auto res = ComponentList::OnImGuiRender();
+		drawAddComponentModal = res == ComponentList::ModalResult::None;
 
-		if (res == GUI::ComponentList::ModalResult::Success)
+		if (res == ComponentList::ModalResult::Success)
 		{
-			auto selections = GUI::ComponentList::GetSelection();
+			const auto selections = ComponentList::GetSelection();
 			for (size_t i = 0; i < Cast::Component::AddableComponentIds.size(); i++)
 			{
 				if (selections[i])
@@ -112,16 +118,17 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> entity)
 {
-	std::string& tag = entity->GetComponent<Cast::Component::TagComponent>().Tag;
+	const std::string& tag = entity->GetComponent<Cast::Component::TagComponent>().Tag;
 
-	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
+	const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
 		((SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) |
-		(entity->HasChildren() ? ImGuiTreeNodeFlags_OpenOnArrow
-			: ImGuiTreeNodeFlags_Leaf);
+		(entity->HasChildren()
+			 ? ImGuiTreeNodeFlags_OpenOnArrow
+			 : ImGuiTreeNodeFlags_Leaf);
 
 	ImGui::PushID((void*)(uint64_t)(uint32_t)*entity);
 
-	bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s", tag.c_str());
+	const bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s", tag.c_str());
 
 	if (ImGui::IsItemClicked())
 		SelectionContext = entity;
@@ -130,7 +137,8 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 
 	if (isOpen)
 	{
-		for (auto& child : entity->GetChildren()) {
+		for (const auto& child : entity->GetChildren())
+		{
 			DrawEntityNode(child);
 		}
 
@@ -138,14 +146,14 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 	}
 }
 
-void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity)
+void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity) const
 {
-	for (auto ImGuiCallback : Context->GetComponentImGuiCallbacks())
+	for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
 	{
-		Cast::Component::UIResponse res = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
-		if (res.action == Cast::Component::UIResponse::Remove)
+		auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
+		if (action == Cast::Component::UIResponse::Remove)
 		{
-			switch (res.component)
+			switch (component)
 			{
 			case Cast::Component::Type::Transform:
 				entity->RemoveComponent<Cast::Component::TransformComponent>();
@@ -212,9 +220,10 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> e
 	}
 }
 
-void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(int id)
+void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 {
-	switch (id) {
+	switch (id)
+	{
 	case 0:
 		SelectionContext->AddComponents<Cast::Component::TransformComponent>();
 		break;

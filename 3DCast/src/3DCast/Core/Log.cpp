@@ -18,7 +18,7 @@ void Cast::Log::Init()
 	sinks.push_back(s_ImGuiSink);
 
 #ifdef CAST_DEBUG
-	auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	const auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	consoleSink->set_pattern("%^[%T.%e] %n: %v%$");
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 #endif

@@ -1,15 +1,14 @@
 #pragma once
 
 #include "3DCast/Model/Mesh.h"
-#include "castpch.h"
 
 #include <string>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
-namespace Cast {
+namespace Cast
+{
 	class Entity;
 
 	class Model
@@ -20,12 +19,12 @@ namespace Cast {
 
 		bool Load(const std::string& path, Ref<Entity> entity);
 
-		const std::string& GetDirectory() const { return DirPath; }
-		int GetMeshCount() const { return (int)Meshes.size(); }
-		int GetTextureCount() const { return (int)999; }
-		const bool IsModelLoaded() const { return IsLoaded; }
+		[[nodiscard]] const std::string& GetDirectory() const { return DirPath; }
+		[[nodiscard]] int GetMeshCount() const { return (int)Meshes.size(); }
+		[[nodiscard]] int GetTextureCount() const { return 999; }
+		[[nodiscard]] bool IsModelLoaded() const { return IsLoaded; }
 
-		int GetTotalVertexCount() const
+		[[nodiscard]] int GetTotalVertexCount() const
 		{
 			int count = 0;
 			for (const auto& mesh : Meshes)
@@ -33,33 +32,29 @@ namespace Cast {
 			return count;
 		}
 
-		bool IsIndexed() const
+		[[nodiscard]] bool IsIndexed() const
 		{
-			for (const auto& mesh : Meshes)
-				if (mesh->HasIndices())
-					return true;
-			return false;
+			return std::any_of(Meshes.begin(), Meshes.end(), [](const Mesh* mesh) { return mesh->HasIndices(); });
 		}
 
-		bool MaterialAssigned() const
+		[[nodiscard]] bool MaterialAssigned() const
 		{
-			for (const auto& mesh : Meshes)
-				if (mesh->MaterialAssigned())
-					return true;
-			return false;
+			return std::any_of(Meshes.begin(), Meshes.end(), [](const Mesh* mesh) { return mesh->MaterialAssigned(); });
 		}
 
 	private:
 		void CalcModelBounds(const aiNode* node, const aiScene* scene);
 
-		Cast::Ref<Cast::Entity> ProcessNode(aiNode* node, const aiScene* scene, Ref<Cast::Entity> parent);
-		Cast::Ref<Cast::Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Cast::Entity> context, unsigned short transformIndex);
-		std::vector<Cast::Ref<API::Texture::Texture>> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI);
+		Ref<Entity> ProcessNode(const aiNode* node, const aiScene* scene, Ref<Entity> parent);
+		Mesh* ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Entity> context,
+		                  unsigned short transformIndex) const;
+		std::vector<Ref<API::Texture::Texture>> LoadMaterialTextures(
+			const aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI) const;
 
 	private:
-		Ref<Entity> Entity;
+		Ref<Entity> EntityContainer;
 
-		std::vector<Ref<Mesh>> Meshes;
+		std::vector<Mesh*> Meshes;
 
 		std::string DirPath;
 		Assimp::Importer m_Importer;

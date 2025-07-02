@@ -9,8 +9,10 @@
 
 #define TEXTURE_THUMBNAIL_SIZE 100.f
 
-namespace Cast::Component {
-	struct MaterialComponent : Component {
+namespace Cast::Component
+{
+	struct MaterialComponent final : Component
+	{
 #pragma region DATA
 		// Sampler index used by vertex attribute for bindless textures
 		unsigned short samplerIndex = 0;
@@ -33,17 +35,21 @@ namespace Cast::Component {
 
 #pragma region CONSTRUCTOR
 		MaterialComponent(const MaterialComponent&) = default;
-		MaterialComponent() {
+
+		MaterialComponent()
+		{
 			SetupSamplerMapping();
 		}
 
-		~MaterialComponent() {
+		~MaterialComponent() override
+		{
 			SamplerRegistry.RemoveSamplerMapping(samplerIndex);
 		}
 #pragma endregion
 
 #pragma region UTILITY
-		void SetupSamplerMapping() {
+		void SetupSamplerMapping()
+		{
 			samplerIndex = SamplerRegistry.CreateSamplerMapping(
 				diffuseInfo.transformRegistryIndex,
 				specularInfo.transformRegistryIndex,
@@ -52,7 +58,8 @@ namespace Cast::Component {
 			);
 		}
 
-		void UpdateSamplerMapping() {
+		void UpdateSamplerMapping() const
+		{
 			SamplerRegistry.UpdateSamplerMapping(
 				samplerIndex,
 				diffuseInfo.transformRegistryIndex,
@@ -62,21 +69,24 @@ namespace Cast::Component {
 			);
 		}
 
-		std::string ExtractFilename(const std::string& path) {
-			size_t found = path.find_last_of("/\\");
+		static std::string ExtractFilename(const std::string& path)
+		{
+			const size_t found = path.find_last_of("/\\");
 			return path.substr(found + 1);
 		}
 
 #pragma region LOADERS
 		// Load a normal texture from file
-		void LoadDiffuseTexture(const std::string& path, bool flipUV = false) {
+		void LoadDiffuseTexture(const std::string& path, const bool flipUV = false)
+		{
 			diffuseInfo = SamplerRegistry.AddDiffuseTexture(path, flipUV);
 			diffuseFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
 		}
 
-		void LoadDiffuseTexture(Ref<API::Texture::Texture> texture) {
+		void LoadDiffuseTexture(Ref<API::Texture::Texture> texture)
+		{
 			diffuseInfo = SamplerRegistry.AddDiffuseTexture(texture);
 			diffuseFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
@@ -84,14 +94,16 @@ namespace Cast::Component {
 		}
 
 		// Load a specular texture from file
-		void LoadSpecularTexture(const std::string& path, bool flipUV = false) {
+		void LoadSpecularTexture(const std::string& path, const bool flipUV = false)
+		{
 			specularInfo = SamplerRegistry.AddSpecularTexture(path, flipUV);
 			specularFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			specularLoaded = true;
 		}
 
-		void LoadSpecularTexture(Ref<API::Texture::Texture> texture) {
+		void LoadSpecularTexture(Ref<API::Texture::Texture> texture)
+		{
 			specularInfo = SamplerRegistry.AddSpecularTexture(texture);
 			specularFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
@@ -99,14 +111,16 @@ namespace Cast::Component {
 		}
 
 		// Load a parallax texture from file
-		void LoadParallaxTexture(const std::string& path, bool flipUV = false) {
+		void LoadParallaxTexture(const std::string& path, const bool flipUV = false)
+		{
 			parallaxInfo = SamplerRegistry.AddParallaxTexture(path, flipUV);
 			parallaxFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
 		}
 
-		void LoadParallaxTexture(Ref<API::Texture::Texture> texture) {
+		void LoadParallaxTexture(Ref<API::Texture::Texture> texture)
+		{
 			parallaxInfo = SamplerRegistry.AddParallaxTexture(texture);
 			parallaxFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
@@ -114,14 +128,16 @@ namespace Cast::Component {
 		}
 
 		// Load a normal map from file
-		void LoadNormalTexture(const std::string& path, bool flipUV = false) {
+		void LoadNormalTexture(const std::string& path, const bool flipUV = false)
+		{
 			normalInfo = SamplerRegistry.AddNormalTexture(path, flipUV);
 			normalFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			normalLoaded = true;
 		}
 
-		void LoadNormalTexture(Ref<API::Texture::Texture> texture) {
+		void LoadNormalTexture(Ref<API::Texture::Texture> texture)
+		{
 			normalInfo = SamplerRegistry.AddNormalTexture(texture);
 			normalFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
@@ -129,13 +145,14 @@ namespace Cast::Component {
 		}
 #pragma endregion
 
-		std::string OpenFileDialoge() {
+		static std::string OpenFileDialogue()
+		{
 			nfdu8char_t* outPath;
-			nfdu8filteritem_t filters[1] = { { "Texture", "png,jpg" } };
-			nfdopendialogu8args_t args = { 0 };
+			constexpr nfdu8filteritem_t filters[1] = {{"Texture", "png,jpg"}};
+			nfdopendialogu8args_t args = {nullptr};
 			args.filterList = filters;
 			args.filterCount = 1;
-			nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+			const nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
 			if (result == NFD_OKAY)
 			{
 				std::string outPathStr(outPath);
@@ -155,7 +172,10 @@ namespace Cast::Component {
 			return "";
 		}
 
-		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, TextureInformation& info, const std::string& path, const std::function<void(const std::string& path, bool flipUV)>& loadProc) {
+		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, TextureInformation& info,
+		                            const std::string& path,
+		                            const std::function<void(const std::string& path, bool flipUV)>& loadProc) const
+		{
 			ImGui::SeparatorText(typeStr.c_str());
 
 			if (isLoaded)
@@ -165,7 +185,8 @@ namespace Cast::Component {
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
-					ImGui::BeginChild("ImageContainer", ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
+					ImGui::BeginChild("ImageContainer",
+					                  ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 					ImGui::Image((ImTextureID)info.textureId, ImVec2(TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE));
 					ImGui::EndChild();
 
@@ -176,7 +197,7 @@ namespace Cast::Component {
 					ImGui::Dummy(ImVec2(0.f, textHeight * 2.f));
 					if (ImGui::Button("Remove Texture"))
 					{
-						info = { 0, 0 };
+						info = {0, 0};
 						UpdateSamplerMapping();
 						isLoaded = false;
 					}
@@ -198,13 +219,13 @@ namespace Cast::Component {
 
 					ImGui::TableSetColumnIndex(1);
 					ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
-					std::string buttonText = "Load " + typeStr + " Texture";
+					const std::string buttonText = "Load " + typeStr + " Texture";
 					if (ImGui::Button(buttonText.c_str()))
 					{
-						std::string path = OpenFileDialoge();
-						if (!path.empty())
+						const std::string pathToMap = OpenFileDialogue();
+						if (!pathToMap.empty())
 						{
-							loadProc(path, false);
+							loadProc(pathToMap, false);
 						}
 					}
 					ImGui::EndChild();
@@ -216,36 +237,52 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Cast::Component::Type GetType() { return Type::Material; }
+		static inline Type GetType() { return Type::Material; }
 		static inline std::string GetName() { return "Material"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override
+		{
+			const bool isOpen = ImGui::CollapsingHeader(
+				"Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
 			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
 			if (ImGui::SmallButton("Remove##Material"))
-				return { UIResponse::Code::Remove, Type::Material };
+				return {UIResponse::Code::Remove, Type::Material};
 
-			if (isOpen) {
+			if (isOpen)
+			{
 				windowWidth = ImGui::GetWindowWidth();
 				textHeight = ImGui::GetTextLineHeightWithSpacing();
 
 				RenderMaterialMapImGui("Diffuse", diffuseLoaded, diffuseInfo, diffuseFile,
-					[this](const std::string& path, bool flipUV) { LoadDiffuseTexture(path, flipUV); });
+				                       [this](const std::string& path, const bool flipUV)
+				                       {
+					                       LoadDiffuseTexture(path, flipUV);
+				                       });
 
 				RenderMaterialMapImGui("Normal", normalLoaded, normalInfo, normalFile,
-					[this](const std::string& path, bool flipUV) { LoadNormalTexture(path, flipUV); });
+				                       [this](const std::string& path, const bool flipUV)
+				                       {
+					                       LoadNormalTexture(path, flipUV);
+				                       });
 
 				RenderMaterialMapImGui("Specular", specularLoaded, specularInfo, specularFile,
-					[this](const std::string& path, bool flipUV) { LoadSpecularTexture(path, flipUV); });
+				                       [this](const std::string& path, const bool flipUV)
+				                       {
+					                       LoadSpecularTexture(path, flipUV);
+				                       });
 
 				RenderMaterialMapImGui("Parallax", parallaxLoaded, parallaxInfo, parallaxFile,
-					[this](const std::string& path, bool flipUV) { LoadParallaxTexture(path, flipUV); });
+				                       [this](const std::string& path, const bool flipUV)
+				                       {
+					                       LoadParallaxTexture(path, flipUV);
+				                       });
 			}
 
 			return {};

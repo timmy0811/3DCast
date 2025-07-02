@@ -4,8 +4,10 @@
 #include "entt/entt.hpp"
 #include "3DCast/Core.h"
 
-namespace Cast {
-	namespace Component {
+namespace Cast
+{
+	namespace Component
+	{
 		enum class Type;
 	}
 
@@ -16,20 +18,21 @@ namespace Cast {
 		Entity(entt::entity handle, Scene* scene);
 		//Entity(const Entity& other) = default;
 
-		inline const entt::entity GetEntityHandle() const { return EntityHandle; }
+		[[nodiscard]] inline entt::entity GetEntityHandle() const { return EntityHandle; }
 
-		template<typename T, typename... Args>
+		template <typename T, typename... Args>
 		T& AddComponents(Args&&... args)
 		{
-			if (HasComponent<T>()) {
+			if (HasComponent<T>())
+			{
 				LOG_CORE_WARN("Trying to add a component even though it hase already been added. Ignoring.");
 				return GetComponent<T>();
 			}
 
 			EntityHasRequiredComponents(T::GetType());
 
-			auto& comp = Scene->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
-			comp.SetEntity(this);
+			auto& comp = Scene_->Registry.emplace<T>(EntityHandle, std::forward<Args>(args)...);
+			comp.SetEntity(Scene_->GetEntityReferenceByHandle(EntityHandle));
 			comp.OnAfterEntitySetBehaviour();
 			return comp;
 		}
@@ -38,31 +41,32 @@ namespace Cast {
 		T& GetComponent()
 		{
 			CAST_ASSERT(HasComponent<T>(), "Entity does not have component!");
-			return Scene->Registry.get<T>(EntityHandle);
+			return Scene_->Registry.get<T>(EntityHandle);
 		}
 
 		template <typename T>
-		bool HasComponent()
+		[[nodiscard]] bool HasComponent() const
 		{
-			return Scene->Registry.all_of<T>(EntityHandle);
+			return Scene_->Registry.all_of<T>(EntityHandle);
 		}
 
 		template <typename T>
-		void RemoveComponent()
+		void RemoveComponent() const
 		{
-			if (!HasComponent<T>()) {
+			if (!HasComponent<T>())
+			{
 				LOG_CORE_WARN("Trying to remove a component that has never been added. Ignoring.");
 				return;
 			}
-			Scene->Registry.remove<T>(EntityHandle);
+			Scene_->Registry.remove<T>(EntityHandle);
 		}
 
 		operator bool() const { return EntityHandle != entt::null; }
-		operator uint32_t() const { return (uint32_t)EntityHandle; }
+		operator uint32_t() const { return static_cast<uint32_t>(EntityHandle); }
 
 		bool operator==(const Entity& other) const
 		{
-			return EntityHandle == other.EntityHandle && Scene == other.Scene;
+			return EntityHandle == other.EntityHandle && Scene_ == other.Scene_;
 		}
 
 		bool operator!=(const Entity& other) const
@@ -70,25 +74,29 @@ namespace Cast {
 			return !(*this == other);
 		}
 
-		void SetScene(Scene* scene) { Scene = scene; }
-		Scene* GetScene() { return Scene; }
+		void SetScene(Scene* scene) { Scene_ = scene; }
+		[[nodiscard]] Scene* GetScene() const { return Scene_; }
 
 		void AddChild(Ref<Entity> child) { Children.push_back(child); }
-		void RemoveChild(Ref<Entity> child) { Children.erase(std::remove(Children.begin(), Children.end(), child), Children.end()); }
+
+		void RemoveChild(Ref<Entity> child)
+		{
+			Children.erase(std::remove(Children.begin(), Children.end(), child), Children.end());
+		}
 
 		void SetParent(Ref<Entity> parent) { Parent = parent; }
 		Ref<Entity> GetParent() { return Parent; }
 
 		std::vector<Ref<Entity>>& GetChildren() { return Children; }
-		bool IsChild() { return Parent != nullptr; }
-		bool HasChildren() { return !Children.empty(); }
+		[[nodiscard]] bool IsChild() const { return Parent != nullptr; }
+		[[nodiscard]] bool HasChildren() const { return !Children.empty(); }
 
 	private:
 		bool EntityHasRequiredComponents(Component::Type type);
 
 	private:
-		entt::entity EntityHandle{ entt::null };
-		Scene* Scene = nullptr;
+		entt::entity EntityHandle{entt::null};
+		Scene* Scene_ = nullptr;
 
 		Ref<Entity> Parent;
 		std::vector<Ref<Entity>> Children;

@@ -6,24 +6,25 @@
 #include <vendor/glm/gtx/quaternion.hpp>
 
 Cast::Renderer::Camera::Camera()
-	: ViewMat(1.f), Position(0.f, 0.f, 0.f) // near, far?
+	: ProjectionType(), Position(0.f, 0.f, 0.f) // near, far?
 {
 }
 
-void Cast::Renderer::Camera::LookAt(const glm::vec3& target, const glm::vec3& up)
+auto Cast::Renderer::Camera::LookAt(const glm::vec3& target, const glm::vec3& up) -> void
 {
-	glm::vec3 targetVec = glm::normalize(target - Position);
-	glm::quat rotation = glm::quatLookAt(targetVec, up);
+	const glm::vec3 targetVec = glm::normalize(target - Position);
+	const glm::quat rotation = glm::quatLookAt(targetVec, up);
 
 	Rotation = glm::degrees(glm::eulerAngles(rotation));
 	UpdateViewMat();
 }
 
-void Cast::Renderer::Camera::UpdateViewMat() {
+void Cast::Renderer::Camera::UpdateViewMat()
+{
 	glm::vec3 fw;
-	fw.x = cos(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
-	fw.y = sin(glm::radians(Rotation.x));
-	fw.z = sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
+	fw.x = (float)(cos(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x)));
+	fw.y = (float)sin(glm::radians(Rotation.x));
+	fw.z = (float)(sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x)));
 	Forward = glm::normalize(fw);
 
 	Right = glm::normalize(glm::cross(Forward, WorldUp));

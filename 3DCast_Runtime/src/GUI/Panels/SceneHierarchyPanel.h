@@ -4,12 +4,13 @@
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Core.h"
 
-namespace Runtime::GUI {
+namespace Runtime::GUI
+{
 	class SceneHierarchyPanel
 	{
 	public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene);
+		explicit SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene);
 
 		void SetContext(const Cast::Ref<Cast::Scene>& scene);
 
@@ -17,9 +18,9 @@ namespace Runtime::GUI {
 
 	private:
 		void DrawEntityNode(Cast::Ref<Cast::Entity> entity);
-		void DrawComponents(Cast::Ref<Cast::Entity> entity);
+		void DrawComponents(Cast::Ref<Cast::Entity> entity) const;
 
-		void DispatchComponent(int id);
+		void DispatchComponent(int id) const;
 		void RemoveEntity();
 
 	private:

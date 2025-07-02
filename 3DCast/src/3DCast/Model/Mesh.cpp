@@ -3,11 +3,11 @@
 
 #include "3DCast/Data/GlobalShared.h"
 
-Cast::Mesh::Mesh()
+Cast::Mesh::Mesh(): BatchId(UID::None())
 {
 }
 
-void Cast::Mesh::SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>& textures)
+void Cast::Mesh::SetTextures(const std::vector<Ref<API::Texture::Texture>>& textures)
 {
 	Textures = textures;
 }
@@ -15,11 +15,11 @@ void Cast::Mesh::SetTextures(const std::vector<Cast::Ref<API::Texture::Texture>>
 void Cast::Mesh::SetupVertexData()
 {
 	if (Indices.empty())
-		BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
+		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
 	else
-		BatchId = Cast::Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
+		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
 
-	if (BatchId != Cast::UID::None())
+	if (BatchId != UID::None())
 	{
 		Shared.VertexEntities[BatchId] = this;
 	}
@@ -30,7 +30,7 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 	Material = material;
 
 	if (Material != nullptr) {
-		for (Cast::Ref<API::Texture::Texture> tex : Textures) {
+		for (const Ref<API::Texture::Texture> tex : Textures) {
 			switch (tex->GetType()) {
 			case API::Texture::TextureType::DIFFUSE:
 				Material->LoadDiffuseTexture(tex);
@@ -53,9 +53,9 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 
 void Cast::Mesh::RemoveFromBatchStorage()
 {
-	if (BatchId != Cast::UID::None()) {
-		Cast::Memory::BatchMemoryHandler.RemoveObject(BatchId);
-		BatchId = Cast::UID::None();
+	if (BatchId != UID::None()) {
+		Memory::BatchMemoryHandler.RemoveObject(BatchId);
+		BatchId = UID::None();
 	}
 }
 

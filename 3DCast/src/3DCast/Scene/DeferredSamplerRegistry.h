@@ -6,26 +6,30 @@
 #include <unordered_map>
 #include <vector>
 
-#include <Vendor/glm/glm.hpp>
+#include <vendor/glm/glm.hpp>
 
 #define MAX_SAMPLER_MAPPINGS 1024
 
-namespace Cast {
+namespace Cast
+{
 	// SamplerMapping corresponds to the struct declared in the shader
-	struct SamplerMapping {
+	struct SamplerMapping
+	{
 		unsigned short diffuseIndex = 0;
 		unsigned short specularIndex = 0;
 		unsigned short parallaxIndex = 0;
 		unsigned short normalIndex = 0;
 	};
 
-	struct TextureInformation {
+	struct TextureInformation
+	{
 		unsigned short transformRegistryIndex = 0;
 		int textureId = 0;
-		glm::vec2 size = { 0.0f, 0.0f };
+		glm::vec2 size = {0.0f, 0.0f};
 	};
 
-	class DeferredSamplerRegistry {
+	class DeferredSamplerRegistry
+	{
 	public:
 		DeferredSamplerRegistry();
 		~DeferredSamplerRegistry();
@@ -47,7 +51,7 @@ namespace Cast {
 			unsigned short diffuseId = 0,
 			unsigned short specularId = 0,
 			unsigned short parallaxId = 0,
-			unsigned short normalId = 0);
+			unsigned short normalId = 0) const;
 
 		unsigned short CreateSamplerMapping(
 			unsigned short diffuseId = 0,
@@ -55,24 +59,29 @@ namespace Cast {
 			unsigned short parallaxId = 0,
 			unsigned short normalId = 0);
 
-		inline void RemoveSamplerMapping(int index) { SetMappingUnused(index); }
-		inline bool IsSamplerMappingUsed(int index) const { return IsMappingUsed(index); }
+		inline void RemoveSamplerMapping(const int index) { SetMappingUnused(index); }
+		inline bool IsSamplerMappingUsed(const int index) const { return IsMappingUsed(index); }
 
 		Ref<API::Texture::Texture> GetDiffuseTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetSpecularTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetParallaxTexture(unsigned short id);
 		Ref<API::Texture::Texture> GetNormalTexture(unsigned short id);
 
-		void MakeTexturesResidentIdempotent();
-		void UpdateBufferData();
-		void BindSamplerBuffersToShaderPoints();
+		void MakeTexturesResidentIdempotent() const;
+		void UpdateBufferData() const;
+		void BindSamplerBuffersToShaderPoints() const;
 
 	private:
-		int GetUnusedMapping() {
-			for (int i = 0; i < MAX_SAMPLER_MAPPINGS / 64; i++) {
-				if (isMappingUsedMap[i] != 0xFFFFFFFFFFFFFFFF) {
-					for (int j = 0; j < 64; j++) {
-						if ((isMappingUsedMap[i] & (1ULL << j)) == 0) {
+		int GetUnusedMapping() const
+		{
+			for (int i = 0; i < MAX_SAMPLER_MAPPINGS / 64; i++)
+			{
+				if (isMappingUsedMap[i] != 0xFFFFFFFFFFFFFFFF)
+				{
+					for (int j = 0; j < 64; j++)
+					{
+						if ((isMappingUsedMap[i] & (1ULL << j)) == 0)
+						{
 							return i * 64 + j;
 						}
 					}
@@ -83,15 +92,18 @@ namespace Cast {
 			return -1;
 		}
 
-		inline void SetMappingUsed(int index) {
+		inline void SetMappingUsed(const int index)
+		{
 			isMappingUsedMap[index / sizeof(uint64_t)] |= (1ULL << index % 64);
 		}
 
-		inline void SetMappingUnused(int index) {
+		inline void SetMappingUnused(const int index)
+		{
 			isMappingUsedMap[index / sizeof(uint64_t)] &= ~(1ULL << index % 64);
 		}
 
-		inline bool IsMappingUsed(int index) const {
+		inline bool IsMappingUsed(const int index) const
+		{
 			return (isMappingUsedMap[index / sizeof(uint64_t)] & (1ULL << index % 64)) != 0;
 		}
 

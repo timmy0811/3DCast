@@ -6,54 +6,57 @@
 #include "3DCast/Core/Window.h"
 #include "3DCast/Renderer/GraphicsContext.h"
 
-namespace Cast {
+namespace Cast
+{
 	static bool s_GLFWInitialized = false;
 
-	static void GLFWErrorCallback(int error, const char* desc) {
+	static void GLFWErrorCallback(int error, const char* desc)
+	{
 		LOG_CORE_ERROR("GLFW Error ({0}): {1}", error, desc);
 	}
 
-	class WindowsWindow : public Window
+	class WindowsWindow final : public Window
 	{
 	public:
-		WindowsWindow(const WindowProperties& props);
-		virtual ~WindowsWindow() {}
+		explicit WindowsWindow(const WindowProperties& props);
+		~WindowsWindow() override = default;
 
 		void OnUpdate() override;
 
-		inline unsigned int GetWidth() const override { return data.Width; };
-		inline unsigned int GetHeight() const override { return data.Height; };
+		[[nodiscard]] inline unsigned int GetWidth() const override { return data.Width; };
+		[[nodiscard]] inline unsigned int GetHeight() const override { return data.Height; };
 
-		inline glm::ivec2 GetPosition() const override;
+		[[nodiscard]] inline glm::ivec2 GetPosition() const override;
 
 		inline void SetEventCallback(const EventCallbackFunc& callback) override { data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
-		inline bool IsVSync() const override;
+		[[nodiscard]] inline bool IsVSync() const override;
 
 		inline void SetRawMouseInput(bool enabled) const override;
-		virtual void SetInputModeDisabled() const override;
-		virtual void SetInputModeNormal() const override;
+		void SetInputModeDisabled() const override;
+		void SetInputModeNormal() const override;
 
-		virtual void SetCursorPosition(double xpos, double ypos) override;
-
-	private:
-		virtual void Init(const WindowProperties& props);
-		virtual void Destroy();
-
-		inline virtual void* GetNativeWindow() const override;
+		void SetCursorPosition(double xpos, double ypos) override;
 
 	private:
-		GLFWwindow* window;
+		void Init(const WindowProperties& props);
+		void Destroy() const;
 
-		struct WindowData {
+		[[nodiscard]] inline void* GetNativeWindow() const override;
+
+	private:
+		GLFWwindow* window{};
+
+		struct WindowData
+		{
 			std::string Title;
-			unsigned int Width, Height;
-			bool VSync;
+			unsigned int Width{}, Height{};
+			bool VSync{};
 
 			EventCallbackFunc EventCallback;
 		};
 
 		WindowData data;
-		GraphicsContext* context;
+		GraphicsContext* context{};
 	};
 }

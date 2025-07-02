@@ -1,6 +1,8 @@
-
-3DCast/ressources/img/samples
-3DCast/ressources/model
+cmake_install.cmake
+Makefile
+3DCast/resources/img/samples
+Dependencies/
+3DCast/resources/model
 */.vshistory
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -409,6 +411,8 @@ FodyWeavers.xsd
 *autogen/*
 
 # CMAKE
+
+
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -421,3 +425,4 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+!/3DCast_Runtime/cmake_install.cmake

@@ -4,7 +4,7 @@
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
-Cast::Memory::LinearBatchStorage::LinearBatchStorage(size_t capacity)
+Cast::Memory::LinearBatchStorage::LinearBatchStorage(const size_t capacity)
 {
 	VertexArray.reset(API::Core::VertexArray::Create());
 
@@ -12,9 +12,9 @@ Cast::Memory::LinearBatchStorage::LinearBatchStorage(size_t capacity)
 	Capacity = capacity;
 }
 
-int Cast::Memory::LinearBatchStorage::CreateBatchObject(uid object, void* data, size_t size)
+int Cast::Memory::LinearBatchStorage::CreateBatchObject(const uid object, const void* data, const size_t size)
 {
-	int offset = BatchMemory->AddData(data, (int)size);
+	const int offset = BatchMemory->AddData(data, (int)size);
 	if (offset == -1) {
 		return -1;
 	}
@@ -24,10 +24,10 @@ int Cast::Memory::LinearBatchStorage::CreateBatchObject(uid object, void* data, 
 	return offset;
 }
 
-std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveObject(uid object)
+std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveObject(const uid object)
 {
 	if (Objects.erase(object) == 0) {
-		return { Cast::UID::None() };
+		return { UID::None() };
 	}
 
 	BatchMemory->Empty();
@@ -41,7 +41,7 @@ std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveObject(uid object
 	return ids;
 }
 
-bool Cast::Memory::LinearBatchStorage::EditObject(uid object, void* data, size_t size)
+bool Cast::Memory::LinearBatchStorage::EditObject(const uid object, const void* data, const size_t size)
 {
 	if (Objects.find(object) == Objects.end()) {
 		return false;
@@ -51,12 +51,12 @@ bool Cast::Memory::LinearBatchStorage::EditObject(uid object, void* data, size_t
 	return true;
 }
 
-void Cast::Memory::LinearBatchStorage::EditObject(size_t offset, void* data, size_t size)
+void Cast::Memory::LinearBatchStorage::EditObject(const size_t offset, const void* data, const size_t size) const
 {
 	BatchMemory->AddData(data, (int)size, (int)offset);
 }
 
-int Cast::Memory::LinearBatchStorage::RetransferVertexEntity(uid object, void* data, size_t size)
+int Cast::Memory::LinearBatchStorage::RetransferVertexEntity(const uid object, const void* data, const size_t size)
 {
 	if (Objects.find(object) == Objects.end()) {
 		LOG_CORE_ERROR("Object queued for retransfer that does not exists in the current batch storage");
@@ -66,12 +66,12 @@ int Cast::Memory::LinearBatchStorage::RetransferVertexEntity(uid object, void* d
 	return CreateBatchObject(object, data, size);
 }
 
-void Cast::Memory::LinearBatchStorage::Render(Cast::Ref<API::Core::Shader> shader)
+void Cast::Memory::LinearBatchStorage::Render(Ref<API::Core::Shader> shader) const
 {
-	constexpr double stride_rez = 1.0 / sizeof(Memory::BatchVertex);
+	constexpr double stride_rez = 1.0 / sizeof(BatchVertex);
 
 	BatchMemory->Bind();
-	VertexArray->SetVBCount(std::ceil(BatchMemory->GetSize() * stride_rez));
+	VertexArray->SetVBCount(std::ceil((double)BatchMemory->GetSize() * stride_rez));
 
 	Renderer::RendererContext::Submit(VertexArray, shader);
 }
@@ -82,7 +82,7 @@ void Cast::Memory::LinearBatchStorage::Clear()
 	Objects.clear();
 }
 
-void Cast::Memory::LinearBatchStorage::SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout)
+void Cast::Memory::LinearBatchStorage::SetLayout(Ref<API::Core::VertexBufferLayout> layout)
 {
 	Layout = layout;
 	VertexArray->AddBuffer(*BatchMemory, *Layout);

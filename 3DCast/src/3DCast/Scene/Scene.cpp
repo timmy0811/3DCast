@@ -5,15 +5,14 @@
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
 
-#include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Scene/SceneShaderCache.h"
-#include "3DCast/Data/ShaderDataObjects/Vertex.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
 
-#include <Vendor/glm/glm.hpp>
+#include <vendor/glm/glm.hpp>
 
 Cast::Scene::Scene()
-	:IconRenderer(Cast::IconRenderer("../3DCast/ressources/configuration/icon.yml", "../3DCast/ressources/img/icon/icon_pallete.png"))
+	: IconRenderer_(IconRenderer(std::string(ASSET_DIR) + "configuration/icon.yml",
+	                             std::string(ASSET_DIR) + "img/icon/icon_pallete.png"))
 {
 	EntityDescriptorPool.reserve(1000);
 
@@ -28,44 +27,54 @@ Cast::Scene::Scene()
 
 	constexpr unsigned int maxLightsPerType = 8;
 
-	DirLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(DirectionalLight)));
-	SpotLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(SpotLight)));
-	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType, sizeof(PointLight)));
+	DirLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER,
+	                                              API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType,
+	                                              sizeof(DirectionalLight)));
+	SpotLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER,
+	                                               API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType,
+	                                               sizeof(SpotLight)));
+	PointLightsSSBO.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::SHADER_STORAGE_BUFFER,
+	                                                API::Core::Buffer::MemoryLayout::DYNAMIC, maxLightsPerType,
+	                                                sizeof(PointLight)));
 }
 
-Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, bool registerTransform)
+Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const bool registerTransform)
 {
-	auto entity = CreateRef<Entity>(Registry.create(), this);
+	entt::entity handle = Registry.create();
+	auto entity = CreateRef<Entity>(handle, this);
 	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
 
-	if (registerTransform) {
+	if (registerTransform)
+	{
 		if (!entity->GetComponent<Component::TransformComponent>().Register(&TransRegistry))
 			LOG_CORE_ERROR("Could not register transform component in registry.");
 	}
 
 	entity->AddComponents<Component::TagComponent>(name);
-	EntityDescriptorPool.push_back(entity);
+	EntityDescriptorPool.insert({handle, entity});
 
 	return entity;
 }
 
-void Cast::Scene::RemoveEntity(Entity& entity) {
-	if (!Registry.valid(entity.GetEntityHandle())) {
+void Cast::Scene::RemoveEntity(Entity& entity)
+{
+	if (!Registry.valid(entity.GetEntityHandle()))
+	{
 		LOG_CORE_WARN("Attempted to remove an invalid entity.");
 		return;
 	}
 
-	EntityDescriptorPool.erase(std::remove_if(EntityDescriptorPool.begin(), EntityDescriptorPool.end(),
-		[&entity](const Ref<Entity>& e) { return e->GetEntityHandle() == entity.GetEntityHandle(); }));
-
 	Registry.destroy(entity.GetEntityHandle());
+	EntityDescriptorPool.erase(entity.GetEntityHandle());
 }
 
-bool Cast::Scene::RegisterTransformComponent(Entity* entity)
+bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)
 {
 	auto& view = entity->GetComponent<Component::TransformComponent>();
-	if (!view.isRegistered) {
-		if (!view.Register(&TransRegistry)) {
+	if (!view.isRegistered)
+	{
+		if (!view.Register(&TransRegistry))
+		{
 			LOG_CORE_ERROR("Could not register transform component in registry.");
 			return false;
 		}
@@ -74,12 +83,12 @@ bool Cast::Scene::RegisterTransformComponent(Entity* entity)
 	return false;
 }
 
-void Cast::Scene::OnDeferredRender()
+void Cast::Scene::OnDeferredRender() const
 {
 	BindTransformSSBO();
 	SamplerRegistry.BindSamplerBuffersToShaderPoints();
 
-	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("shader_geometry_pass");
 	Memory::BatchMemoryHandler.Render(shader);
 	Memory::BatchMemoryHandler.RenderIndexed(shader);
 }
@@ -91,82 +100,102 @@ void Cast::Scene::OnForwardRender()
 	RenderLightComponent();
 }
 
-void Cast::Scene::OnUpdate()
+void Cast::Scene::OnUpdate() const
 {
-	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
 	shader->SetUniform1i("BufferCountDirectionalLight", (int)(DirLightsSSBO->GetSize() / sizeof(DirectionalLight)));
 	shader->SetUniform1i("BufferCountPointLight", (int)(PointLightsSSBO->GetSize() / sizeof(PointLight)));
 	shader->SetUniform1i("BufferCountSpotLight", (int)(SpotLightsSSBO->GetSize() / sizeof(SpotLight)));
 }
 
-void Cast::Scene::ReallocateLights(int type)
+void Cast::Scene::ReallocateLights(const int type)
 {
-	switch (type) {
-	case 0: DirLightsSSBO->Empty(); break;
-	case 1: PointLightsSSBO->Empty(); break;
-	case 2: SpotLightsSSBO->Empty(); break;
+	switch (type)
+	{
+	case 0: DirLightsSSBO->Empty();
+		break;
+	case 1: PointLightsSSBO->Empty();
+		break;
+	case 2: SpotLightsSSBO->Empty();
+		break;
+	default: ;
 	}
 
-	auto view = Registry.view<Component::LightComponent>();
+	const auto view = Registry.view<Component::LightComponent>();
 
-	view.each([&](entt::entity entity, Component::LightComponent& light) {
-		if ((int)light.LightType == type) {
+	view.each([&](entt::entity entity, Component::LightComponent& light)
+	{
+		if ((int)light.LightType == type)
+		{
 			light.Reallocate();
 		}
-		});
+	});
 }
 
-void Cast::Scene::BindSSBOforShadingPass()
+void Cast::Scene::BindSSBOforShadingPass() const
 {
 	BindLightSSBOs();
 }
 
+Cast::Ref<Cast::Entity> Cast::Scene::GetEntityReferenceByHandle(const entt::entity ent)
+{
+	const auto it = EntityDescriptorPool.find(ent);
+	if (it != EntityDescriptorPool.end())
+	{
+		return it->second;
+	}
+
+	else return nullptr;
+}
+
 inline void Cast::Scene::RenderLightComponent()
 {
-	IconRenderer.Clear();
+	IconRenderer_.Clear();
 
-	auto view = Registry.view<Component::LightComponent>();
+	const auto view = Registry.view<Component::LightComponent>();
 
-	for (auto entity : view) {
+	for (const auto entity : view)
+	{
 		Component::LightComponent& light = view.get<Component::LightComponent>(entity);
 		Component::TransformComponent& transform = Registry.get<Component::TransformComponent>(entity);
 
 		glm::vec3 position = transform.GetTranslation();
 		light.EntityPosition = position;
 
-		switch (light.LightType) {
+		switch (light.LightType)
+		{
 		case Component::LightComponent::Type::Directional:
-			IconRenderer.AddIcon(Icon::LightDirectional, position);
+			IconRenderer_.AddIcon(LightDirectional, position);
 			// Render vector
 			break;
 		case Component::LightComponent::Type::Point:
-			IconRenderer.AddIcon(Icon::LightPoint, position);
+			IconRenderer_.AddIcon(LightPoint, position);
 			break;
 		case Component::LightComponent::Type::Spot:
 			// Render vector
-			IconRenderer.AddIcon(Icon::LightSpot, position);
+			IconRenderer_.AddIcon(LightSpot, position);
 			break;
 		}
 	}
 
 	BindSymbolSSBOs();
-	IconRenderer.RenderAll();
+	IconRenderer_.RenderAll();
 }
 
-inline void Cast::Scene::BindLightSSBOs()
+inline void Cast::Scene::BindLightSSBOs() const
 {
 	DirLightsSSBO->BindBase(1);
 	SpotLightsSSBO->BindBase(2);
 	PointLightsSSBO->BindBase(3);
 }
 
-inline void Cast::Scene::BindSymbolSSBOs()
+inline void Cast::Scene::BindSymbolSSBOs() const
 {
-	IconRenderer.BindBufferBaseDefault();
+	IconRenderer_.BindBufferBaseDefault();
 }
 
-inline void Cast::Scene::BindTransformSSBO()
+inline void Cast::Scene::BindTransformSSBO() const
 {
 	TransRegistry.BindBase(0);
 }

@@ -5,11 +5,11 @@
 #include <imgui.h>
 
 namespace Cast::Component {
-	struct ShaderComponent : public Component
+	struct ShaderComponent final : public Component
 	{
 #pragma region DATA
 		std::string Identifier;
-		Cast::Ref<API::Core::Shader> Shader;
+		Ref<API::Core::Shader> Shader;
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -25,14 +25,14 @@ namespace Cast::Component {
 #pragma endregion
 
 #pragma region OVERRIDE
-		static inline const Type GetType() { return Type::Shader; }
+		static inline Type GetType() { return Type::Shader; }
 		static inline std::string GetName() { return "Shader"; }
 
-		virtual UIResponse OnImGuiRender() override {
-			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+		UIResponse OnImGuiRender() override {
+			const bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}

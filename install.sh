@@ -8,24 +8,37 @@ if ! command -v cmake &> /dev/null; then
     exit 1
 fi
 
-# Create and enter build directory
-mkdir -p build
-cd build
+# Check for Wayland flag
+USE_WAYLAND=""
+if [ "$1" == "--wayland" ]; then
+    echo "Using Wayland display server..."
+    USE_WAYLAND="-DWAYLAND=ON"
+fi
 
 # Initialize all git submodules
 echo "Initializing git submodules..."
-cd ..
 git submodule update --init --recursive
+if [ $? -ne 0 ]; then
+    echo "Failed to initialize git submodules!"
+    exit 1
+fi
+
+# Create build directory
+mkdir -p build
 
 # Configure CMake
 echo "Configuring CMake..."
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release $USE_WAYLAND
+if [ $? -ne 0 ]; then
+    echo "CMake configuration failed!"
+    exit 1
+fi
 
 # Build the project
 echo "Building project..."
-cmake --build . --config Release
-
+# Use number of CPU cores for parallel build
+CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+cmake --build build --config Release --parallel $CORES
 if [ $? -ne 0 ]; then
     echo "Build failed!"
     exit 1
@@ -33,5 +46,4 @@ fi
 
 echo
 echo "Build completed successfully!"
-echo "Binaries can be found in: $(pwd)/bin/x64-Release"
-cd .. 
+echo "Binaries can be found in: $(pwd)/build/bin/Release"

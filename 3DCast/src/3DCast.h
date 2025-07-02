@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GL/glew.h>
+
 #include "3DCast/Application.h"
 #include "3DCast/Core/Log.h"
 #include "3DCast/Core/Timestep.h"

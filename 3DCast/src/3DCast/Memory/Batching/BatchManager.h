@@ -8,9 +8,10 @@
 
 namespace Cast::Memory
 {
-	struct MemoryPosition {
+	struct MemoryPosition
+	{
 		int batchStorageId;
-		int batchStorageInstancedId;
+		int batchStorageIndexedId;
 		int offset;
 	};
 
@@ -22,41 +23,41 @@ namespace Cast::Memory
 
 		void Init(size_t defaultStorageSize, int maxIndices);
 
-		uid CreateBatchObject(void* data, size_t size);
-		uid CreateBatchObject(void* data, size_t size, void* indices, int count);
+		uid CreateBatchObject(const void* data, size_t size);
+		uid CreateBatchObject(const void* data, size_t size, const void* indices, int count);
 
-		void EditObject(uid objectId, void* data, size_t size);
-		void EditObject(uid objectId, void* data, size_t size, void* indices, int count);
+		void EditObject(uid objectId, const void* data, size_t size);
+		void EditObject(uid objectId, const void* data, size_t size, void* indices, int count);
 
-		void OnBatchEmptyRetransfer(uid objectId, void* data, size_t size);
-		void OnBatchEmptyRetransfer(uid objectId, void* data, size_t size, void* indices, int count);
+		void OnBatchEmptyRetransfer(uid objectId, const void* data, size_t size);
+		void OnBatchEmptyRetransfer(uid objectId, const void* data, size_t size, const void* indices, int count);
 
 		std::vector<uid> RemoveObject(uid objectId);
 
 		void Clear();
 		void DeleteUnused();
 
-		void Render(Cast::Ref<API::Core::Shader> shader);
-		void RenderIndexed(Cast::Ref<API::Core::Shader> shader);
+		void Render(Ref<API::Core::Shader> shader) const;
+		void RenderIndexed(Ref<API::Core::Shader> shader) const;
 
-		inline bool IsEntityInBatchStorage(uid entityId)
+		inline bool IsEntityInBatchStorage(const uid entityId)
 		{
 			return EntityIdToMemoryPosition.find(entityId) != EntityIdToMemoryPosition.end();
 		}
 
 	private:
-		void QueueRetransfers(std::vector<uid>& ids);
+		static void QueueRetransfers(const std::vector<uid>& ids);
 
 	private:
 		bool HasBeenInitialized = false;
 
-		size_t BatchStorageSize;
-		int MaxIndices;
+		size_t BatchStorageSize{};
+		int MaxIndices{};
 		std::vector<LinearBatchStorage> BatchStorages;
 		std::vector<LinearBatchStorageIndexed> BatchStoragesIndexed;
 		std::unordered_map<uid, MemoryPosition> EntityIdToMemoryPosition;
 
-		Cast::Ref<API::Core::VertexBufferLayout> Layout;
+		Ref<API::Core::VertexBufferLayout> Layout;
 	};
 
 	extern Cast::Memory::BatchManager BatchMemoryHandler;

@@ -5,12 +5,12 @@
 struct GLFWwindow;
 
 namespace Cast {
-	class OpenGLContext : public GraphicsContext {
+	class OpenGLContext final : public GraphicsContext {
 	public:
-		OpenGLContext(GLFWwindow* windowHandle);
+		explicit OpenGLContext(GLFWwindow* windowHandle);
 
-		virtual void Init() override;
-		virtual void SwapBuffer() override;
+		void Init() override;
+		void SwapBuffer() override;
 
 	private:
 		GLFWwindow* windowHandle;
