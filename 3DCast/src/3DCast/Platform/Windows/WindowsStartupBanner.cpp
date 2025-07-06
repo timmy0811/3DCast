@@ -42,7 +42,7 @@ bool Cast::Core::WindowsStartupBanner::Init(const std::string& imgPath)
 	context->Init();
 
 	screenGeometry.reset(API::Advanced::GBufferScreenGeometry::Create(880, 660));
-	shader.reset(API::Core::Shader::Create("../3DCast/resources/shader/sprite/basic_img.vert", "../3DCast/resources/shader/sprite/basic_img.frag"));
+	shader.reset(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/basic_img.vert", std::string(ASSET_DIR) + "shader/sprite/basic_img.frag"));
 	texture.reset(API::Texture::Texture::Create(imgPath, API::Texture::TextureFilter::LINEAR, true));
 	texture->Bind();
 	shader->Bind();

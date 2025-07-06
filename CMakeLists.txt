@@ -109,6 +109,7 @@ if (WIN32)
     set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies/assimp")
     set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "Dependencies/assimp")
 endif ()
+target_compile_options(assimp PRIVATE -Wno-error=array-bounds)
 set_target_properties(uninstall PROPERTIES FOLDER "Dependencies/assimp")
 
 # GLEW

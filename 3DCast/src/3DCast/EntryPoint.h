@@ -1,11 +1,15 @@
 #pragma once
 
+#include "Core/StartupBanner.h"
+
 extern Cast::Application* Cast::CreateApplication();
 
 int main(int argc, char** argv)
 {
 #ifdef CAST_RELEASE
+#ifdef CAST_PLATFORM_WINDOWS
 	FreeConsole();
+#endif
 #endif
 
 	// #ifdef CAST_PLATFORM_LINUX
