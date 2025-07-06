@@ -16,7 +16,6 @@ CMakeUserPresets.json
 Testing
 CTestTestfile.cmake
 _deps
-Dependencies/
 */.vshistory
 
 3DCast/resources/img/*
