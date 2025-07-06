@@ -4,8 +4,8 @@
 [submodule "Dependencies/glm"]
 	path = Dependencies/glm
 	url = https://github.com/g-truc/glm.git
-[submodule "GLWrapper"]
-	path = GLWrapper
+[submodule "Backend/GLWrapper"]
+	path = Backend/GLWrapper
 	url = https://github.com/timmy0811/GraphicsAPI-Abstraction
 [submodule "Dependencies/glfw"]
 	path = Dependencies/glfw
@@ -16,12 +16,13 @@
 [submodule "Dependencies/assimp"]
 	path = Dependencies/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "Dependencies/nfd"]
+	path = Dependencies/nfd
+	url = https://github.com/mlabbe/nativefiledialog.git
+[submodule "Dependencies/nativefile"]
+	path = Dependencies/nativefile
+	url = https://github.com/btzy/nativefiledialog-extended.git
 [submodule "Dependencies/imgui"]
 	path = Dependencies/imgui
 	url = https://github.com/timmy0811/imgui.git
-[submodule "Dependencies\\nfd"]
-	path = Dependencies\\nfd
-	url = https://github.com/mlabbe/nativefiledialog.git
-[submodule "Dependencies\\nativefile"]
-	path = Dependencies\\nativefile
-	url = https://github.com/btzy/nativefiledialog-extended.git
+	branch = docking

@@ -90,7 +90,7 @@ endif ()
 
 add_subdirectory(3DCast_Runtime ${GENERATOR_PATH}/3DCast_Runtime)
 add_subdirectory(3DCast ${GENERATOR_PATH}/3DCast)
-add_subdirectory(GLWrapper ${GENERATOR_PATH}/GLWrapper)
+add_subdirectory(Backend/GLWrapper ${GENERATOR_PATH}/Backend/GLWrapper)
 
 # ------------------------------------------------------------------------------
 # ---- Dependencies ----

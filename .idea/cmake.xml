@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug-Default" ENABLED="true" GENERATION_DIR="bin/Debug" CONFIG_NAME="Debug" TOOLCHAIN_NAME="VC">
+        <ADDITIONAL_GENERATION_ENVIRONMENT>
+          <envs>
+            <env name="LANG" value="en_US.UTF-8" />
+            <env name="LC_ALL" value="en_US.UTF-8" />
+          </envs>
+        </ADDITIONAL_GENERATION_ENVIRONMENT>
+      </configuration>
+      <configuration PROFILE_NAME="Release-Default" ENABLED="true" GENERATION_DIR="bin/Release" CONFIG_NAME="Release" TOOLCHAIN_NAME="VC" />
+    </configurations>
+  </component>
+</project>

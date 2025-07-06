@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Backend/GLWrapper" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/assimp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/glfw" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/glm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/nativefile" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/nfd" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/yaml-cpp" vcs="Git" />
+  </component>
+</project>
