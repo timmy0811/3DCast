@@ -67,11 +67,6 @@ cd 3DCast_Linux
 git clone https://github.com/yourusername/3DCast_Linux.git --recursive
 cd 3DCast_Linux
 
-# Make sure to checkout the 'docking' branch for ImGui
-cd Dependencies/imgui
-git checkout docking
-cd ../..
-
 # Build project
 mkdir build
 cd build
@@ -99,4 +94,6 @@ After building, the executable will be located in:
 
 - Windows: `build/bin/Release/3DCast.exe`
 - Linux: `build/bin/Release/3DCast`
+
+Asset Files are copied automatically when using the install scripts. Alternatively copy the folder `3DCast/resources` and `3DCast_Runtime/imgui.ini` into the executables folder. 
 
