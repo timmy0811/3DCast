@@ -45,8 +45,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copying asset files to build directory..."
-cp -r 3DCast/resources build/bin/Release/
-cp 3DCast_Runtime/imgui.ini build/bin/Release/
+cp -r 3DCast/resources build/bin/resources
+cp 3DCast_Runtime/imgui.ini build/bin/imgui.ini
 
 echo "Build completed successfully!"
 echo "Binaries can be found in: $(pwd)/build/bin/Release"
