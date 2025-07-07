@@ -38,6 +38,9 @@ void Cast::Application::Run()
         const Timestep timestep = time - LastFrameTime;
         LastFrameTime = time;
 
+
+        API::Core::RenderCommand::Clear();
+
         if (!Minimized)
         {
             for (Layer* layer : LStack)
