@@ -56,7 +56,7 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const
 	return entity;
 }
 
-void Cast::Scene::RemoveEntity(Entity& entity)
+void Cast::Scene::RemoveEntity(Entity& entity, bool recursive)
 {
 	if (!Registry.valid(entity.GetEntityHandle()))
 	{
@@ -64,8 +64,36 @@ void Cast::Scene::RemoveEntity(Entity& entity)
 		return;
 	}
 
+	if (recursive)
+	{
+		for (const Ref<Entity> child : entity.GetChildren())
+		{
+			RemoveEntity(child);
+		}
+	}
+
 	Registry.destroy(entity.GetEntityHandle());
 	EntityDescriptorPool.erase(entity.GetEntityHandle());
+}
+
+void Cast::Scene::RemoveEntity(Ref<Entity> entity, bool recursive)
+{
+	if (!Registry.valid(entity->GetEntityHandle()))
+	{
+		LOG_CORE_WARN("Attempted to remove an invalid entity.");
+		return;
+	}
+
+	if (recursive)
+	{
+		for (const Ref<Entity> child : entity->GetChildren())
+		{
+			RemoveEntity(child);
+		}
+	}
+
+	Registry.destroy(entity->GetEntityHandle());
+	EntityDescriptorPool.erase(entity->GetEntityHandle());
 }
 
 bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)

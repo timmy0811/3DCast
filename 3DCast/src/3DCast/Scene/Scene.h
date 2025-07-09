@@ -25,7 +25,8 @@ namespace Cast
 		~Scene() = default;
 
 		Ref<Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
-		void RemoveEntity(Entity& entity);
+		void RemoveEntity(Entity& entity, bool recursive = true);
+		void RemoveEntity(Ref<Entity> entity, bool recursive = true);
 
 		bool RegisterTransformComponent(Ref<Entity> entity);
 

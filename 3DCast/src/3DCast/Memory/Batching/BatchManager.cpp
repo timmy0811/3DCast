@@ -294,7 +294,6 @@ void Cast::Memory::BatchManager::RenderIndexed(const Ref<API::Core::Shader> shad
 
 void Cast::Memory::BatchManager::QueueRetransfers(const std::vector<uid>& ids)
 {
-	LOG_CORE_INFO("queueingg");
 	for (uid id : ids)
 	{
 		if (Shared.VertexEntities.find(id) != Shared.VertexEntities.end())

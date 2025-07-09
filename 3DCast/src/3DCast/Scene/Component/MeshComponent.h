@@ -55,9 +55,6 @@ namespace Cast::Component
 		{
 			IsMeshLeaf = true;
 			header = "Mesh Leaf Node";
-
-			LOG_CORE_ERROR("MeshComponent constructor called (this={0}, Mesh={1})",
-			               (void*)this, (void*)MeshInstance);
 		}
 
 		explicit MeshComponent(const std::string& path)
@@ -106,11 +103,6 @@ namespace Cast::Component
 
 		~MeshComponent() override
 		{
-			/*static int counter = 0;
-			counter++;
-			LOG_CORE_ERROR("MeshComponent destructor called (#{0}, this={1}, Mesh={2})",
-				counter, (void*)this, (void*)Mesh.get());*/
-
 			if (MeshInstance)
 			{
 				MeshInstance->RemoveFromBatchStorage();
@@ -124,9 +116,6 @@ namespace Cast::Component
 		{
 			MeshInstance = mesh;
 			IsMeshLeaf = true;
-
-			LOG_CORE_ERROR("MeshComponent::SetMeshAsChildNode called (this={0}, Mesh={1})",
-			               (void*)this, (void*)MeshInstance);
 		}
 
 		static std::string OpenFileDialogue()
@@ -146,7 +135,7 @@ namespace Cast::Component
 			}
 			else if (result == NFD_CANCEL)
 			{
-				LOG_CORE_TRACE("Cancelled file dialoge");
+				LOG_CORE_TRACE("Cancelled file dialogue");
 			}
 			else
 			{
