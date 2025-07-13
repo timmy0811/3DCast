@@ -3,44 +3,40 @@
 #include "3DCast/Misc/UID.h"
 
 #include <unordered_map>
-#include <API/core/Buffer.h>
 #include <API/core/Shader.h>
 #include <API/core/VertexBufferLayout.h>
-#include <API/core/VertexArray.h>
+
+#include "IBatchStorage.h"
 
 namespace Cast::Memory
 {
-	class LinearBatchStorage
+	class LinearBatchStorage final : public IBatchStorage
 	{
 	public:
 		explicit LinearBatchStorage(size_t capacity);
-		~LinearBatchStorage() = default;
+		~LinearBatchStorage() override = default;
 
 		int CreateBatchObject(uid object, const void* data, size_t size);
-		std::vector<uid> RemoveObject(uid object);
+		std::vector<uid> RemoveObject(uid object, bool flushAll = false) override;
+
+		std::vector<uid> RemoveBulk() override;
 
 		bool EditObject(uid object, const void* data, size_t size);
 		void EditObject(size_t offset, const void* data, size_t size) const;
 
 		int RetransferVertexEntity(uid object, const void* data, size_t size);
 
-		inline size_t GetCapacity() const { return Capacity; }
-		inline size_t GetSize() const { return BatchMemory->GetSize(); }
-		inline size_t GetObjectCount() const { return Objects.size(); }
-		inline size_t GetAvailableMemory() const { return Capacity - BatchMemory->GetSize(); }
+		inline size_t GetObjectCount() const override{ return Objects.size(); }
 
-		void Render(Ref<API::Core::Shader> shader) const;
+		inline bool IsObjectInStorage(const uid object) const override
+		{
+			return Objects.find(object) != Objects.end();
+		}
 
-		void Clear();
-
-		void SetLayout(Ref<API::Core::VertexBufferLayout> layout);
+		void Clear() override;
+		void Render(Ref<API::Core::Shader> shader) const override;
 
 	private:
-		size_t Capacity;
 		std::unordered_map<uid, int> Objects;
-
-		Ref<API::Core::Buffer> BatchMemory;
-		Ref<API::Core::VertexBufferLayout> Layout;
-		Ref<API::Core::VertexArray> VertexArray;
 	};
 }

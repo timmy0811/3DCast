@@ -7,18 +7,21 @@
 #include <API/core/Buffer.h>
 #include <API/core/Shader.h>
 #include <API/core/VertexBufferLayout.h>
-#include <API/core/VertexArray.h>
+
+#include "IBatchStorage.h"
 
 namespace Cast::Memory
 {
-	class LinearBatchStorageIndexed
+	class LinearBatchStorageIndexed final : public IBatchStorage
 	{
 	public:
-		LinearBatchStorageIndexed(size_t capacity, size_t indexCapacity);
-		~LinearBatchStorageIndexed() = default;
+		explicit LinearBatchStorageIndexed(size_t capacity, size_t indexCapacity);
+		~LinearBatchStorageIndexed() override = default;
 
 		int CreateBatchObject(uid object, const void* data, size_t size, const void* indices, int count);
-		std::vector<uid> RemoveObject(uid object);
+		std::vector<uid> RemoveObject(uid object, bool flushAll = false) override;
+
+		std::vector<uid> RemoveBulk() override;
 
 		bool EditObject(uid object, const void* data, size_t size, const void* indices,
 		                int count);
@@ -28,17 +31,16 @@ namespace Cast::Memory
 
 		int RetransferVertexEntity(uid object, const void* data, size_t size, const void* indices, int count);
 
-		inline size_t GetCapacity() const { return Capacity; }
-		inline size_t GetSize() const { return BatchMemory->GetSize(); }
-		inline size_t GetObjectCount() const { return Objects.size(); }
-		inline size_t GetAvailableMemory() const { return Capacity - BatchMemory->GetSize(); }
+		inline size_t GetObjectCount() const override { return Objects.size(); }
 		inline size_t GetAvailableIndexMemory() const { return IndexCapacity - BatchIndices->GetSize(); }
 
-		void Render(Ref<API::Core::Shader> shader) const;
+		inline bool IsObjectInStorage(const uid object) const override
+		{
+			return Objects.find(object) != Objects.end();
+		}
 
-		void Clear();
-
-		void SetLayout(Cast::Ref<API::Core::VertexBufferLayout> layout);
+		void Clear() override;
+		void Render(Ref<API::Core::Shader> shader) const override;
 
 	private:
 		struct Offset
@@ -47,13 +49,9 @@ namespace Cast::Memory
 			int indexOffset;
 		};
 
-		size_t Capacity;
 		size_t IndexCapacity;
 		std::unordered_map<uid, Offset> Objects;
 
-		Ref<API::Core::Buffer> BatchMemory;
 		Ref<API::Core::Buffer> BatchIndices;
-		Ref<API::Core::VertexBufferLayout> Layout;
-		Ref<API::Core::VertexArray> VertexArray;
 	};
 }

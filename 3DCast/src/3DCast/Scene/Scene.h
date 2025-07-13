@@ -27,6 +27,7 @@ namespace Cast
 		Ref<Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
 		void RemoveEntity(Entity& entity, bool recursive = true);
 		void RemoveEntity(Ref<Entity> entity, bool recursive = true);
+		void RemoveEntityBulkOptimized(Ref<Entity> entity);
 
 		bool RegisterTransformComponent(Ref<Entity> entity);
 

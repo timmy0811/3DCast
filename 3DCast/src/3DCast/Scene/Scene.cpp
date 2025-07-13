@@ -96,6 +96,12 @@ void Cast::Scene::RemoveEntity(Ref<Entity> entity, bool recursive)
 	EntityDescriptorPool.erase(entity->GetEntityHandle());
 }
 
+void Cast::Scene::RemoveEntityBulkOptimized(Ref<Entity> entity)
+{
+	RemoveEntity(entity, true);
+	Memory::BatchMemoryHandler.RemoveBulk(true);
+}
+
 bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)
 {
 	auto& view = entity->GetComponent<Component::TransformComponent>();

@@ -1,15 +1,15 @@
 #include "castpch.h"
 
+#include <limits>
+
 #include "LinearBatchStorage.h"
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
 Cast::Memory::LinearBatchStorage::LinearBatchStorage(const size_t capacity)
+	:IBatchStorage(capacity)
 {
-	VertexArray.reset(API::Core::VertexArray::Create());
 
-	BatchMemory.reset(API::Core::Buffer::Create(API::Core::Buffer::BufferType::ARRAY_BUFFER, API::Core::Buffer::MemoryLayout::DYNAMIC, capacity));
-	Capacity = capacity;
 }
 
 int Cast::Memory::LinearBatchStorage::CreateBatchObject(const uid object, const void* data, const size_t size)
@@ -24,19 +24,61 @@ int Cast::Memory::LinearBatchStorage::CreateBatchObject(const uid object, const 
 	return offset;
 }
 
-std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveObject(const uid object)
+std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveObject(const uid object, bool flushAll)
 {
-	if (Objects.erase(object) == 0) {
-		return { UID::None() };
+	if (Objects.find(object) == Objects.end()) {
+		return {};
 	}
 
-	BatchMemory->Empty();
+	const int offset = (int)Objects[object];
+	if (Objects.erase(object) == 0) {
+		return {};
+	}
 
 	std::vector<uid> ids;
 	ids.reserve(Objects.size());
 
-	std::transform(Objects.begin(), Objects.end(), std::back_inserter(ids),
+	if (flushAll)
+	{
+		BatchMemory->Empty();
+
+		std::transform(Objects.begin(), Objects.end(), std::back_inserter(ids),
 		[](const auto& pair) { return pair.first; });
+
+	}
+	else
+	{
+		BatchMemory->EmptyPastOffset(offset);
+
+		std::for_each(Objects.begin(), Objects.end(), [&](const auto& pair) {
+			if (static_cast<int>(pair.second) > offset) ids.push_back(pair.first);
+		});
+	}
+
+	return ids;
+}
+
+std::vector<Cast::uid> Cast::Memory::LinearBatchStorage::RemoveBulk()
+{
+	int minOffset = INT_MAX;
+
+	for (uid id : Bulk)
+	{
+		if (const int offset = Objects[id]; offset < minOffset)
+		{
+			minOffset = offset;
+		}
+
+		Objects.erase(id);
+	}
+
+	BatchMemory->EmptyPastOffset(minOffset);
+
+	std::vector<uid> ids;
+	ids.reserve(Objects.size());
+	std::for_each(Objects.begin(), Objects.end(), [&](const auto& pair) {
+			if (static_cast<int>(pair.second) > minOffset) ids.push_back(pair.first);
+		});
 
 	return ids;
 }
@@ -82,8 +124,3 @@ void Cast::Memory::LinearBatchStorage::Clear()
 	Objects.clear();
 }
 
-void Cast::Memory::LinearBatchStorage::SetLayout(Ref<API::Core::VertexBufferLayout> layout)
-{
-	Layout = layout;
-	VertexArray->AddBuffer(*BatchMemory, *Layout);
-}

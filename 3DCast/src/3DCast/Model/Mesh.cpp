@@ -54,7 +54,7 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 void Cast::Mesh::RemoveFromBatchStorage()
 {
 	if (BatchId != UID::None()) {
-		Memory::BatchMemoryHandler.RemoveObject(BatchId);
+		Memory::BatchMemoryHandler.AddToBulk(BatchId);
 		BatchId = UID::None();
 	}
 }

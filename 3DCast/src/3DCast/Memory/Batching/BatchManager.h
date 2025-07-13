@@ -34,6 +34,10 @@ namespace Cast::Memory
 
 		std::vector<uid> RemoveObject(uid objectId);
 
+		void InitBulk();
+		void AddToBulk(uid object);
+		std::vector<uid> RemoveBulk(bool postClear = false);
+
 		void Clear();
 		void DeleteUnused();
 
@@ -56,6 +60,10 @@ namespace Cast::Memory
 		std::vector<LinearBatchStorage> BatchStorages;
 		std::vector<LinearBatchStorageIndexed> BatchStoragesIndexed;
 		std::unordered_map<uid, MemoryPosition> EntityIdToMemoryPosition;
+		std::vector<uid> BulkDisplay;
+
+		std::unordered_set<int> ActiveBulks;
+		std::unordered_set<int> ActiveIndexedBulks;
 
 		Ref<API::Core::VertexBufferLayout> Layout;
 	};

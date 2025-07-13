@@ -285,7 +285,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 
 void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 {
-	Context->RemoveEntity(*SelectionContext);
+	Context->RemoveEntityBulkOptimized(SelectionContext);
 	if (SelectionContext->IsChild())
 		SelectionContext->GetParent()->RemoveChild(SelectionContext);
 

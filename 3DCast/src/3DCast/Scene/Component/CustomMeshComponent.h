@@ -110,7 +110,7 @@ namespace Cast::Component
 
 			if (BatchId != UID::None())
 			{
-				Memory::BatchMemoryHandler.RemoveObject(BatchId);
+				Memory::BatchMemoryHandler.AddToBulk(BatchId);
 				Shared.VertexEntities.erase(BatchId);
 				BatchId = UID::None();
 			}

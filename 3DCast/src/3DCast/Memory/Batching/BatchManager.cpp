@@ -247,6 +247,83 @@ std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveObject(const uid object
 	return {};
 }
 
+void Cast::Memory::BatchManager::InitBulk()
+{
+	BulkDisplay.clear();
+
+	for (const int id : ActiveBulks)
+	{
+		BatchStorages[id].InitBulk();
+	}
+	ActiveBulks.clear();
+
+	for (const int id : ActiveIndexedBulks)
+	{
+		BatchStoragesIndexed[id].InitBulk();
+	}
+	ActiveIndexedBulks.clear();
+}
+
+void Cast::Memory::BatchManager::AddToBulk(uid object)
+{
+	if (IsEntityInBatchStorage(object))
+	{
+		BulkDisplay.push_back(object);
+		const MemoryPosition pos = EntityIdToMemoryPosition[object];
+
+		if (pos.batchStorageId != -1)
+		{
+			BatchStorages[pos.batchStorageId].AddToBulk(object);
+			ActiveBulks.insert(pos.batchStorageId);
+		}
+		else if (pos.batchStorageIndexedId != -1)
+		{
+			BatchStoragesIndexed[pos.batchStorageIndexedId].AddToBulk(object);
+			ActiveIndexedBulks.insert(pos.batchStorageIndexedId);
+		}
+		else
+		{
+			LOG_CORE_WARN("Cannot add to bulk. Object with ID " + std::to_string(object) + " not found in any batch storage.");
+		}
+	}
+}
+
+std::vector<Cast::uid> Cast::Memory::BatchManager::RemoveBulk(const bool postClear)
+{
+	std::vector<uid> mergeList;
+	mergeList.reserve(10);
+
+	for (const int id : ActiveBulks)
+	{
+		std::vector<uid> ids = BatchStorages[id].RemoveBulk();
+		mergeList.reserve(mergeList.size() + ids.size());
+		mergeList.insert(mergeList.end(), ids.begin(), ids.end());
+
+		if (postClear) BatchStorages[id].InitBulk();
+	}
+
+	for (const int id : ActiveIndexedBulks)
+	{
+		std::vector<uid> ids = BatchStoragesIndexed[id].RemoveBulk();
+		mergeList.reserve(mergeList.size() + ids.size());
+		mergeList.insert(mergeList.end(), ids.begin(), ids.end());
+
+		if (postClear) BatchStoragesIndexed[id].InitBulk();
+	}
+
+	if (postClear)
+	{
+		ActiveBulks.clear();
+		ActiveIndexedBulks.clear();
+		BulkDisplay.clear();
+	}
+
+	if (!mergeList.empty() && mergeList[0] != UID::None())
+		QueueRetransfers(mergeList);
+
+	return mergeList;
+}
+
 void Cast::Memory::BatchManager::Clear()
 {
 	for (auto& BatchStorage : BatchStorages)
