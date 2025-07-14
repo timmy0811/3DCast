@@ -39,6 +39,7 @@ namespace Runtime
 	private:
 		Cast::Renderer::RasterizationPipelineObjects PipelineData;
 
+		bool Wireframe = false;
 		bool SetPositionOnNextDraw = false;
 		bool IsCameraInitFrame = true;
 		bool IsCameraRotating = false;

@@ -131,8 +131,17 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 	const uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
 	ImGui::Image(textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
-
 	IsMainComponentHovered = ImGui::IsItemHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+
+	ImGui::SetItemAllowOverlap();
+
+	ImVec2 regionAvail = ImGui::GetWindowContentRegionMin();
+	regionAvail.x += 5;
+	regionAvail.y += 5;
+
+	ImGui::SetCursorPos(regionAvail);
+	ImGui::Checkbox("Wireframe", &Wireframe);
+
 	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
 
@@ -162,6 +171,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 void Runtime::RasterizationViewport::OnRender()
 {
+
 	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera);
 
 	RenderGeometryPass();
@@ -175,6 +185,7 @@ void Runtime::RasterizationViewport::OnRender()
 	RenderForwardPass();
 
 	Cast::Renderer::RendererContext::EndScene();
+
 }
 
 void Runtime::RasterizationViewport::RenderGeometryPass() const
@@ -193,7 +204,13 @@ void Runtime::RasterizationViewport::RenderGeometryPass() const
 	shader->Bind();
 	shader->SetUniform1f("u_ParallaxScale", EditorContext.ViewSettings.ParallaxScale);
 
+	if (Wireframe)
+		API::Core::RenderCommand::SetWireframeMode(true);
+
 	Cast::Shared.ActiveScene->OnDeferredRender();
+
+	API::Core::RenderCommand::SetWireframeMode(false);
+
 	PipelineData.GBuffer->Unbind();
 }
 
