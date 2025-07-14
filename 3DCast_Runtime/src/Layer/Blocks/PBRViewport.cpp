@@ -13,7 +13,7 @@ void Runtime::PBRViewport::Destroy()
 {
 }
 
-void Runtime::PBRViewport::OnUpdate(Cast::Timestep ts)
+void Runtime::PBRViewport::OnUpdate(Cast::Timestep ts, bool hasCameraChanged)
 {
 }
 

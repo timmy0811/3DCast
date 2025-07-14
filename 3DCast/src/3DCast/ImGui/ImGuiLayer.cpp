@@ -26,6 +26,7 @@ void Cast::ImGuiLayer::OnAttach()
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
+	io.ConfigWindowsMoveFromTitleBarOnly = true;
 #ifdef CAST_PLATFORM_WINDOWS
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 #endif
@@ -38,7 +39,6 @@ void Cast::ImGuiLayer::OnAttach()
 		myFont = io.Fonts->AddFontDefault();
 
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -52,6 +52,7 @@ void Cast::ImGuiLayer::OnAttach()
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
+	ImGui_ImplOpenGL3_CreateDeviceObjects();
 }
 
 void Cast::ImGuiLayer::OnDetach()
@@ -76,9 +77,15 @@ void Cast::ImGuiLayer::End()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	const Application& app = Application::Get();
-	io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+	const int currentWidth = (int)app.GetWindow().GetWidth();
+	const int currentHeight = (int)app.GetWindow().GetHeight();
 
-	// Rendering
+	if (LastWindowWidth != currentWidth || LastWindowHeight != currentHeight) {
+		io.DisplaySize = ImVec2((float)currentWidth, (float)currentHeight);
+		LastWindowWidth = currentWidth;
+		LastWindowHeight = currentHeight;
+	}
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

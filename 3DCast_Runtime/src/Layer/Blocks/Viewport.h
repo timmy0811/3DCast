@@ -18,7 +18,7 @@ namespace Runtime
 		virtual void Init() = 0;
 		virtual void Destroy() = 0;
 
-		virtual void OnUpdate(Cast::Timestep ts) = 0;
+		virtual void OnUpdate(Cast::Timestep ts, bool hasCameraChanged) = 0;
 		virtual void OnRender() = 0;
 
 		virtual void OnImGuiRender() = 0;

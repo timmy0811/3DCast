@@ -23,6 +23,8 @@ namespace Cast::Renderer
 
 		virtual inline void SetPosition(const glm::vec3& position)
 		{
+			if (Position == position) return;
+
 			this->Position = position;
 			UpdateViewMat();
 		}
@@ -35,27 +37,41 @@ namespace Cast::Renderer
 
 		virtual inline void SetRoll(const float rotation)
 		{
+			if (this->Rotation.z == rotation) return;
+
 			this->Rotation.z = rotation;
 			UpdateViewMat();
 		}
 
 		virtual inline void SetPitch(const float rotation)
 		{
+			const float pitch = glm::clamp(rotation, -89.99f, 89.99f);
+			if (this->Rotation.x == pitch) return;
+
 			this->Rotation.x = glm::clamp(rotation, -89.99f, 89.99f);
 			UpdateViewMat();
 		}
 
 		virtual inline void SetYaw(const float rotation)
 		{
+			if (this->Rotation.y == rotation) return;
 			this->Rotation.y = rotation;
 			UpdateViewMat();
 		}
 
 		virtual inline void SetRotation(const glm::vec3& rotation)
 		{
+			if (this->Rotation == rotation) return;
 			this->Rotation = rotation;
 			this->Rotation.x = glm::clamp(rotation.x, -89.99f, 89.99f);
 			UpdateViewMat();
+		}
+
+		inline bool HasChanged(const int consumerChannel = 0)
+		{
+			const bool changed = HasChangedField[consumerChannel];
+			HasChangedField[consumerChannel] = false;
+			return changed;
 		}
 
 		[[nodiscard]] virtual inline const glm::vec3& GetForward() const { return Forward; }
@@ -71,6 +87,8 @@ namespace Cast::Renderer
 
 	protected:
 		Type ProjectionType;
+		bool HasChangedField[10] = {true};
+
 		glm::mat4 ProjectionMat{1.f};
 		glm::mat4 ViewMat{1.f};
 		glm::mat4 ViewProjectionMat{1.f};

@@ -19,6 +19,17 @@ add_library(3DCast::3DCast ALIAS 3DCast)  # Create namespaced alias for modern C
 
 create_source_groups(${CMAKE_CURRENT_SOURCE_DIR})
 
+find_package(TBB REQUIRED)
+if(TBB_FOUND)
+    message("Found TBB: ${TBB_VERSION}")
+    target_link_libraries(3DCast PUBLIC TBB::tbb)
+
+    target_compile_definitions(3DCast PUBLIC TBB)
+
+else ()
+    message("TBB not found, proceeding without TBB support.")
+endif ()
+
 # Separate public from private includes
 target_include_directories(3DCast
         PUBLIC

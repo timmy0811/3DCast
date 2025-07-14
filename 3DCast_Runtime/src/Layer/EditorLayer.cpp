@@ -51,35 +51,41 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 {
 	const float CameraSpeedCorrected = CameraSpeed * ts;
 	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
-	if (Cast::Input::IsKeyPressed(CAST_KEY_A))
+	bool isCameraMoved = false;
+	if (ViewportRasterization.IsViewportFocused())
 	{
-		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_D))
-	{
-		cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_UP))
-	{
-		cameraPosition.y += CameraSpeedCorrected;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN))
-	{
-		cameraPosition.y -= CameraSpeedCorrected;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_W))
-	{
-		cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
-	}
-	if (Cast::Input::IsKeyPressed(CAST_KEY_S))
-	{
-		cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
-	}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_A))
+		{
+			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+		}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_D))
+		{
+			cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+		}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_UP))
+		{
+			cameraPosition.y += CameraSpeedCorrected;
+		}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN))
+		{
+			cameraPosition.y -= CameraSpeedCorrected;
+		}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_W))
+		{
+			cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+		}
+		if (Cast::Input::IsKeyPressed(CAST_KEY_S))
+		{
+			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+		}
 
-	Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
+		Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
+	}
 
 	ViewportPbr.OnUpdate(ts);
 	ViewportRasterization.OnUpdate(ts);
+
+	Cast::Shared.ActiveScene->OnUpdate();
 
 	Render();
 

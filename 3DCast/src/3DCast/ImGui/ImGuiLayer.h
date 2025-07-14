@@ -20,5 +20,7 @@ namespace Cast
 
 	private:
 		float time = 0.f;
+		inline static int LastWindowWidth = 0;
+		inline static int LastWindowHeight = 0;
 	};
 }

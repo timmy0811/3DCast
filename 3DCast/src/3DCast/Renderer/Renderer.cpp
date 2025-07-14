@@ -17,9 +17,9 @@ void Cast::Renderer::RendererContext::OnWindowResize(const uint32_t width, const
 
 void Cast::Renderer::RendererContext::BeginScene(const Camera& camera)
 {
-	sceneDataCache->viewProjectionMat = camera.GetViewProjectionMat();
-	sceneDataCache->viewMat = camera.GetViewMat();
-	sceneDataCache->projectionMat = camera.GetProjectionMat();
+	// sceneDataCache->viewProjectionMat = camera.GetViewProjectionMat();
+	// sceneDataCache->viewMat = camera.GetViewMat();
+	// sceneDataCache->projectionMat = camera.GetProjectionMat();
 }
 
 void Cast::Renderer::RendererContext::EndScene()
@@ -29,31 +29,25 @@ void Cast::Renderer::RendererContext::EndScene()
 void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Shader> shader)
 {
 	shader->Bind();
-	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat); // Muss hier raus
-	shader->SetUniformMat4f("u_Projection", sceneDataCache->projectionMat);
-
 	va->Bind();
+
 	API::Core::RenderCommand::Draw(va, va->GetVBCount());
 }
 
 void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::IndexBuffer> ib, Ref<API::Core::Shader> shader)
 {
 	shader->Bind();
-	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat);
-	shader->SetUniformMat4f("u_Projection", sceneDataCache->projectionMat);
-
 	va->Bind();
 	ib->Bind();
+
 	API::Core::RenderCommand::DrawIndexed(va, ib);
 }
 
 void Cast::Renderer::RendererContext::Submit(Ref<API::Core::VertexArray> va, Ref<API::Core::Buffer> ib, Ref<API::Core::Shader> shader)
 {
 	shader->Bind();
-	shader->SetUniformMat4f("u_View", sceneDataCache->viewMat);
-	shader->SetUniformMat4f("u_Projection", sceneDataCache->projectionMat);
-
 	va->Bind();
 	ib->Bind();
+
 	API::Core::RenderCommand::DrawIndexed(va, ib);
 }

@@ -148,75 +148,100 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 
 void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity) const
 {
-	for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
+	auto& registry = Context->GetRegistry();
+	auto entityHandle = entity->GetEntityHandle();
+
+	// Directly calling Components is faster than using CallBacks -> Append for new components
+	// Alternative:
+	// for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
+	// 	auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
+
+	if (entity->HasComponent<Cast::Component::TransformComponent>())
 	{
-		auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
-		if (action == Cast::Component::UIResponse::Remove)
-		{
-			switch (component)
-			{
-			case Cast::Component::Type::Transform:
-				entity->RemoveComponent<Cast::Component::TransformComponent>();
-				break;
-			case Cast::Component::Type::Camera:
-				entity->RemoveComponent<Cast::Component::CameraComponent>();
-				break;
-			case Cast::Component::Type::Light:
-				entity->RemoveComponent<Cast::Component::LightComponent>();
-				break;
-			case Cast::Component::Type::Mesh:
-				entity->RemoveComponent<Cast::Component::MeshComponent>();
-				break;
-			case Cast::Component::Type::CustomMesh:
-				entity->RemoveComponent<Cast::Component::CustomMeshComponent>();
-				break;
-			case Cast::Component::Type::Material:
-				entity->RemoveComponent<Cast::Component::MaterialComponent>();
-				break;
-			case Cast::Component::Type::Script:
-				LOG_CORE_WARN("Script component not implemented yet");
-				break;
-			case Cast::Component::Type::Behaviour:
-				LOG_CORE_WARN("Behaviour component not implemented yet");
-				break;
-			case Cast::Component::Type::RigidBody:
-				LOG_CORE_WARN("Rigid-Body component not implemented yet");
-				break;
-			case Cast::Component::Type::Collider:
-				LOG_CORE_WARN("Collider component not implemented yet");
-				break;
-			case Cast::Component::Type::Audio:
-				LOG_CORE_WARN("Audio component not implemented yet");
-				break;
-			case Cast::Component::Type::Particle:
-				LOG_CORE_WARN("Paricle component not implemented yet");
-				break;
-			case Cast::Component::Type::Animation:
-				LOG_CORE_WARN("Animation component not implemented yet");
-				break;
-			case Cast::Component::Type::UI:
-				LOG_CORE_WARN("UI component not implemented yet");
-				break;
-			case Cast::Component::Type::Shader:
-				entity->RemoveComponent<Cast::Component::ShaderComponent>();
-				break;
-			case Cast::Component::Type::Tag:
-				entity->RemoveComponent<Cast::Component::TagComponent>();
-				break;
-			case Cast::Component::Type::PBRMat:
-				entity->RemoveComponent<Cast::Component::PBRMaterialComponent>();
-				break;
-			case Cast::Component::Type::Raster:
-				entity->RemoveComponent<Cast::Component::RasterizableComponent>();
-				break;
-			case Cast::Component::Type::PBR:
-				entity->RemoveComponent<Cast::Component::PBRComponent>();
-				break;
-			default:
-				LOG_CORE_WARN("Trying to remove component with unknown id.");
-				break;
-			}
-		}
+		auto& component = entity->GetComponent<Cast::Component::TransformComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::TransformComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::CameraComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::CameraComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::CameraComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::LightComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::LightComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::LightComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::MeshComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::MeshComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::MeshComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::CustomMeshComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::CustomMeshComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::CustomMeshComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::MaterialComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::MaterialComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::MaterialComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::ShaderComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::ShaderComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::ShaderComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::TagComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::TagComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::TagComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::PBRMaterialComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::PBRMaterialComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::PBRMaterialComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::RasterizableComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::RasterizableComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::RasterizableComponent>();
+	}
+
+	if (entity->HasComponent<Cast::Component::PBRComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::PBRComponent>();
+		const auto response = component.OnImGuiRender();
+		if (response.action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::PBRComponent>();
 	}
 }
 

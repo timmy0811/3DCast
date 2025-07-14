@@ -4,6 +4,10 @@
 #include "3DCast/Renderer/Renderer.h"
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
+#include <thread>
+#include <algorithm>
+#include <execution>
+
 Cast::Memory::LinearBatchStorageIndexed::LinearBatchStorageIndexed(const size_t capacity, const size_t indexCapacity)
 	:IBatchStorage(capacity)
 {
@@ -31,9 +35,35 @@ int Cast::Memory::LinearBatchStorageIndexed::CreateBatchObject(const uid object,
 	int indexOffset = (int)offset / Layout->GetStride();
 	memcpy(shiftedIndex, indices, count * sizeof(unsigned int));
 
-	for (int i = 0; i < count; i++)
-	{
-		shiftedIndex[i] = shiftedIndex[i] + indexOffset;
+	if (count > 100000) {
+		LOG_CORE_TRACE("Offsetting large object -> Using multithreading for acceleration");
+
+		const int numThreads = std::thread::hardware_concurrency();
+		std::vector<std::thread> threads(numThreads);
+
+		const int chunkSize = count / numThreads;
+		for (int t = 0; t < numThreads; t++) {
+			const int start = t * chunkSize;
+			const int end = (t == numThreads - 1) ? count : start + chunkSize;
+
+			threads[t] = std::thread([=]() {
+				for (int i = start; i < end; i++) {
+					shiftedIndex[i] += indexOffset;
+				}
+			});
+		}
+
+		for (auto& t : threads) {
+			t.join();
+		}
+	} else {
+#ifdef TBB
+		std::transform(std::execution::par_unseq, shiftedIndex, shiftedIndex + count,shiftedIndex,
+						[indexOffset](unsigned int idx) { return idx + indexOffset; });
+#else
+		std::transform(shiftedIndex, shiftedIndex + count, shiftedIndex,
+						[indexOffset](unsigned int idx) { return idx + indexOffset; });
+#endif
 	}
 
 	indexOffset = BatchIndices->AddData(shiftedIndex, sizeof(unsigned int) * count);

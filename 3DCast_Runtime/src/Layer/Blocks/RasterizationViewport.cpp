@@ -64,7 +64,7 @@ void Runtime::RasterizationViewport::Destroy()
 {
 }
 
-void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
+void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts, const bool hasCameraChanged)
 {
 	static bool initCameraRotation = true;
 	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsMainComponentHovered)
@@ -74,7 +74,7 @@ void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 			ParentLayer->GetParentWindow()->SetInputModeDisabled();
 			IsCameraRotating = true;
 			initCameraRotation = false;
-			IsInitFrame = true;
+			IsCameraInitFrame = true;
 		}
 	}
 	else
@@ -84,13 +84,10 @@ void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts)
 		initCameraRotation = true;
 	}
 
-	const auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
-	iconShader->Bind();
-	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
-	const auto camPos = EditorContext.ActiveCamera->GetPosition();
-	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
-
-	Cast::Shared.ActiveScene->OnUpdate();
+	if (Runtime::EditorContext.ActiveCamera->HasChanged(0))
+	{
+		UpdateCameraUniforms();
+	}
 }
 
 void Runtime::RasterizationViewport::OnEvent(Cast::Event& e)
@@ -194,8 +191,6 @@ void Runtime::RasterizationViewport::RenderGeometryPass() const
 
 	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
 	shader->Bind();
-	const glm::vec3 camPos = EditorContext.ActiveCamera->GetPosition();
-	shader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
 	shader->SetUniform1f("u_ParallaxScale", EditorContext.ViewSettings.ParallaxScale);
 
 	Cast::Shared.ActiveScene->OnDeferredRender();
@@ -214,8 +209,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
 	shader->Bind();
 	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
-	const glm::vec3& pos = EditorContext.ActiveCamera->GetPosition();
-	shader->SetUniform3f("u_ViewPosition", pos.x, pos.y, pos.z);
 
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
@@ -255,12 +248,33 @@ void Runtime::RasterizationViewport::CompileShaders()
 	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag"));
 }
 
+void Runtime::RasterizationViewport::UpdateCameraUniforms()
+{
+	const auto camPos = EditorContext.ActiveCamera->GetPosition();
+
+	const auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
+	iconShader->Bind();
+	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
+	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
+
+	const auto geometryShader = Cast::AssetCache.GetShaderHandle("shader_geometry_pass");
+	geometryShader->Bind();
+	geometryShader->SetUniformMat4f("u_View", EditorContext.ActiveCamera->GetViewMat());
+	geometryShader->SetUniformMat4f("u_Projection", EditorContext.ActiveCamera->GetProjectionMat());
+	geometryShader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
+
+	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	shader->Bind();
+	shader->SetUniform3f("u_ViewPosition", camPos.x, camPos.y, camPos.z);
+
+}
+
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
 	if (IsCameraRotating)
 	{
 		static glm::vec2 lastMousePos = {0.f, 0.f};
-		if (!IsInitFrame)
+		if (!IsCameraInitFrame)
 		{
 #ifndef CAST_DESKTOP_WAYLAND
 			glm::vec2 center = Position + Size * 0.5f;
@@ -286,7 +300,7 @@ bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 		}
 		lastMousePos = {e.GetX(), e.GetY()};
 
-		IsInitFrame = false;
+		IsCameraInitFrame = false;
 	}
 
 	return false;

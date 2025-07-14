@@ -32,4 +32,6 @@ void Cast::Renderer::Camera::UpdateViewMat()
 
 	ViewMat = glm::lookAt(Position, Position + Forward, Up);
 	ViewProjectionMat = ProjectionMat * ViewMat;
+
+	memset(HasChangedField, true, sizeof(HasChangedField));
 }

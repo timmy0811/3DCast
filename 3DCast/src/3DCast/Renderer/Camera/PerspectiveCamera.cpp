@@ -9,10 +9,14 @@ Cast::Renderer::PerspectiveCamera::PerspectiveCamera(const float fov, const floa
 	ProjectionType = Type::Perspective;
 	ProjectionMat = glm::perspective(fov, aspect, nearPlane, farPlane);
 	ViewProjectionMat = ProjectionMat * ViewMat;
+
+	memset(HasChangedField, true, sizeof(HasChangedField));
 }
 
 void Cast::Renderer::PerspectiveCamera::SetAspectRatio(const float aspectRatio)
 {
 	ProjectionMat = glm::perspective(Fov, aspectRatio, NearPlane, FarPlane);
 	ViewProjectionMat = ProjectionMat * ViewMat;
+
+	memset(HasChangedField, true, sizeof(HasChangedField));
 }

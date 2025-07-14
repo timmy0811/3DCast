@@ -88,6 +88,8 @@ void Cast::LinuxWindow::Init(const WindowProperties& props)
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE); // Confirm double buffering is used // Check if good
+		glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE); // Prevent unnecessary window // Check if good
 
 		CAST_ASSERT(result, "Could not initialize GLFW.");
 

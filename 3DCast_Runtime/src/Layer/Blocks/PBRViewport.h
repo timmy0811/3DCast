@@ -13,7 +13,7 @@ namespace Runtime {
 		void Init() override;
 		void Destroy() override;
 
-		void OnUpdate(Cast::Timestep ts) override;
+		void OnUpdate(Cast::Timestep ts, bool hasCameraChanged = false) override;
 		void OnRender() override;
 
 		void OnImGuiRender() override;
