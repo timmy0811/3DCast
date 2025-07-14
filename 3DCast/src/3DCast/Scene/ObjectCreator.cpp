@@ -162,26 +162,38 @@ Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene* scene
 
 Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene* scene)
 {
-	Ref<Entity> entity = scene->CreateEntity(name);
+	// Cube
+	Ref<Entity> entity = scene->CreateEntity(name, true);
 	entity->AddComponents<Component::CustomMeshComponent>();
 	entity->AddComponents<Component::RasterizableComponent>();
 	entity->AddComponents<Component::MaterialComponent>();
 
-	const auto trIndex = (float)entity->GetComponent<Component::TransformComponent>().transformRegistryIndex;
+	const auto& transformComp = entity->GetComponent<Component::TransformComponent>();
+	const auto trIndex = (float)transformComp.transformRegistryIndex;
 	const auto samplerIndex = (float)entity->GetComponent<Component::MaterialComponent>().samplerIndex;
 
-	const float vertices[] = {
-		// Position				// Tangent				// Bitangent				// UVs			// SamplerIndex	// TransformIndex
-		-1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, samplerIndex, trIndex, // top-left
-		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, samplerIndex, trIndex, // bottom-right
-		1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, samplerIndex, trIndex, // top-right
-		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, samplerIndex, trIndex, // bottom-right
-		-1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, samplerIndex, trIndex, // top-left
-		-1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, samplerIndex, trIndex // bottom-left
+	std::pair<glm::vec3, glm::vec3> t0Top = GetTangentAndBitangent(glm::vec3(-3.f, -1.f, -3.f), glm::vec3(3.f, -1.f, 3.f),
+	                                                               glm::vec3(3.f, -1.f, -3.f), glm::vec2(0.f, 3.f),
+	                                                               glm::vec2(3.f, 0.f), glm::vec2(3.f, 3.f));
+	std::pair<glm::vec3, glm::vec3> t1Top = GetTangentAndBitangent(glm::vec3(3.f, -1.f, 3.f), glm::vec3(-3.f, -1.f, -3.f),
+	                                                               glm::vec3(-3.f, -1.f, 3.f), glm::vec2(3.f, 0.f),
+	                                                               glm::vec2(0.f, 3.f), glm::vec2(0.f, 0.f));
+
+	const Memory::BatchVertex vertices[] = {
+		// Position				// Normal			// Tangent			// Bitangent		// UVs			// SamplerIndex	// TransformIndex
+		{{-3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {0.f, 1.f}, samplerIndex, trIndex},
+		// bottom-left
+		{{3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
+		{{3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 1.f}, samplerIndex, trIndex},
+		// bottom-right
+		{{3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
+		{{-3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 1.f}, samplerIndex, trIndex},
+		// bottom-left
+		{{-3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 0.f}, samplerIndex, trIndex}, // top-left
 	};
 
 	auto& cubeMesh = entity->GetComponent<Component::CustomMeshComponent>();
-	cubeMesh.AddAndAllocVertexData(vertices, sizeof(vertices));
+	cubeMesh.AddAndAllocVertexData(&vertices[0].Position.x, sizeof(vertices));
 	cubeMesh.AddToBatchMemory();
 
 	return entity;
