@@ -31,7 +31,8 @@ void EditorLayer::OnAttach()
 
 	Runtime::EditorContext.ActiveCamera = std::make_shared<Cast::Renderer::PerspectiveCamera>(
 		glm::radians(90.f), 1.5f, 0.1f, 100.f);
-	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(4.0f, 3.0f, 4.0f));
+	Runtime::EditorContext.ActiveCamera->SetRotation(glm::vec3(-20.0f, -135.0f, 0.0f));
 	cameraEntity->AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
 
 	ViewportPbr.Init();

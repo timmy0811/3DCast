@@ -245,9 +245,23 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 void Runtime::RasterizationViewport::RenderForwardPass() const
 {
 	PipelineData.Framebuffer->Bind();
-	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
+	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	Cast::Shared.ActiveScene->OnForwardRender();
+
+	if (!Cast::Shared.ActiveScene->GetInRenderView())
+	{
+		API::Core::RenderCommand::SetBlend(true);
+		API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
+		API::Core::RenderCommand::CullFace(API::Core::Face::None);
+
+		const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("tile_grid");
+		shader->Bind();
+		API::Core::RenderCommand::IssueEmptyDrawCall(6);
+
+		API::Core::RenderCommand::SetBlend(false);
+	}
+
 	PipelineData.Framebuffer->Unbind();
 }
 
@@ -263,6 +277,9 @@ void Runtime::RasterizationViewport::CompileShaders()
 	Cast::AssetCache.AddShader("icon_billboard",
 	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/icon.vert",
 	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag"));
+	Cast::AssetCache.AddShader("tile_grid",
+							   API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/effect/tile_grid.vert",
+														 std::string(ASSET_DIR) + "shader/effect/tile_grid.frag"));
 }
 
 void Runtime::RasterizationViewport::UpdateCameraUniforms()
@@ -280,10 +297,14 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 	geometryShader->SetUniformMat4f("u_Projection", EditorContext.ActiveCamera->GetProjectionMat());
 	geometryShader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
 
-	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
-	shader->Bind();
-	shader->SetUniform3f("u_ViewPosition", camPos.x, camPos.y, camPos.z);
+	const Cast::Ref<API::Core::Shader> lightingShader = Cast::AssetCache.GetShaderHandle("shader_shading_pass");
+	lightingShader->Bind();
+	lightingShader->SetUniform3f("u_ViewPosition", camPos.x, camPos.y, camPos.z);
 
+	const Cast::Ref<API::Core::Shader> gridShader = Cast::AssetCache.GetShaderHandle("tile_grid");
+	gridShader->Bind();
+	gridShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
+	gridShader->SetUniform3f("u_CameraWorldPos", camPos.x, camPos.y, camPos.z);
 }
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)

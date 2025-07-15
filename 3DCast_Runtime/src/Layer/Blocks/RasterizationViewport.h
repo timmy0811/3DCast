@@ -24,7 +24,7 @@ namespace Runtime
 
 		void OnEvent(Cast::Event& e) override;
 
-		void UpdateCameraUniforms();
+		static void UpdateCameraUniforms();
 	private:
 		void RenderGeometryPass() const;
 		void RenderLightingPass() const;
