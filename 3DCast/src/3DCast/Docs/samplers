@@ -1,0 +1,24 @@
+
+
+// Sampler Binding Mapping
+
+SLOT_0: GBuf_Depth_Texture
+SLOT_1: GBuf_Depth_Position
+SLOT_2: GBuf_Depth_Normal
+SLOT_3: GBuf_Depth_Albedo
+SLOT_4: GBuf_Depth_Specular
+SLOT_5: GBuf_Depth_Shine_Reflectance
+SLOT_6:
+SLOT_7:
+SLOT_8:
+SLOT_9:
+SLOT_10:
+SLOT_11:
+SLOT_12:
+SLOT_13:
+SLOT_14:
+SLOT_15:
+
+SHARED_MEM:
+- DeferredDefaultSampler
+- ModelTextures

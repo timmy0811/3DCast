@@ -2,7 +2,6 @@
 
 #include "Data/SharedEditorData.h"
 #include "Config.h"
-
 #include "GUI/Panels/EventConsole.h"
 #include "GUI/Theme.h"
 
@@ -39,6 +38,9 @@ void EditorLayer::OnAttach()
 	ViewportRasterization.Init();
 
 	Cast::SamplerRegistry.InitAfterDriverSetup();
+
+	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
+	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
 
 	// Sample Content
 	SampleContent();
@@ -87,6 +89,8 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 	ViewportRasterization.OnUpdate(ts);
 
 	Cast::Shared.ActiveScene->OnUpdate();
+	Runtime::EditorContext.Skybox.SetActiveCubemapViewProjectionMatrix(Runtime::EditorContext.ActiveCamera->GetViewMat(),
+		Runtime::EditorContext.ActiveCamera->GetProjectionMat());
 
 	Render();
 
@@ -157,8 +161,23 @@ void EditorLayer::OnImGuiRender()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("World"))
+		{
+			if (ImGui::MenuItem("Configure Skybox"))
+			{
+				SkyboxPanel.Open();
+			}
+
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Extras"))
 		{
+			if (ImGui::MenuItem("Find Viewport"))
+			{
+				ViewportRasterization.FindWindow();
+			}
+
 			if (ImGui::BeginMenu("Theme"))
 			{
 				if (ImGui::MenuItem("Azure Light"))
@@ -199,10 +218,6 @@ void EditorLayer::OnImGuiRender()
 				}
 
 				ImGui::EndMenu();
-			}
-			else if (ImGui::MenuItem("Find Viewport"))
-			{
-				ViewportRasterization.FindWindow();
 			}
 
 			ImGui::EndMenu();
@@ -274,6 +289,7 @@ void EditorLayer::OnImGuiRender()
 	ViewportPbr.OnImGuiRender();
 
 	SceneHierarchyPanel.OnImGuiRender();
+	SkyboxPanel.OnImGuiRender();
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }

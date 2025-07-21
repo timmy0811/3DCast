@@ -122,7 +122,7 @@ void Cast::Scene::OnDeferredRender() const
 	BindTransformSSBO();
 	SamplerRegistry.BindSamplerBuffersToShaderPoints();
 
-	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("shader_geometry_pass");
+	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("geometry_pass");
 	Memory::BatchMemoryHandler.Render(shader);
 	Memory::BatchMemoryHandler.RenderIndexed(shader);
 }
@@ -136,7 +136,7 @@ void Cast::Scene::OnForwardRender()
 
 void Cast::Scene::OnUpdate() const
 {
-	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("shader_shading_pass");
+	static Ref<API::Core::Shader> shader = AssetCache.GetShaderHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform1i("BufferCountDirectionalLight", (int)(DirLightsSSBO->GetSize() / sizeof(DirectionalLight)));
 	shader->SetUniform1i("BufferCountPointLight", (int)(PointLightsSSBO->GetSize() / sizeof(PointLight)));

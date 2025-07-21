@@ -19,7 +19,7 @@ void Cast::Memory::BatchManager::Init(const size_t defaultStorageSize, const int
 
 	LOG_CORE_INFO(
 		"Initializing batch manager with default storage size " + std::to_string(defaultStorageSize) +
-		" and max indices " + std::to_string(maxIndices));
+		" bytes and max indices " + std::to_string(maxIndices));
 
 	BatchStorageSize = defaultStorageSize;
 	MaxIndices = maxIndices;

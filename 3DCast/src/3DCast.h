@@ -24,6 +24,7 @@
 #include "3DCast/Renderer/Camera/Camera.h"
 #include "3DCast/Renderer/Camera/OrthographicCamera.h"
 #include "3DCast/Renderer/Camera/PerspectiveCamera.h"
+#include "3DCast/Renderer/Skybox.h"
 
 #include "3DCast/Renderer/Data/RasterizationPipelineObjects.h"
 #include "3DCast/Scene/SceneShaderCache.h"

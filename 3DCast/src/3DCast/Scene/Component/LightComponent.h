@@ -54,9 +54,9 @@ namespace Cast::Component
 			SetupPointLight();
 		}
 
-		~LightComponent() override
+		~LightComponent()
 		{
-			delete Light; // TODO: Throws exception
+			SafeCleanup();
 		}
 #pragma endregion
 
@@ -74,6 +74,29 @@ namespace Cast::Component
 			case Type::Spot:
 				SetupSpotLight();
 				break;
+			}
+		}
+
+		void SafeCleanup()
+		{
+			// Remove light data from scene buffer before deleting
+			if (Light && SceneInstance)
+			{
+				switch (LightType)
+				{
+				case Directional:
+					SceneInstance->ReallocateLights(Directional);
+					break;
+				case Point:
+					SceneInstance->ReallocateLights(Point);
+					break;
+				case Spot:
+					SceneInstance->ReallocateLights(Spot);
+					break;
+				}
+
+				delete Light;
+				Light = nullptr;
 			}
 		}
 
@@ -140,6 +163,7 @@ namespace Cast::Component
 				case Type::Directional:
 					if (changed)
 					{
+						// Prevent double free by not manually deleting Light
 						SceneInstance->ReallocateLights(oldType);
 						delete Light;
 						Light = new DirectionalLight();

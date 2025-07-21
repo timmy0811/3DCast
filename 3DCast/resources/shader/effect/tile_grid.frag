@@ -9,7 +9,7 @@ flat in vec3 v_CameraWorldPos;
 
  float u_GridMinPixelsBetweenCells = 2.0;
  float u_GridCellSize = 0.2;
- vec4 u_GridColorThin = vec4(0.3, 0.3, 0.3, 0.30);
+ vec4 u_GridColorThin = vec4(0.3, 0.3, 0.3, 0.15);
  vec4 u_GridColorThick = vec4(0.5, 0.5, 0.5, 0.50);
 
 float log10(float x)

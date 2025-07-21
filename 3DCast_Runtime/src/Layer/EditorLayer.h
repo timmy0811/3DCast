@@ -4,6 +4,7 @@
 #include "3DCast/Event/MouseEvent.h"
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
+#include "GUI/Panels/SkyboxPanel.h"
 
 #include "Layer/Blocks/RasterizationViewport.h"
 #include "Layer/Blocks/PBRViewport.h"
@@ -40,4 +41,5 @@ private:
 
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
+	Runtime::GUI::SkyboxPanel SkyboxPanel;
 };
