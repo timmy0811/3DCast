@@ -25,7 +25,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
 
     ImGui::Begin("Skybox", &IsOpen);
 
-    const char* renderModes[] = { "Clear Color", "Cubemap", "Procedural" };
+    static const char* renderModes[] = { "Clear Color", "Cubemap", "Procedural" };
     if (ImGui::Combo("Render Mode", &CurrentRenderMode, renderModes, IM_ARRAYSIZE(renderModes)))
     {
         Skybox->UseRenderMode(static_cast<Cast::Renderer::Skybox::RenderMode>(CurrentRenderMode));
@@ -60,6 +60,19 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                 ImGui::EndCombo();
             }
 
+                static auto format = ".png";
+
+                static const char* formatList[] = { ".jpg", ".png", ".hdr", ".exr", ".tga", ".bmp", ".dds" };
+                static int CurrentFormat = 1;
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.4f);
+                if (ImGui::Combo("Format", &CurrentFormat, formatList, IM_ARRAYSIZE(formatList)))
+                {
+                    format = formatList[CurrentFormat];
+                }
+
+                ImGui::SameLine();
+
             if (ImGui::Button("Load from Directory"))
             {
                 const std::string dirPath = OpenCubemapDirectoryDialogue();
@@ -69,15 +82,17 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                     const size_t lastSlash = dirPath.find_last_of("/\\");
                     const std::string cubemapName = lastSlash != std::string::npos ? dirPath.substr(lastSlash + 1) : dirPath;
 
-                    if (Skybox->AddCubemap(cubemapName, dirPath))
+                    if (Skybox->AddCubemap(cubemapName, dirPath, std::string(format)))
                     {
                         AvailableCubemaps = Skybox->GetAvailableCubemapNames();
                         SelectedCubemap = cubemapName;
                         Skybox->SetActiveCubemap(cubemapName);
-                        EditorContext.Skybox.SetActiveCubemapShaderCache(Cast::AssetCache.GetShaderHandle("cubemap"));
+                        Skybox->SetActiveCubemapShaderCache(Cast::AssetCache.GetShaderHandle("cubemap"));
                     }
                 }
             }
+
+                ImGui::Text("Images in directory must follow naming convention:\npx, py, pz, nx, ny, nz");
 
             ImGui::Separator();
 
@@ -85,6 +100,8 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
             {
                 if (UseEnvironmentLighting)
                 {
+                    Skybox->CalculateEnvironmentLightForCurrentCubemap();
+
                     const auto entity = EnvironmentLightEntity.lock();
                     if (!entity)
                     {
@@ -92,23 +109,50 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                         if (const auto newEntity = EnvironmentLightEntity.lock())
                         {
                             newEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
+                            EnvironmentLightComponent = &newEntity->GetComponent<Cast::Component::LightComponent>();
+                            EnvironmentLightComponent->IsEnvironmentLight = true;
                         }
                     }
+
+                    UpdateEnvironmentLight();
                 }
                 else
                 {
                     if (auto entity = EnvironmentLightEntity.lock())
                     {
-                        LOG_CORE_WARN("Cannot delete light yet. FIX THIS BUG");
+                        LOG_WARN("Cannot delete light yet. FIX THIS BUG");
                         //Context->RemoveEntity(*entity);
                     }
                 }
             }
 
+                ImGui::SameLine();
+                ImGui::Text("(?)");
+
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Lower Cutoff is set to 40%%");
+                    ImGui::Text("Only the upper 45%% of pixels will be used for calculation.");
+                    ImGui::Text("");
+                    ImGui::Text("Results for light direction can be off.");
+                    ImGui::Text("Manually adjust it on the entity.");
+                    ImGui::EndTooltip();
+                }
+
             if (UseEnvironmentLighting)
             {
-                ImGui::Text("Alter \'Env.Light\' to adjust lighting");
+                ImGui::Text("Alter \'EnvironmentLight\' to adjust lighting");
                 ImGui::Text("Hint: Existing lights can influence the environment lighting");
+
+                static std::string lastActiveCubemap = SelectedCubemap;
+                if (SelectedCubemap != lastActiveCubemap)
+                {
+                    Skybox->CalculateEnvironmentLightForCurrentCubemap();
+                    UpdateEnvironmentLight();
+                }
+
+                lastActiveCubemap = SelectedCubemap;
             }
             break;
         }
@@ -142,8 +186,22 @@ std::string Runtime::GUI::SkyboxPanel::OpenCubemapDirectoryDialogue()
     }
     else
     {
-        // Error
+        LOG_ERROR("NFD_PickFolderU8 failed");
     }
 
     return "";
+}
+
+void Runtime::GUI::SkyboxPanel::UpdateEnvironmentLight() const
+{
+    if (EnvironmentLightComponent)
+    {
+        const auto dirLight = (Cast::DirectionalLight*)(EnvironmentLightComponent->Light);
+        dirLight->ambient = Skybox->GetLightAmbientColor();
+        dirLight->diffuse = Skybox->GetLightDiffuseColor();
+        dirLight->specular = Skybox->GetLightSpecularColor();
+        dirLight->direction = Skybox->GetLightDirection();
+
+        EnvironmentLightComponent->UpdateLightData();
+    }
 }

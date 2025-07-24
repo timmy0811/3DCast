@@ -27,10 +27,13 @@ namespace Cast::Component
 
 		size_t BufferPos = 0;
 		unsigned int BufferIndex = 0;
+		bool IsEnvironmentLight = false;
 #pragma endregion
 
 #pragma region CONSTRUCTOR
-		LightComponent() = default;
+		explicit LightComponent(const bool IsEnvironmentLight = false)
+			:IsEnvironmentLight(IsEnvironmentLight)
+		{}
 		LightComponent(const LightComponent&) = default;
 
 		LightComponent(const DirectionalLight& light, Ref<Scene> scene)
@@ -77,9 +80,25 @@ namespace Cast::Component
 			}
 		}
 
+		void UpdateLightData() const
+		{
+			switch (LightType)
+			{
+			case Directional:
+				SceneInstance->GetDirLightsBuffer()->AddData((DirectionalLight*)Light, sizeof(DirectionalLight), (int)BufferPos);
+				break;
+			case Point:
+				SceneInstance->GetPointLightsBuffer()->AddData((PointLight*)Light, sizeof(PointLight), (int)BufferPos);
+				break;
+			case Type::Spot:
+				SceneInstance->GetSpotLightsBuffer()->AddData((SpotLight*)Light, sizeof(SpotLight), (int)BufferPos);
+				break;
+			}
+
+		}
+
 		void SafeCleanup()
 		{
-			// Remove light data from scene buffer before deleting
 			if (Light && SceneInstance)
 			{
 				switch (LightType)
@@ -149,8 +168,10 @@ namespace Cast::Component
 				ImGui::Text("Type:");
 				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 
+				ImGui::BeginDisabled(IsEnvironmentLight);
 				const Type oldType = LightType;
 				bool changed = ImGui::Combo("##LightType", (int*)&LightType, "Directional\0Point\0Spot\0");
+				ImGui::EndDisabled();
 
 				if (!Light) return {};
 

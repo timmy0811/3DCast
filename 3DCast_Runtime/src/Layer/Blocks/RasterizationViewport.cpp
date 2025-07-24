@@ -60,10 +60,12 @@ void Runtime::RasterizationViewport::Init()
 	shader->Unbind();
 
 	//EditorContext.Skybox.AddCubemap("cartoon_day", std::string(ASSET_DIR) + "img/cubemap/cartoon_day", ".png");
-	EditorContext.Skybox.AddCubemap("cartoon_evening", std::string(ASSET_DIR) + "img/cubemap/cartoon_evening", ".png");
+	//EditorContext.Skybox.AddCubemap("cartoon_redsky", std::string(ASSET_DIR) + "img/cubemap/cartoon_redsky", ".png");
+	//EditorContext.Skybox.AddCubemap("test", std::string(ASSET_DIR) + "img/cubemap/test", ".png");
 	//EditorContext.Skybox.AddCubemap("cartoon_clouds", std::string(ASSET_DIR) + "img/cubemap/cartoon_clouds", ".png");
-	//EditorContext.Skybox.AddCubemap("cloud", std::string(ASSET_DIR) + "img/cubemap/cloud", ".jpg");
-	EditorContext.Skybox.SetActiveCubemap("cartoon_evening");
+	EditorContext.Skybox.AddCubemap("cartoon_clear", std::string(ASSET_DIR) + "img/cubemap/cartoon_clear", ".png");
+	EditorContext.Skybox.AddCubemap("cartoon_evening", std::string(ASSET_DIR) + "img/cubemap/cartoon_evening", ".png");
+	EditorContext.Skybox.SetActiveCubemap("cartoon_clear");
 	EditorContext.Skybox.SetCubemapShaderCache(Cast::AssetCache.GetShaderHandle("cubemap"));
 }
 

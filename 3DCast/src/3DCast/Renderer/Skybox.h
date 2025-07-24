@@ -14,6 +14,14 @@ namespace Cast::Renderer {
             Procedural
         };
 
+        struct EnvironmentLight
+        {
+            glm::vec3 direction{0.0f, 1.0f, 0.0f};
+            glm::vec3 ambient{0.1f, 0.1f, 0.1f};
+            glm::vec3 diffuse{0.5f, 0.5f, 0.5f};
+            glm::vec3 specular{1.0f, 1.0f, 1.0f};
+        };
+
     public:
         explicit Skybox() = default;
         ~Skybox() = default;
@@ -25,6 +33,8 @@ namespace Cast::Renderer {
 
         void BindCurrentCubemap(unsigned int slot) const;
         void UnbindCurrentCubemap() const;
+
+        void CalculateEnvironmentLightForCurrentCubemap();
 
         void SetCubemapShaderCache(Ref<API::Core::Shader> shader) {
             for (auto& [name, cubemap] : Cubemaps) {
@@ -54,9 +64,6 @@ namespace Cast::Renderer {
         void SetClearColor(const glm::vec4& color) { ClearColor = color; }
         void UseRenderMode(const RenderMode mode) { Mode = mode; }
 
-        [[nodiscard]] inline RenderMode GetRenderMode() const { return Mode; }
-        [[nodiscard]] inline glm::vec4& GetClearColor() { return ClearColor; }
-
         inline std::string GetActiveCubemapName() const {
             if (ActiveCubemap) {
                 return ActiveCubemapName;
@@ -73,6 +80,14 @@ namespace Cast::Renderer {
             return names;
         }
 
+        [[nodiscard]] inline RenderMode GetRenderMode() const { return Mode; }
+        [[nodiscard]] inline glm::vec4& GetClearColor() { return ClearColor; }
+
+        [[nodiscard]] inline glm::vec3 GetLightDirection() const { return CubemapLightCache.at(ActiveCubemapName).direction; }
+        [[nodiscard]] inline glm::vec3 GetLightSpecularColor() const { return CubemapLightCache.at(ActiveCubemapName).specular; }
+        [[nodiscard]] inline glm::vec3 GetLightDiffuseColor() const { return CubemapLightCache.at(ActiveCubemapName).diffuse; }
+        [[nodiscard]] inline glm::vec3 GetLightAmbientColor() const { return CubemapLightCache.at(ActiveCubemapName).ambient; }
+
         void Render() const;
 
     private:
@@ -82,6 +97,7 @@ namespace Cast::Renderer {
 
     private:
         std::unordered_map<std::string, Ref<API::Texture::Cubemap>> Cubemaps{};
+        std::unordered_map<std::string, EnvironmentLight> CubemapLightCache{};
         Ref<API::Texture::Cubemap> ActiveCubemap{};
         std::string ActiveCubemapName{};
 

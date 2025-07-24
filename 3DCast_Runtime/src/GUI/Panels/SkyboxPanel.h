@@ -21,7 +21,7 @@ namespace Runtime::GUI
 
     private:
         static std::string OpenCubemapDirectoryDialogue();
-
+        void UpdateEnvironmentLight() const;
 
     private:
         bool IsOpen = false;
@@ -29,10 +29,10 @@ namespace Runtime::GUI
 
         Cast::Ref<Cast::Scene> Context;
         Cast::WeakRef<Cast::Entity> EnvironmentLightEntity;
+        Cast::Component::LightComponent* EnvironmentLightComponent = nullptr;
 
         // Render mode state
         int CurrentRenderMode = 1;
-
 
         // Cubemap mode state
         std::string SelectedCubemap;
