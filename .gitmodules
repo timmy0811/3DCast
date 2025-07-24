@@ -26,3 +26,6 @@
 	path = Dependencies/imgui
 	url = https://github.com/timmy0811/imgui.git
 	branch = docking
+[submodule "Dependencies/imguizmo"]
+	path = Dependencies/imguizmo
+	url = https://github.com/timmy0811/ImGuizmoFor3DCast.git
