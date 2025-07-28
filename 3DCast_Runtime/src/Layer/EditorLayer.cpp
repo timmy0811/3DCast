@@ -54,7 +54,6 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 {
 	const float CameraSpeedCorrected = CameraSpeed * ts;
 	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
-	bool isCameraMoved = false;
 	if (ViewportRasterization.IsViewportFocused())
 	{
 		if (Cast::Input::IsKeyPressed(CAST_KEY_A))
@@ -281,6 +280,9 @@ void EditorLayer::OnImGuiRender()
 	ImGui::Text("Camera Position: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x,
 	            Runtime::EditorContext.ActiveCamera->GetPosition().y,
 	            Runtime::EditorContext.ActiveCamera->GetPosition().z);
+	ImGui::Text("Camera Rotation: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetRotation().x,
+				Runtime::EditorContext.ActiveCamera->GetRotation().y,
+				Runtime::EditorContext.ActiveCamera->GetRotation().z);
 
 	ImGui::End();
 #pragma endregion

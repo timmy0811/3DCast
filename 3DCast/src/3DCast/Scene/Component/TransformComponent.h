@@ -10,6 +10,8 @@
 
 #include <imgui.h>
 
+#include "vendor/glm/gtc/type_ptr.hpp"
+
 namespace Cast::Component
 {
 	struct TransformComponent final : public Component
@@ -72,6 +74,11 @@ namespace Cast::Component
 			return Transform;
 		}
 
+		[[nodiscard]] inline float* GetTransformValuePtr()
+		{
+			return glm::value_ptr(Transform);
+		}
+
 		[[nodiscard]] inline glm::vec3 GetTranslation() const
 		{
 			return glm::vec3(Transform[3]);
@@ -102,6 +109,12 @@ namespace Cast::Component
 			Transform = glm::translate(glm::mat4(1.0f), translation) *
 				glm::eulerAngleXYZ(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z)) *
 				glm::scale(glm::mat4(1.0f), scale);
+		}
+
+		void UpdateOnGPUMem() const
+		{
+			if (isRegistered)
+				transformRegistry->EditTransform(transformRegistryIndex, &Transform);
 		}
 #pragma endregion
 
@@ -152,7 +165,7 @@ namespace Cast::Component
 				}
 
 				if (edited && transformRegistry)
-					transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+					UpdateOnGPUMem();
 			}
 
 			return {};

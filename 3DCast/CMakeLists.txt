@@ -71,4 +71,5 @@ endif ()
 target_link_libraries(3DCast
         PUBLIC
         GLWrapper
+        imguizmo
         nfd)

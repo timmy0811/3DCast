@@ -10,6 +10,8 @@
 // Temp
 #include <GLFW/glfw3.h>
 
+#include <ImGuizmo.h>
+
 Cast::ImGuiLayer::ImGuiLayer()
 	: Layer("ImGuiLayer")
 {
@@ -53,6 +55,8 @@ void Cast::ImGuiLayer::OnAttach()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
 	ImGui_ImplOpenGL3_CreateDeviceObjects();
+
+	ImGuizmo::SetOrthographic(false);
 }
 
 void Cast::ImGuiLayer::OnDetach()
@@ -71,6 +75,8 @@ void Cast::ImGuiLayer::Begin()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+	ImGuizmo::BeginFrame();
 }
 
 void Cast::ImGuiLayer::End()

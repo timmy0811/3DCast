@@ -151,6 +151,9 @@ set_target_properties("update_mappings" PROPERTIES FOLDER "Dependencies/glfw")
 add_subdirectory(Dependencies/imgui)
 set_target_properties("imgui" PROPERTIES FOLDER "Dependencies/imgui")
 
+# ImGuizmo
+add_subdirectory(Dependencies/imguizmo)
+
 # Native File Dialog (nfd)
 add_subdirectory(Dependencies/nativefile)
 # Note: GLM is header‐only; if you use the vendor copy in GLWrapper, no add_subdirectory is needed.

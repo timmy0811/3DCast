@@ -38,8 +38,12 @@ namespace Cast
 
 		void BindSSBOforShadingPass() const;
 
+		inline void SetEditorSelectionContext(Ref<Entity> entity) {EditorSelectionContext = entity; }
+
 		inline std::unordered_map<entt::entity, Ref<Entity>>& GetEntityDescriptors() { return EntityDescriptorPool; }
 		Ref<Entity> GetEntityReferenceByHandle(entt::entity ent);
+		inline Ref<Entity> GetEditorSelectionContext() { return EditorSelectionContext; }
+		inline bool IsEntitySelected() const { return EditorSelectionContext != nullptr; }
 
 		inline Ref<API::Core::Buffer> GetDirLightsBuffer() { return DirLightsSSBO; }
 		inline Ref<API::Core::Buffer> GetSpotLightsBuffer() { return SpotLightsSSBO; }
@@ -76,6 +80,7 @@ namespace Cast
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
 		std::unordered_map<entt::entity, Ref<Entity>> EntityDescriptorPool;
+		Ref<Entity> EditorSelectionContext;
 
 		IconRenderer IconRenderer_;
 

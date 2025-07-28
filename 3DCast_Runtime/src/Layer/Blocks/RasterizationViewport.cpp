@@ -9,7 +9,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "ImGuizmo.h"
 #include "3DCast/Event/MouseEvent.h"
+#include "vendor/glm/gtc/type_ptr.hpp"
 
 Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
 	: Viewport(parent)
@@ -76,7 +78,8 @@ void Runtime::RasterizationViewport::Destroy()
 void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts, const bool hasCameraChanged)
 {
 	static bool initCameraRotation = true;
-	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsMainComponentHovered)
+
+	if (Cast::Input::IsMouseButtonPressed(CAST_MOUSE_BUTTON_LEFT) && IsMainComponentHovered && !IsUsingGizmo())
 	{
 		if (initCameraRotation)
 		{
@@ -140,7 +143,13 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 	const uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
 	ImGui::Image(textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
-	IsMainComponentHovered = ImGui::IsItemHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+	const bool isCurrentlyHovered = ImGui::IsItemHovered() &&
+						 ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+
+	if (!IsCameraRotating)
+		IsMainComponentHovered = isCurrentlyHovered;
+	else if (isCurrentlyHovered)
+		IsMainComponentHovered = true;
 
 	ImGui::SetItemAllowOverlap();
 
@@ -175,12 +184,13 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 	RelativeMousePosition = {ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y};
 
+	RenderGizmos();
+
 	ImGui::End();
 }
 
 void Runtime::RasterizationViewport::OnRender()
 {
-
 	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera);
 
 	RenderGeometryPass();
@@ -194,7 +204,6 @@ void Runtime::RasterizationViewport::OnRender()
 	RenderForwardPass();
 
 	Cast::Renderer::RendererContext::EndScene();
-
 }
 
 void Runtime::RasterizationViewport::RenderGeometryPass() const
@@ -277,6 +286,71 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 	PipelineData.Framebuffer->Unbind();
 }
 
+void Runtime::RasterizationViewport::RenderGizmos() const
+{
+	ImGuizmo::Enable(true);
+	ImGuizmo::SetDrawlist();
+
+	const float windowWidth = ImGui::GetWindowWidth();
+	const float windowHeight = ImGui::GetWindowHeight();
+
+	ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+	float* cameraView = Runtime::EditorContext.ActiveCamera->GetViewMatValuePtr();
+
+	Cast::Ref<Cast::Entity> selectedEntity = nullptr;
+	if (Cast::Shared.ActiveScene->IsEntitySelected())
+	{
+		selectedEntity = Cast::Shared.ActiveScene->GetEditorSelectionContext();
+		if (selectedEntity->HasComponent<Cast::Component::TransformComponent>())
+		{
+			auto& comp = selectedEntity->GetComponent<Cast::Component::TransformComponent>();
+			float* transform = comp.GetTransformValuePtr();
+
+			ImGuizmo::OPERATION operation = ImGuizmo::OPERATION::TRANSLATE | ImGuizmo::OPERATION::SCALE;
+
+			float snapValue = 0.5f;
+
+			if (Cast::Input::IsKeyPressed(CAST_KEY_E))
+				operation = ImGuizmo::OPERATION::SCALEU;
+			else if (Cast::Input::IsKeyPressed(CAST_KEY_R))
+			{
+				operation = ImGuizmo::OPERATION::ROTATE;
+				snapValue = 15.0f;
+			}
+
+			const float snap[3] = {snapValue, snapValue, snapValue};
+
+			const bool changed = ImGuizmo::Manipulate(
+				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetViewMat()),
+				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetProjectionMat()),
+				operation, ImGuizmo::LOCAL, transform, nullptr,
+				Cast::Input::IsKeyPressed(CAST_KEY_LEFT_CONTROL) ? snap : nullptr);
+
+			if (changed)
+			{
+				comp.UpdateOnGPUMem();
+			}
+		}
+	}
+
+	const glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
+	const float cameraDistance = selectedEntity ? glm::length(cameraPosition - selectedEntity->GetComponent<Cast::Component::TransformComponent>().GetTranslation()) : 3.0f;
+
+	constexpr float widgetWidth = 100.0f;
+	ImGuizmo::ViewManipulate(
+		cameraView, cameraDistance,
+		ImVec2(ImGui::GetWindowPos().x + windowWidth - widgetWidth - 15, ImGui::GetWindowPos().y + 38),
+		ImVec2(widgetWidth, widgetWidth),
+		0x10101010
+	);
+
+	if (ImGuizmo::IsUsingViewManipulate())
+	{
+		Runtime::EditorContext.ActiveCamera->MakeConsistentViewMatBase();
+	}
+}
+
 void Runtime::RasterizationViewport::CompileShaders()
 {
 	Cast::AssetCache.AddShader("geometry_pass",
@@ -295,6 +369,11 @@ void Runtime::RasterizationViewport::CompileShaders()
 	Cast::AssetCache.AddShader("cubemap",
 							   API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/world/cubemap.vert",
 														 std::string(ASSET_DIR) + "shader/world/cubemap.frag"));
+}
+
+bool Runtime::RasterizationViewport::IsUsingGizmo()
+{
+	return ImGuizmo::IsUsingAny() || ImGuizmo::IsUsingViewManipulate();
 }
 
 void Runtime::RasterizationViewport::UpdateCameraUniforms()
@@ -324,6 +403,9 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
+	if (IsUsingGizmo())
+		return false;
+
 	if (IsCameraRotating)
 	{
 		static glm::vec2 lastMousePos = {0.f, 0.f};

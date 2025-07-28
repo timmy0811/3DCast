@@ -25,13 +25,17 @@ namespace Runtime
 		void OnEvent(Cast::Event& e) override;
 
 		static void UpdateCameraUniforms();
+
 	private:
 		void RenderGeometryPass() const;
 		void RenderLightingPass() const;
 		void RenderForwardPass() const;
 
+		void RenderGizmos() const;
+
 		static void CompileShaders();
 
+		static inline bool IsUsingGizmo();
 
 		// Event Handlers
 		bool OnMouseMoved(Cast::MouseMovedEvent& e);

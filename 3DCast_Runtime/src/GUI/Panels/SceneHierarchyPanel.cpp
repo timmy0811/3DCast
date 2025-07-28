@@ -41,7 +41,10 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::EndChild();
 
 	if (ImGui::IsMouseDown(0) && ImGui::IsItemHovered())
-		SelectionContext = {};
+	{
+		SelectionContext = nullptr;
+		Context->SetEditorSelectionContext(nullptr);
+	}
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
 	if (ImGui::Button("New Entity", {ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f}))
@@ -131,7 +134,10 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 	const bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s", tag.c_str());
 
 	if (ImGui::IsItemClicked())
+	{
 		SelectionContext = entity;
+		Context->SetEditorSelectionContext(entity);
+	}
 
 	ImGui::PopID();
 
@@ -159,88 +165,77 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> e
 	if (entity->HasComponent<Cast::Component::TransformComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::TransformComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::TransformComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::CameraComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::CameraComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::CameraComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::LightComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::LightComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::LightComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::MeshComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::MeshComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::MeshComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::CustomMeshComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::CustomMeshComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::CustomMeshComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::MaterialComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::MaterialComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::MaterialComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::ShaderComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::ShaderComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::ShaderComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::TagComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::TagComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::TagComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::PBRMaterialComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::PBRMaterialComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::PBRMaterialComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::RasterizableComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::RasterizableComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::RasterizableComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::PBRComponent>())
 	{
 		auto& component = entity->GetComponent<Cast::Component::PBRComponent>();
-		const auto response = component.OnImGuiRender();
-		if (response.action == Cast::Component::UIResponse::Remove)
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::PBRComponent>();
 	}
 }
@@ -314,5 +309,6 @@ void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 	if (SelectionContext->IsChild())
 		SelectionContext->GetParent()->RemoveChild(SelectionContext);
 
-	SelectionContext = {};
+	SelectionContext = nullptr;
+	Context->SetEditorSelectionContext(nullptr);
 }
