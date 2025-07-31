@@ -2,26 +2,37 @@
 
 ![Status](https://img.shields.io/badge/status-under%20development-yellow)
 
+![Main Preview](https://github.com/timmy0811/3DCast/blob/Projects/img/prev4.jpg)
+
+
 A 3D Rendering Engine supporting both rasterization and raytracing.
 
 > ⚠️ This project is heavily under construction!
 
-## Features
+## Features (by now)
 
-- Modern OpenGL Rasterization Pipeline
-- Ray Tracing capabilities
+- Scene management
+- Entity Component system
+- Rasterizer Viewport
+- Skyboxes with environment light calculation
+- Different Light types
+- PBR Materials
+- Loading and Transforming of Models
 - Cross-platform support (Windows, Linux)
-- ImGui-based user interface with docking support
+- Editor themes
+- Editable Keymap
+- Debug Console and diagnostics
+- Endless orientation grid (it's endless)
+- Different Components for complex entities
+- Dynamic gizmos for translation, scaling, and rotating
 
-## Dependencies
+## Under the Hood
 
-- GLFW for windowing
-- GLEW for OpenGL extension loading
-- ImGui for user interface
-- Assimp for 3D model loading
-- spdlog for logging
-- yaml-cpp for configuration
-- Native File Dialog for file operations
+- Graphics API abstraction
+- Massively scalable Memory manager
+- Fused deferred and forward shading
+
+![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/feature1.jpg)
 
 ## Building the Project
 
