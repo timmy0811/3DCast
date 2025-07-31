@@ -162,7 +162,7 @@ Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene* scene
 
 Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene* scene)
 {
-	// Cube
+	// Plane
 	Ref<Entity> entity = scene->CreateEntity(name, true);
 	entity->AddComponents<Component::CustomMeshComponent>();
 	entity->AddComponents<Component::RasterizableComponent>();

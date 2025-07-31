@@ -44,6 +44,51 @@ namespace Cast::Component
 				glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 		}
 
+		TransformComponent(TransformComponent&& other) noexcept
+		: Transform(other.Transform), translation(other.translation),
+		  scale(other.scale), rotation(other.rotation),
+		  transformRegistry(other.transformRegistry),
+		  isRegistered(other.isRegistered),
+		  transformRegistryIndex(other.transformRegistryIndex)
+		{
+			if (transformRegistry && isRegistered)
+			{
+				transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+			}
+
+			other.isRegistered = false;
+			other.transformRegistryIndex = -1;
+		}
+
+		TransformComponent& operator=(TransformComponent&& other) noexcept
+		{
+			if (this != &other)
+			{
+				if (transformRegistry && isRegistered)
+				{
+					transformRegistry->InvalidateEntry(transformRegistryIndex);
+				}
+
+				Transform = other.Transform;
+				translation = other.translation;
+				scale = other.scale;
+				rotation = other.rotation;
+				transformRegistry = other.transformRegistry;
+				isRegistered = other.isRegistered;
+				transformRegistryIndex = other.transformRegistryIndex;
+
+				if (transformRegistry && isRegistered)
+				{
+					transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+				}
+
+				other.isRegistered = false;
+				other.transformRegistryIndex = -1;
+			}
+
+			return *this;
+		}
+
 		~TransformComponent() override
 		{
 			if (transformRegistry && isRegistered)
