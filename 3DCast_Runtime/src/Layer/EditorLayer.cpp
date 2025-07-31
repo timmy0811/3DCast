@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "GUI/Panels/EventConsole.h"
 #include "GUI/Theme.h"
+#include "Application/KeymapLayout.h"
 
 #include <3DCast/ImGui/TempElements/TempGuiElementCollection.h>
 
@@ -11,6 +12,8 @@
 #include <ctime>
 
 #include <memory>
+
+#include "GUI/Modal/KeymapModal.h"
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -56,27 +59,27 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
 	if (ViewportRasterization.IsViewportFocused())
 	{
-		if (Cast::Input::IsKeyPressed(CAST_KEY_A))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_L))
 		{
 			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
 		}
-		if (Cast::Input::IsKeyPressed(CAST_KEY_D))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_R))
 		{
 			cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
 		}
-		if (Cast::Input::IsKeyPressed(CAST_KEY_UP))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_UP))
 		{
 			cameraPosition.y += CameraSpeedCorrected;
 		}
-		if (Cast::Input::IsKeyPressed(CAST_KEY_DOWN))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_DOWN))
 		{
 			cameraPosition.y -= CameraSpeedCorrected;
 		}
-		if (Cast::Input::IsKeyPressed(CAST_KEY_W))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_FW))
 		{
 			cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
 		}
-		if (Cast::Input::IsKeyPressed(CAST_KEY_S))
+		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_BW))
 		{
 			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
 		}
@@ -147,6 +150,16 @@ void EditorLayer::OnImGuiRender()
 			//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
 
 			if (ImGui::MenuItem("Exit")) Cast::Application::Get().Close();
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Editor"))
+		{
+			if (ImGui::MenuItem("Keymap"))
+			{
+				Runtime::GUI::Keymap::Open();
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -293,6 +306,7 @@ void EditorLayer::OnImGuiRender()
 	SceneHierarchyPanel.OnImGuiRender();
 	SkyboxPanel.OnImGuiRender();
 	Runtime::GUI::EventConsole::OnImGuiRender();
+	Runtime::GUI::Keymap::OnImGuiRender();
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }
 

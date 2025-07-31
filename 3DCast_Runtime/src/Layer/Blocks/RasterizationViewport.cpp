@@ -11,6 +11,7 @@
 
 #include "ImGuizmo.h"
 #include "3DCast/Event/MouseEvent.h"
+#include "Application/KeymapLayout.h"
 #include "vendor/glm/gtc/type_ptr.hpp"
 
 Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
@@ -286,7 +287,7 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 	PipelineData.Framebuffer->Unbind();
 }
 
-void Runtime::RasterizationViewport::RenderGizmos() const
+void Runtime::RasterizationViewport::RenderGizmos()
 {
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetDrawlist();
@@ -311,9 +312,9 @@ void Runtime::RasterizationViewport::RenderGizmos() const
 
 			float snapValue = 0.5f;
 
-			if (Cast::Input::IsKeyPressed(CAST_KEY_E))
+			if (Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SCALE))
 				operation = ImGuizmo::OPERATION::SCALEU;
-			else if (Cast::Input::IsKeyPressed(CAST_KEY_R))
+			else if (Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_ROT))
 			{
 				operation = ImGuizmo::OPERATION::ROTATE;
 				snapValue = 15.0f;
@@ -325,7 +326,7 @@ void Runtime::RasterizationViewport::RenderGizmos() const
 				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetViewMat()),
 				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetProjectionMat()),
 				operation, ImGuizmo::LOCAL, transform, nullptr,
-				Cast::Input::IsKeyPressed(CAST_KEY_LEFT_CONTROL) ? snap : nullptr);
+				Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SNAP) ? snap : nullptr);
 
 			if (changed)
 			{

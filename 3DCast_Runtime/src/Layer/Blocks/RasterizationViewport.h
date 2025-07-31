@@ -31,7 +31,7 @@ namespace Runtime
 		void RenderLightingPass() const;
 		void RenderForwardPass() const;
 
-		void RenderGizmos() const;
+		static void RenderGizmos();
 
 		static void CompileShaders();
 
