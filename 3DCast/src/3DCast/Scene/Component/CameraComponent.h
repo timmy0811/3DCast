@@ -27,15 +27,15 @@ namespace Cast::Component {
 		static inline std::string GetName() { return "Camera"; }
 
 		UIResponse OnImGuiRender() override {
-			const bool isOpen = ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_VIDEO "  Camera", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Camera"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Camera"))
 				return { UIResponse::Code::Remove, Type::Camera };
 
 			if (isOpen) {

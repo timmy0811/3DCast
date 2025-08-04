@@ -3,12 +3,14 @@
 #include <imgui.h>
 #include <3DCast/Core/Log.h>
 
+#include <3DCast/Misc/Icon.h>
+
 void Runtime::GUI::EventConsole::OnImGuiRender()
 {
 	static std::string concatenatedText;
 	static size_t prevLogSize = 0;
 
-	ImGui::Begin("Log Output");
+	ImGui::Begin(ICON_FA_NEWSPAPER " Log Output");
 
 	const auto imguiSink = Cast::Log::GetImGuiSink();
 	const auto& logBuffer = imguiSink->GetLog();

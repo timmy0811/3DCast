@@ -6,6 +6,7 @@
 #include "backends/imgui_impl_glfw.h"
 
 #include "3DCast/Application.h"
+#include "3DCast/Misc/Icon.h"
 
 // Temp
 #include <GLFW/glfw3.h>
@@ -35,10 +36,7 @@ void Cast::ImGuiLayer::OnAttach()
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-	const ImFont* myFont = io.Fonts->AddFontFromFileTTF((std::string(ASSET_DIR) + "font/roboto/ubuntu.ttf").c_str(),
-	                                                    15.5f);
-	if (myFont == nullptr)
-		myFont = io.Fonts->AddFontDefault();
+	LoadFonts();
 
 	ImGui::StyleColorsDark();
 
@@ -102,4 +100,26 @@ void Cast::ImGuiLayer::End()
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
+}
+
+void Cast::ImGuiLayer::LoadFonts()
+{
+	const ImGuiIO& io = ImGui::GetIO();
+
+	const ImFont* editorDefault = io.Fonts->AddFontFromFileTTF(
+		(std::string(ASSET_DIR) + "font/roboto/ubuntu.ttf").c_str(), 15.5f);
+
+	if (editorDefault == nullptr)
+		editorDefault = io.Fonts->AddFontDefault();
+
+	static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config;
+	icons_config.MergeMode = true;
+	icons_config.PixelSnapH = true;
+	icons_config.GlyphMinAdvanceX = 13.0f;
+
+	const std::string path = std::string(ASSET_DIR) + "font/fa_icon/fa-solid-900.ttf";
+	io.Fonts->AddFontFromFileTTF(path.c_str(), 13.0f, &icons_config, icons_ranges);
+
+	io.Fonts->Build();
 }

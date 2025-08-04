@@ -215,16 +215,16 @@ namespace Cast::Component
 
 		UIResponse OnImGuiRender() override
 		{
-			const bool isOpen = ImGui::CollapsingHeader("Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_DRAW_POLYGON "  Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##CustomMesh"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##CustomMesh"))
 				return {UIResponse::Code::Remove, Type::CustomMesh};
 
 			if (isOpen)

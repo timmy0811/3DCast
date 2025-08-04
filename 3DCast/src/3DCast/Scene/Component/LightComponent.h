@@ -61,6 +61,44 @@ namespace Cast::Component
 		{
 			SafeCleanup();
 		}
+
+		// Move constructor
+		LightComponent(LightComponent&& other) noexcept
+			: EntityPosition(other.EntityPosition),
+			  LastEntityPosition(other.LastEntityPosition),
+			  LightType(other.LightType),
+			  Light(other.Light),
+			  SceneInstance(std::move(other.SceneInstance)),
+			  BufferPos(other.BufferPos),
+			  BufferIndex(other.BufferIndex),
+			  IsEnvironmentLight(other.IsEnvironmentLight)
+		{
+			other.Light = nullptr;
+			other.SceneInstance = nullptr;
+		}
+
+		// Move assignment operator
+		LightComponent& operator=(LightComponent&& other) noexcept
+		{
+			if (this != &other)
+			{
+				SafeCleanup();
+
+				// Transfer all data
+				EntityPosition = other.EntityPosition;
+				LastEntityPosition = other.LastEntityPosition;
+				LightType = other.LightType;
+				Light = other.Light;
+				SceneInstance = std::move(other.SceneInstance);
+				BufferPos = other.BufferPos;
+				BufferIndex = other.BufferIndex;
+				IsEnvironmentLight = other.IsEnvironmentLight;
+
+				other.Light = nullptr;
+				other.SceneInstance = nullptr;
+			}
+			return *this;
+		}
 #pragma endregion
 
 #pragma region UTILITY
@@ -94,7 +132,6 @@ namespace Cast::Component
 				SceneInstance->GetSpotLightsBuffer()->AddData((SpotLight*)Light, sizeof(SpotLight), (int)BufferPos);
 				break;
 			}
-
 		}
 
 		void SafeCleanup()
@@ -151,16 +188,16 @@ namespace Cast::Component
 		UIResponse OnImGuiRender() override
 		{
 			const bool isOpen = ImGui::CollapsingHeader(
-				"Light", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ICON_FA_LIGHTBULB "  Light", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Light"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Light"))
 				return {UIResponse::Code::Remove, Cast::Component::Type::Light};
 
 			if (isOpen)

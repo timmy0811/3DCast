@@ -33,7 +33,7 @@ namespace Cast::Component
 
 		UIResponse OnImGuiRender() override
 		{
-			ImGui::Text("Name:");
+			ImGui::Text(ICON_FA_TAG " Name:");
 			ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
 			ImGui::InputText("##Tag", Tag.data(), MAX_TAG_SIZE);
 

@@ -6,6 +6,8 @@
 #include "Data/SharedEditorData.h"
 #include "vendor/glm/gtc/type_ptr.hpp"
 
+#include <3DCast/Misc/Icon.h>
+
 void Runtime::GUI::SkyboxPanel::Open()
 {
     IsOpen = true;
@@ -23,7 +25,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
     if (!IsOpen || !Skybox)
         return;
 
-    ImGui::Begin("Skybox", &IsOpen);
+    ImGui::Begin(ICON_FA_CLOUD_SUN_RAIN " Skybox", &IsOpen);
 
     static const char* renderModes[] = { "Clear Color", "Cubemap", "Procedural" };
     if (ImGui::Combo("Render Mode", &CurrentRenderMode, renderModes, IM_ARRAYSIZE(renderModes)))

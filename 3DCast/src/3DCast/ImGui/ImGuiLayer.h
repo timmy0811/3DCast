@@ -19,6 +19,9 @@ namespace Cast
 		static void End();
 
 	private:
+		static void LoadFonts();
+
+	private:
 		float time = 0.f;
 		inline static int LastWindowWidth = 0;
 		inline static int LastWindowHeight = 0;

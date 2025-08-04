@@ -2,6 +2,7 @@
 
 #include "3DCast/Core.h"
 #include "3DCast/Scene/Component/Typedefinition.h"
+#include "3DCast/Misc/Icon.h"
 
 #include <string>
 

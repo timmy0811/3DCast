@@ -29,15 +29,15 @@ namespace Cast::Component {
 		static inline std::string GetName() { return "Shader"; }
 
 		UIResponse OnImGuiRender() override {
-			const bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_CODE "  Shader", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Shader"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Shader"))
 				return { UIResponse::Code::Remove, Type::Shader };
 
 			if (isOpen) {

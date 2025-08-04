@@ -168,28 +168,32 @@ Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene* scen
 	entity->AddComponents<Component::RasterizableComponent>();
 	entity->AddComponents<Component::MaterialComponent>();
 
-	const auto& transformComp = entity->GetComponent<Component::TransformComponent>();
+	auto& transformComp = entity->GetComponent<Component::TransformComponent>();
+	transformComp.translation.y = 0.1f; // Slightly above the ground to avoid z-fighting
+	transformComp.UpdateTransformMatrix();
+	transformComp.UpdateOnGPUMem();
+
 	const auto trIndex = (float)transformComp.transformRegistryIndex;
 	const auto samplerIndex = (float)entity->GetComponent<Component::MaterialComponent>().samplerIndex;
 
-	std::pair<glm::vec3, glm::vec3> t0Top = GetTangentAndBitangent(glm::vec3(-3.f, -1.f, -3.f), glm::vec3(3.f, -1.f, 3.f),
-	                                                               glm::vec3(3.f, -1.f, -3.f), glm::vec2(0.f, 3.f),
+	std::pair<glm::vec3, glm::vec3> t0Top = GetTangentAndBitangent(glm::vec3(-3.f, 0.f, -3.f), glm::vec3(3.f, 0.f, 3.f),
+	                                                               glm::vec3(3.f, 0.f, -3.f), glm::vec2(0.f, 3.f),
 	                                                               glm::vec2(3.f, 0.f), glm::vec2(3.f, 3.f));
-	std::pair<glm::vec3, glm::vec3> t1Top = GetTangentAndBitangent(glm::vec3(3.f, -1.f, 3.f), glm::vec3(-3.f, -1.f, -3.f),
-	                                                               glm::vec3(-3.f, -1.f, 3.f), glm::vec2(3.f, 0.f),
+	std::pair<glm::vec3, glm::vec3> t1Top = GetTangentAndBitangent(glm::vec3(3.f, 0.f, 3.f), glm::vec3(-3.f, 0.f, -3.f),
+	                                                               glm::vec3(-3.f, 0.f, 3.f), glm::vec2(3.f, 0.f),
 	                                                               glm::vec2(0.f, 3.f), glm::vec2(0.f, 0.f));
 
 	const Memory::BatchVertex vertices[] = {
 		// Position				// Normal			// Tangent			// Bitangent		// UVs			// SamplerIndex	// TransformIndex
-		{{-3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {0.f, 1.f}, samplerIndex, trIndex},
+		{{-3.f, 0.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {0.f, 1.f}, samplerIndex, trIndex},
 		// bottom-left
-		{{3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
-		{{3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 1.f}, samplerIndex, trIndex},
+		{{3.f, 0.f, 3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
+		{{3.f, 0.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {1.f, 1.f}, samplerIndex, trIndex},
 		// bottom-right
-		{{3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
-		{{-3.f, -1.f, -3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 1.f}, samplerIndex, trIndex},
+		{{3.f, 0.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {1.f, 0.f}, samplerIndex, trIndex}, // top-right
+		{{-3.f, 0.f, -3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 1.f}, samplerIndex, trIndex},
 		// bottom-left
-		{{-3.f, -1.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 0.f}, samplerIndex, trIndex}, // top-left
+		{{-3.f, 0.f, 3.f}, {0.f, 3.f, 0.f}, t1Top.first, t1Top.second, {0.f, 0.f}, samplerIndex, trIndex}, // top-left
 	};
 
 	auto& cubeMesh = entity->GetComponent<Component::CustomMeshComponent>();

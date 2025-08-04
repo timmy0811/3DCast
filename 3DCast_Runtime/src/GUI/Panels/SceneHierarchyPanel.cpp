@@ -5,6 +5,8 @@
 
 #include <3DCast/Scene/Component/Component.h>
 #include <3DCast/Scene/Component/Typedefinition.h>
+#include <3DCast/Misc/Icon.h>
+
 #include <imgui.h>
 
 Runtime::GUI::SceneHierarchyPanel::SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene)
@@ -19,7 +21,7 @@ void Runtime::GUI::SceneHierarchyPanel::SetContext(const Cast::Ref<Cast::Scene>&
 
 void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 {
-	ImGui::Begin("Scene Hierarchy");
+	ImGui::Begin(ICON_FA_FOLDER_TREE " Scene Hierarchy");
 
 	const ImVec2 windowSize = ImGui::GetWindowSize();
 	const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
@@ -47,7 +49,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	}
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
-	if (ImGui::Button("New Entity", {ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f}))
+	if (ImGui::Button(ICON_FA_PLUS " New Entity", {ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f}))
 	{
 		Context->CreateEntity("New Entity", false);
 	}
@@ -60,7 +62,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 	ImGui::SameLine();
 	ImGui::BeginDisabled(!SelectionContext);
-	if (ImGui::Button("Remove", {ImGui::GetContentRegionAvail().x - 5.f, 0.f}))
+	if (ImGui::Button(ICON_FA_TRASH_CAN, {ImGui::GetContentRegionAvail().x - 5.f, 0.f}))
 	{
 		RemoveEntity();
 	}
@@ -70,7 +72,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 	static bool drawAddComponentModal = false;
 
-	ImGui::Begin("Properties");
+	ImGui::Begin(ICON_FA_SLIDERS " Properties");
 	ImGui::Checkbox("Render View", &Cast::Shared.ActiveScene->GetInRenderView());
 	ImGui::SameLine();
 	ImGui::BeginDisabled(!SelectionContext);
@@ -87,13 +89,13 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 		DrawComponents(SelectionContext);
 		ImGui::Separator();
 
-		const float size = ImGui::CalcTextSize("Add Component").x + style.FramePadding.x * 2.0f;
+		const float size = ImGui::CalcTextSize(ICON_FA_SHAPES " Add Component").x + style.FramePadding.x * 2.0f;
 
 		const float off = (availableRegion.x - size) * 0.5f;
 		if (off > 0.0f)
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-		if (ImGui::Button("Add Component"))
+		if (ImGui::Button(ICON_FA_SHAPES " Add Component"))
 		{
 			GUI::ComponentList::Reset();
 			drawAddComponentModal = true;
@@ -161,6 +163,12 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> e
 	// Alternative:
 	// for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
 	// 	auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
+	if (entity->HasComponent<Cast::Component::TagComponent>())
+	{
+		auto& component = entity->GetComponent<Cast::Component::TagComponent>();
+		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
+			entity->RemoveComponent<Cast::Component::TagComponent>();
+	}
 
 	if (entity->HasComponent<Cast::Component::TransformComponent>())
 	{
@@ -209,13 +217,6 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> e
 		auto& component = entity->GetComponent<Cast::Component::ShaderComponent>();
 		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
 			entity->RemoveComponent<Cast::Component::ShaderComponent>();
-	}
-
-	if (entity->HasComponent<Cast::Component::TagComponent>())
-	{
-		auto& component = entity->GetComponent<Cast::Component::TagComponent>();
-		if (component.OnImGuiRender().action == Cast::Component::UIResponse::Remove)
-			entity->RemoveComponent<Cast::Component::TagComponent>();
 	}
 
 	if (entity->HasComponent<Cast::Component::PBRMaterialComponent>())

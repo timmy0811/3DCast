@@ -181,18 +181,18 @@ namespace Cast::Component
 				_loadC = 0;
 			}
 
-			const bool isOpen = ImGui::CollapsingHeader(header.c_str(),
+			const bool isOpen = ImGui::CollapsingHeader((std::string(ICON_FA_DRAW_POLYGON) + "  " + header).c_str(),
 			                                            ImGuiTreeNodeFlags_DefaultOpen |
 			                                            ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Mesh"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Mesh"))
 				return {UIResponse::Code::Remove, Type::Mesh};
 
 			if (isOpen)

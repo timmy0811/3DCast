@@ -15,7 +15,7 @@ namespace Cast::GUI {
 			ImGui::SetNextWindowPos(ImVec2(Shared.WindowCenter.x, Shared.WindowCenter.y), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
 			ImGui::SetNextWindowSize(size);
-			ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+			ImGui::Begin((ICON_FA_HOURGLASS_HALF + std::string(title)).c_str(), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 			ImGui::Text("%s", message);
 
 			bool res = false;

@@ -24,7 +24,7 @@ namespace Runtime::GUI
         void UpdateEnvironmentLight() const;
 
     private:
-        bool IsOpen = false;
+        bool IsOpen = true;
         Cast::Renderer::Skybox* Skybox = nullptr;
 
         Cast::Ref<Cast::Scene> Context;

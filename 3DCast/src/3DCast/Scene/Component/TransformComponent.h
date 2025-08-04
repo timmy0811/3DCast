@@ -169,17 +169,17 @@ namespace Cast::Component
 
 		UIResponse OnImGuiRender() override
 		{
-			const bool isOpen = ImGui::CollapsingHeader("Transform",
+			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_CROP_SIMPLE "  Transform",
 			                                      ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Transform"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Transform"))
 				return {UIResponse::Code::Remove, Type::Camera};
 
 			if (isOpen)

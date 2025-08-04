@@ -243,16 +243,16 @@ namespace Cast::Component
 		UIResponse OnImGuiRender() override
 		{
 			const bool isOpen = ImGui::CollapsingHeader(
-				"Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ICON_FA_CIRCLE_HALF_STROKE "  Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
+			float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Material"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Material"))
 				return {UIResponse::Code::Remove, Type::Material};
 
 			if (isOpen)

@@ -5,16 +5,18 @@
 
 #include "Application/KeymapLayout.h"
 
+#include <3DCast/Misc/Icon.h>
+
 void Runtime::GUI::Keymap::OnImGuiRender()
 {
     if (g_ShowKeymapModal)
     {
-        ImGui::OpenPopup("Edit Keymap");
+        ImGui::OpenPopup(ICON_FA_KEYBOARD " Edit Keymap");
         g_ShowKeymapModal = false;
     }
 
     ImGui::SetNextWindowSize(ImVec2(650, 0), ImGuiCond_FirstUseEver);
-    if (ImGui::BeginPopupModal("Edit Keymap", nullptr, ImGuiWindowFlags_NoSavedSettings))
+    if (ImGui::BeginPopupModal(ICON_FA_KEYBOARD " Edit Keymap", nullptr, ImGuiWindowFlags_NoSavedSettings))
     {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);

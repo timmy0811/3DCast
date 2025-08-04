@@ -7,6 +7,7 @@
 #include "Application/KeymapLayout.h"
 
 #include <3DCast/ImGui/TempElements/TempGuiElementCollection.h>
+#include <3DCast/Misc/Icon.h>
 
 #include <imgui_internal.h>
 #include <ctime>
@@ -142,7 +143,7 @@ void EditorLayer::OnImGuiRender()
 #pragma endregion
 
 #pragma region MENU_BAR
-	static bool showParallaxSettings = false;
+	static bool showRasterSettings = false;
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -165,9 +166,9 @@ void EditorLayer::OnImGuiRender()
 
 		if (ImGui::BeginMenu("View"))
 		{
-			if (ImGui::MenuItem("Parallax Settings"))
+			if (ImGui::MenuItem("Rasterizer Settings"))
 			{
-				showParallaxSettings = true;
+				showRasterSettings = true;
 			}
 
 			ImGui::EndMenu();
@@ -240,13 +241,13 @@ void EditorLayer::OnImGuiRender()
 #pragma endregion
 
 #pragma region WINDOW_SETTINGS_VIEW
-	if (showParallaxSettings)
+	if (showRasterSettings)
 	{
-		ImGui::OpenPopup("ParallaxSettings");
-		showParallaxSettings = false;
+		ImGui::OpenPopup(ICON_FA_GEARS " Raster Settings");
+		showRasterSettings = false;
 	}
 
-	if (ImGui::BeginPopupModal("ParallaxSettings"))
+	if (ImGui::BeginPopupModal(ICON_FA_GEARS " Raster Settings"))
 	{
 		ImGui::Text("Parallax Scale");
 		ImGui::SameLine();
@@ -264,7 +265,7 @@ void EditorLayer::OnImGuiRender()
 #pragma endregion
 
 #pragma region WINDOW_DIAGNOSTICS
-	ImGui::Begin("Diagnostics");
+	ImGui::Begin(ICON_FA_STETHOSCOPE " Diagnostics");
 
 	const int fps = (int)(1.0f / DeltaTime);
 	static int maxFPS = 0;
@@ -341,11 +342,15 @@ void EditorLayer::SampleContent()
 	// Light
 	const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
 	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
+	auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
+	transformComp.translation.y = 2.f;
+	transformComp.UpdateTransformMatrix();
+	transformComp.UpdateOnGPUMem();
 
 	//Cast::Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity("Mesh");
 	//meshEntity->AddComponents<Cast::Component::MeshComponent>();
 	//Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
 
-	//Cast::Create::Plane("Plane_1", Cast::Shared.ActiveScene.get());
-	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
+	Cast::Create::Plane("Plane_1", Cast::Shared.ActiveScene.get());
+	//Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
 }

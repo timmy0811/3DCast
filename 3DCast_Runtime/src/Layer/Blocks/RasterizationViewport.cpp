@@ -5,6 +5,7 @@
 
 #include <3DCast.h>
 #include <3DCast/Data/GlobalShared.h>
+#include <3DCast/Misc/Icon.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -117,10 +118,12 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 		SetPositionOnNextDraw = false;
 	}
 
+	constexpr char windowName[] = ICON_FA_IMAGE " Raster-Viewport";
+
 	if (IsMainComponentHovered)
-		ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoMove);
+		ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_NoMove);
 	else
-		ImGui::Begin("Viewport", nullptr);
+		ImGui::Begin(windowName, nullptr);
 
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 	static auto lastViewportSize = ImVec2(0, 0);
@@ -145,7 +148,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	const uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
 	ImGui::Image(textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
 	const bool isCurrentlyHovered = ImGui::IsItemHovered() &&
-						 ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+						 ImGui::GetCurrentWindow()->Name == std::string(windowName);
 
 	if (!IsCameraRotating)
 		IsMainComponentHovered = isCurrentlyHovered;
@@ -159,10 +162,10 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	regionAvail.y += 5;
 
 	ImGui::SetCursorPos(regionAvail);
-	ImGui::Checkbox("Wireframe", &Wireframe);
+	ImGui::Checkbox(ICON_FA_DRAW_POLYGON " Wireframe", &Wireframe);
 
-	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
-	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string("Viewport");
+	IsHovered = ImGui::IsWindowHovered() && ImGui::GetCurrentWindow()->Name == std::string(windowName);
+	IsFocused = ImGui::IsWindowFocused() && ImGui::GetCurrentWindow()->Name == std::string(windowName);
 
 	Size = {viewportSize.x, viewportSize.y};
 
