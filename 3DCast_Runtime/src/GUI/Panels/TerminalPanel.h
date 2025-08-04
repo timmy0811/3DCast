@@ -59,6 +59,6 @@ namespace Runtime::GUI {
         void ProcessOutput(const char* text);
         void SendCommandToShell(const char* command);
         void Execute3DCastCommand(const char* command);
+        void SendInterruptToShell();
     };
 }
-

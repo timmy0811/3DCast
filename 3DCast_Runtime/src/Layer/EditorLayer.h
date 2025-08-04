@@ -29,7 +29,6 @@ private:
 	// Temporary
 	static void SampleContent();
 
-	// Event Handlers
 	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
 
 private:

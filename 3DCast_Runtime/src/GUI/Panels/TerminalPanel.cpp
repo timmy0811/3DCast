@@ -251,8 +251,48 @@ void Runtime::GUI::TerminalPanel::Execute3DCastCommand(const char* command)
         return;
     }
 
-    // If not an internal command, send to shell
     SendCommandToShell(command);
+}
+
+void Runtime::GUI::TerminalPanel::SendInterruptToShell()
+{
+    if (!shellRunning)
+        return;
+
+#ifdef _WIN32
+    const char ctrlC = 3; // ASCII for Ctrl+C
+    DWORD bytesWritten;
+    WriteFile(childStdInWrite, &ctrlC, 1, &bytesWritten, NULL);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    StopShell();
+    std::lock_guard<std::mutex> lock(outputMutex);
+    output.push_back("[Process terminated - restarting shell]");
+    scrollToBottom = true;
+    StartShell();
+#else
+    if (shellPid > 0) {
+        kill(shellPid, SIGINT);
+
+        constexpr char ctrlC = 3;
+        write(childStdInWrite, &ctrlC, 1);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        StopShell();
+        {
+            std::lock_guard<std::mutex> lock(outputMutex);
+            output.emplace_back("[Process terminated - restarting shell]");
+            scrollToBottom = true;
+        }
+        StartShell();
+    }
+#endif
+
+    std::lock_guard<std::mutex> lock(outputMutex);
+    output.emplace_back("[Signal: Interrupt (Ctrl+C)]");
+    scrollToBottom = true;
 }
 
 void Runtime::GUI::TerminalPanel::OnImGuiRender()
@@ -275,12 +315,21 @@ void Runtime::GUI::TerminalPanel::OnImGuiRender()
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
     const float buttonWidth = ImGui::GetFrameHeight() + 8.0f;
-    const float availWidth = ImGui::GetContentRegionAvail().x - (buttonWidth * 2) - 10.0f;
+    const float availWidth = ImGui::GetContentRegionAvail().x - (buttonWidth * 3) - 15.0f;
 
     if (ImGui::Button(ICON_FA_TRASH_CAN, ImVec2(buttonWidth, 0))) {
         std::lock_guard<std::mutex> lock(outputMutex);
         output.clear();
     }
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.3f, 0.3f, 0.8f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+    if (ImGui::Button(ICON_FA_STOP, ImVec2(buttonWidth, 0)) && shellRunning) {
+        SendInterruptToShell();
+    }
+    ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
     ImGui::SetNextItemWidth(availWidth);
