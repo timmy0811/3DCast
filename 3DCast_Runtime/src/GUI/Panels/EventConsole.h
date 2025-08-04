@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <vector>
 
 namespace Runtime::GUI {
 	class EventConsole {
