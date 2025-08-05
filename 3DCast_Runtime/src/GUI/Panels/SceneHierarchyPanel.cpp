@@ -9,6 +9,8 @@
 
 #include <imgui.h>
 
+#include "imgui_internal.h"
+
 Runtime::GUI::SceneHierarchyPanel::SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene)
 {
 	SetContext(scene);
@@ -49,10 +51,15 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	}
 
 	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
-	if (ImGui::Button(ICON_FA_PLUS " New Entity", {ImGui::GetContentRegionAvail().x * 0.75f - 5.f, 0.f}))
+
+	constexpr float cellDiv = 1.f / 5.f;
+	const float cellWidth = (ImGui::GetContentRegionAvail().x - 10.f) * cellDiv;
+
+	if (ImGui::Button("New Entity", {cellWidth * 3.f, 0.f}))
 	{
 		Context->CreateEntity("New Entity", false);
 	}
+
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
@@ -61,8 +68,13 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	}
 
 	ImGui::SameLine();
+
+	DrawTemplateSelector(cellWidth);
+
+	ImGui::SameLine();
+
 	ImGui::BeginDisabled(!SelectionContext);
-	if (ImGui::Button(ICON_FA_TRASH_CAN, {ImGui::GetContentRegionAvail().x - 5.f, 0.f}))
+	if (ImGui::Button(ICON_FA_TRASH_CAN, {cellWidth, 0.f}))
 	{
 		RemoveEntity();
 	}
@@ -115,9 +127,65 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 			for (size_t i = 0; i < Cast::Component::AddableComponentIds.size(); i++)
 			{
 				if (selections[i])
-					DispatchComponent(i);
+					DispatchComponent((int)i);
 			}
 		}
+	}
+}
+
+void Runtime::GUI::SceneHierarchyPanel::DrawTemplateSelector(float width)
+{
+	if (ImGui::Button(ICON_FA_WAND_MAGIC_SPARKLES, {width, 0.f}))
+	{
+		ImGui::OpenPopup("EntityTemplatesPopup");
+	}
+
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("Create an entity from a predefined template");
+		ImGui::EndTooltip();
+	}
+
+	if (ImGui::BeginPopup("EntityTemplatesPopup"))
+	{
+		ImGui::Text("Templates");
+		ImGui::Separator();
+
+		if (ImGui::BeginMenu("Primitive"))
+		{
+			if (ImGui::MenuItem("Cube")) CreateEntityFromTemplate(Template::Cube);
+			if (ImGui::MenuItem("Plane")) CreateEntityFromTemplate(Template::Plane);
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Light"))
+		{
+			if (ImGui::MenuItem("Light")) CreateEntityFromTemplate(Template::DirLight);
+			if (ImGui::MenuItem("Point Light")) CreateEntityFromTemplate(Template::PointLight);
+			if (ImGui::MenuItem("Spot Light")) CreateEntityFromTemplate(Template::SpotLight);
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Mesh"))
+		{
+			if (ImGui::MenuItem("Custom Mesh")) CreateEntityFromTemplate(Template::CustomMesh);
+			if (ImGui::MenuItem("Model")) CreateEntityFromTemplate(Template::Model);
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Effect"))
+		{
+			if (ImGui::MenuItem("Particle System")) CreateEntityFromTemplate(Template::ParticleSystem);
+			if (ImGui::MenuItem("Decal")) CreateEntityFromTemplate(Template::Decal);
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndPopup();
 	}
 }
 
@@ -154,6 +222,11 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 	}
 }
 
+void EndButtonDropDown()
+{
+	ImGui::PopStyleColor(3);
+	ImGui::EndPopup();
+}
 void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity) const
 {
 	auto& registry = Context->GetRegistry();
@@ -279,7 +352,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		LOG_CORE_WARN("Audio component not implemented yet");
 		break;
 	case 11:
-		LOG_CORE_WARN("Paricle component not implemented yet");
+		LOG_CORE_WARN("Particle component not implemented yet");
 		break;
 	case 12:
 		LOG_CORE_WARN("Animation component not implemented yet");
@@ -312,4 +385,44 @@ void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 
 	SelectionContext = nullptr;
 	Context->SetEditorSelectionContext(nullptr);
+}
+
+void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template templateName)
+{
+	Cast::Ref<Cast::Entity> entity = nullptr;
+	if (templateName != Template::Cube && templateName != Template::Plane)
+		entity = Context->CreateEntity(TemplateToString(templateName), false);
+
+	switch (templateName)
+	{
+		case Template::Cube:
+			Cast::Create::Cube("Cube", Context.get());
+			break;
+		case Template::Plane:
+			Cast::Create::Plane("Plane", Context.get());
+			break;
+	case Template::DirLight:
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Context);
+			break;
+		case Template::SpotLight:
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLight(), Context);
+			break;
+		case Template::PointLight:
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLight(), Context);
+			break;
+		case Template::CustomMesh:
+			entity->AddComponents<Cast::Component::CustomMeshComponent>();
+			entity->AddComponents<Cast::Component::MaterialComponent>();
+			break;
+		case Template::Model:
+			entity->AddComponents<Cast::Component::MeshComponent>();
+			break;
+		case Template::Camera:
+			entity->AddComponents<Cast::Component::CameraComponent>();
+			break;
+		default: ;
+	}
+
+	SelectionContext = entity;
+	Context->SetEditorSelectionContext(entity);
 }

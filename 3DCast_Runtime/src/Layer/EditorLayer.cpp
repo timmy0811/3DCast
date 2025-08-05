@@ -307,7 +307,7 @@ void EditorLayer::OnImGuiRender()
 	SceneHierarchyPanel.OnImGuiRender();
 	SkyboxPanel.OnImGuiRender();
 	TerminalPanel.OnImGuiRender();
-	
+
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Runtime::GUI::Keymap::OnImGuiRender();
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
