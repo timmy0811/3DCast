@@ -28,13 +28,14 @@ namespace Runtime
 		static void UpdateCameraUniforms();
 		static bool IsUsingGizmo();
 		static bool IsHoveringGizmo();
+		inline bool IsGizmoScaleU() const { return IsGizmoScaleURendered; }
 
 	private:
 		void RenderGeometryPass() const;
 		void RenderLightingPass() const;
 		void RenderForwardPass() const;
 
-		static void RenderGizmos();
+		void RenderGizmos();
 
 		static void CompileShaders();
 
@@ -48,6 +49,7 @@ namespace Runtime
 		bool SetPositionOnNextDraw = false;
 		bool IsCameraInitFrame = true;
 		bool IsCameraRotating = false;
+		bool IsGizmoScaleURendered = false;
 		glm::vec2 RelativeMousePosition = {0.0f, 0.f};
 	};
 }

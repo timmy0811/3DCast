@@ -331,7 +331,10 @@ bool EditorLayer::OnMouseScrolled(const Cast::MouseScrolledEvent& e)
 
 bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
 {
-	if (e.GetMouseButton() == CAST_MOUSE_BUTTON_LEFT && ViewportRasterization.IsViewportHovered() && !Runtime::RasterizationViewport::IsHoveringGizmo())
+	if (e.GetMouseButton() == CAST_MOUSE_BUTTON_LEFT &&
+		ViewportRasterization.IsViewportHovered() &&
+		!ViewportRasterization.IsGizmoScaleU() &&
+		!Runtime::RasterizationViewport::IsHoveringGizmo())
 	{
 		const Cast::Ref<Cast::Renderer::Camera> camera = Runtime::EditorContext.ActiveCamera;
 

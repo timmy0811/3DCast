@@ -309,6 +309,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 	float* cameraView = Runtime::EditorContext.ActiveCamera->GetViewMatValuePtr();
 
+	IsGizmoScaleURendered = false;
 	Cast::Ref<Cast::Entity> selectedEntity = nullptr;
 	if (Cast::Shared.ActiveScene->IsEntitySelected())
 	{
@@ -323,7 +324,10 @@ void Runtime::RasterizationViewport::RenderGizmos()
 			float snapValue = 0.5f;
 
 			if (Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SCALE))
+			{
 				operation = ImGuizmo::OPERATION::SCALEU;
+				IsGizmoScaleURendered = true;
+			}
 			else if (Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_ROT))
 			{
 				operation = ImGuizmo::OPERATION::ROTATE;
