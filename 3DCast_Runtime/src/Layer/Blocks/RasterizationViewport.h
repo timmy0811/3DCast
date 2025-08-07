@@ -16,6 +16,7 @@ namespace Runtime
 		void Destroy() override;
 
 		inline void FindWindow() { SetPositionOnNextDraw = true; }
+		[[nodiscard]] std::array<ImVec2, 2> GetViewportBounds() const;
 
 		void OnUpdate(Cast::Timestep ts, bool hasCameraChanged = false) override;
 		void OnRender() override;
@@ -25,6 +26,8 @@ namespace Runtime
 		void OnEvent(Cast::Event& e) override;
 
 		static void UpdateCameraUniforms();
+		static bool IsUsingGizmo();
+		static bool IsHoveringGizmo();
 
 	private:
 		void RenderGeometryPass() const;
@@ -34,8 +37,6 @@ namespace Runtime
 		static void RenderGizmos();
 
 		static void CompileShaders();
-
-		static inline bool IsUsingGizmo();
 
 		// Event Handlers
 		bool OnMouseMoved(Cast::MouseMovedEvent& e);

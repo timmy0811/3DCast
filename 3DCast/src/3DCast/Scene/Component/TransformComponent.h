@@ -7,6 +7,7 @@
 #include <vendor/glm/gtx/matrix_decompose.hpp>
 
 #include "3DCast/Scene/TransformRegistry.h"
+#include "3DCast/Misc/Structs.h"
 
 #include <imgui.h>
 
@@ -22,6 +23,8 @@ namespace Cast::Component
 		glm::vec3 scale{1.0f};
 		glm::vec3 rotation{0.0f};
 
+		BoundingBox BBox{};
+
 		TransformRegistry* transformRegistry = nullptr;
 
 		bool isRegistered = false;
@@ -36,12 +39,15 @@ namespace Cast::Component
 		explicit TransformComponent(const glm::mat4& transform)
 			: Transform(transform)
 		{
+			BBox.SetCenter(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		}
 
 		TransformComponent(const glm::vec3& translation, const glm::vec3& scale, const glm::vec3& rotation)
 		{
 			Transform = glm::translate(glm::mat4(1.0f), translation) * glm::scale(glm::mat4(1.0f), scale) *
 				glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+
+			BBox.SetCenter(translation);
 		}
 
 		TransformComponent(TransformComponent&& other) noexcept
@@ -126,7 +132,7 @@ namespace Cast::Component
 
 		[[nodiscard]] inline glm::vec3 GetTranslation() const
 		{
-			return glm::vec3(Transform[3]);
+			return glm::vec<3, float>(Transform[3]);
 		}
 
 		[[nodiscard]] glm::vec3 GetScale() const
@@ -147,6 +153,23 @@ namespace Cast::Component
 			);
 
 			return glm::degrees(glm::eulerAngles(glm::quat_cast(rotationMatrix)));
+		}
+
+		void DecomposeTransformOnComponents()
+		{
+			translation = GetTranslation();
+			scale = GetScale();
+			rotation = GetRotation();
+
+			UpdateBBox();
+		}
+
+		void UpdateBBox()
+		{
+			BBox.SetCenter(translation);
+
+			constexpr float divVal = 1.f / 3.f;
+			BBox.SetSize((scale.x + scale.y + scale.z) * divVal);
 		}
 
 		void UpdateTransformMatrix()

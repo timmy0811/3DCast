@@ -2,18 +2,18 @@
 
 #include "Config.h"
 #include "Data/SharedEditorData.h"
+#include "Application/KeymapLayout.h"
+#include "GUI/Panels/SceneHierarchyPanel.h"
 
 #include <3DCast.h>
 #include <3DCast/Data/GlobalShared.h>
-#include <3DCast/Misc/Icon.h>
+#include <3DCast/Event/MouseEvent.h>
 
+#include <vendor/glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <ImGuizmo.h>
 
-#include "ImGuizmo.h"
-#include "3DCast/Event/MouseEvent.h"
-#include "Application/KeymapLayout.h"
-#include "vendor/glm/gtc/type_ptr.hpp"
 
 Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
 	: Viewport(parent)
@@ -75,6 +75,13 @@ void Runtime::RasterizationViewport::Init()
 
 void Runtime::RasterizationViewport::Destroy()
 {
+}
+
+std::array<ImVec2, 2> Runtime::RasterizationViewport::GetViewportBounds() const
+{
+	const auto topLeft = ImVec2(Position.x, Position.y);
+	const auto bottomRight = ImVec2(Position.x + Size.x, Position.y + Size.y);
+	return {topLeft, bottomRight};
 }
 
 void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts, const bool hasCameraChanged)
@@ -333,6 +340,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 			if (changed)
 			{
+				comp.DecomposeTransformOnComponents();
 				comp.UpdateOnGPUMem();
 			}
 		}
@@ -380,6 +388,11 @@ bool Runtime::RasterizationViewport::IsUsingGizmo()
 	return ImGuizmo::IsUsingAny() || ImGuizmo::IsUsingViewManipulate();
 }
 
+bool Runtime::RasterizationViewport::IsHoveringGizmo()
+{
+	return Cast::Shared.ActiveScene->IsEntitySelected() && ImGuizmo::IsOver();
+}
+
 void Runtime::RasterizationViewport::UpdateCameraUniforms()
 {
 	const auto camPos = EditorContext.ActiveCamera->GetPosition();
@@ -407,9 +420,6 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
-	if (IsUsingGizmo())
-		return false;
-
 	if (IsCameraRotating)
 	{
 		static glm::vec2 lastMousePos = {0.f, 0.f};

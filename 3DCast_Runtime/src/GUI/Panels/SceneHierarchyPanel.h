@@ -23,6 +23,7 @@ namespace Runtime::GUI
 		explicit SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene);
 
 		void SetContext(const Cast::Ref<Cast::Scene>& scene);
+		void SetSelectionContext(const Cast::Ref<Cast::Entity>& entity);
 
 		void OnImGuiRender();
 
@@ -32,7 +33,7 @@ namespace Runtime::GUI
 			{
 			case Template::Cube: return "Cube";
 			case Template::Plane: return "Plane";
-			case Template::DirLight: return "Light";
+			case Template::DirLight: return "Directional Light";
 			case Template::PointLight: return "Point Light";
 			case Template::SpotLight: return "Spot Light";
 			case Template::CustomMesh: return "Custom Mesh";

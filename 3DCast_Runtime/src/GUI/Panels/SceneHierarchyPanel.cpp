@@ -21,6 +21,11 @@ void Runtime::GUI::SceneHierarchyPanel::SetContext(const Cast::Ref<Cast::Scene>&
 	Context = scene;
 }
 
+void Runtime::GUI::SceneHierarchyPanel::SetSelectionContext(const Cast::Ref<Cast::Entity>& entity)
+{
+	SelectionContext = entity;
+}
+
 void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 {
 	ImGui::Begin(ICON_FA_FOLDER_TREE " Scene Hierarchy");
@@ -162,7 +167,7 @@ void Runtime::GUI::SceneHierarchyPanel::DrawTemplateSelector(float width)
 
 		if (ImGui::BeginMenu("Light"))
 		{
-			if (ImGui::MenuItem("Light")) CreateEntityFromTemplate(Template::DirLight);
+			if (ImGui::MenuItem("Directional Light")) CreateEntityFromTemplate(Template::DirLight);
 			if (ImGui::MenuItem("Point Light")) CreateEntityFromTemplate(Template::PointLight);
 			if (ImGui::MenuItem("Spot Light")) CreateEntityFromTemplate(Template::SpotLight);
 

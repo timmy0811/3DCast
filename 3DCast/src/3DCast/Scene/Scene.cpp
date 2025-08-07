@@ -7,6 +7,7 @@
 
 #include "3DCast/Scene/SceneShaderCache.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
+#include "3DCast/Math/Collision.h"
 
 #include <vendor/glm/glm.hpp>
 
@@ -100,6 +101,32 @@ void Cast::Scene::RemoveEntityBulkOptimized(Ref<Entity> entity)
 {
 	RemoveEntity(entity, true);
 	Memory::BatchMemoryHandler.RemoveBulk(true);
+}
+
+Cast::Ref<Cast::Entity> Cast::Scene::RaycastSelection(const glm::vec3& origin, const glm::vec3& direction, float maxDistance) const
+{
+    Cast::Ref<Entity> closestEntity = nullptr;
+    float closestDistance = maxDistance;
+
+    const auto view = Registry.view<Component::TransformComponent>();
+
+    for (const auto entity : view)
+    {
+        const Component::TransformComponent& transform = view.get<Component::TransformComponent>(entity);
+        const BoundingBox& bbox = transform.BBox;
+
+        float hitDistance = 0.0f;
+        if (Math::RayIntersectsAABB(origin, direction, bbox, hitDistance))
+        {
+            if (hitDistance < closestDistance)
+            {
+                closestDistance = hitDistance;
+                closestEntity = EntityDescriptorPool.at(entity);
+            }
+        }
+    }
+
+    return closestEntity;
 }
 
 bool Cast::Scene::RegisterTransformComponent(Ref<Entity> entity)

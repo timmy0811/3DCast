@@ -29,6 +29,8 @@ namespace Cast
 		void RemoveEntity(Ref<Entity> entity, bool recursive = true);
 		void RemoveEntityBulkOptimized(Ref<Entity> entity);
 
+		Cast::Ref<Entity> RaycastSelection(const glm::vec3& origin, const glm::vec3& direction, float maxDistance = 1000.0f) const;
+
 		bool RegisterTransformComponent(Ref<Entity> entity);
 
 		void OnDeferredRender() const;

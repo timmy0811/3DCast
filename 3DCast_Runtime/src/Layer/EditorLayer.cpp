@@ -4,17 +4,15 @@
 #include "Config.h"
 #include "GUI/Panels/EventConsole.h"
 #include "GUI/Theme.h"
+#include "GUI/Modal/KeymapModal.h"
 #include "Application/KeymapLayout.h"
 
 #include <3DCast/ImGui/TempElements/TempGuiElementCollection.h>
-#include <3DCast/Misc/Icon.h>
+#include <3DCast/Math/Collision.h>
 
 #include <imgui_internal.h>
 #include <ctime>
-
 #include <memory>
-
-#include "GUI/Modal/KeymapModal.h"
 
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
@@ -46,7 +44,6 @@ void EditorLayer::OnAttach()
 	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
 
-	// Sample Content
 	SampleContent();
 }
 
@@ -148,8 +145,6 @@ void EditorLayer::OnImGuiRender()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-
 			if (ImGui::MenuItem("Exit")) Cast::Application::Get().Close();
 			ImGui::EndMenu();
 		}
@@ -317,6 +312,7 @@ void EditorLayer::OnEvent(Cast::Event& e)
 {
 	Cast::EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
+	dispatcher.Dispatch<Cast::MouseButtonPressedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMousePressed));
 
 	ViewportPbr.OnEvent(e);
 	ViewportRasterization.OnEvent(e);
@@ -333,26 +329,45 @@ bool EditorLayer::OnMouseScrolled(const Cast::MouseScrolledEvent& e)
 	return false;
 }
 
+bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
+{
+	if (e.GetMouseButton() == CAST_MOUSE_BUTTON_LEFT && ViewportRasterization.IsViewportHovered() && !Runtime::RasterizationViewport::IsHoveringGizmo())
+	{
+		const Cast::Ref<Cast::Renderer::Camera> camera = Runtime::EditorContext.ActiveCamera;
+
+		const glm::vec3 rayDir = Math::MousePositionToRayDirection(
+			ImGui::GetMousePos(),
+			ViewportRasterization.GetViewportBounds()[0],
+			ViewportRasterization.GetViewportBounds()[1],
+			camera->GetProjectionMat(),
+			camera->GetViewMat()
+		);
+
+		const Cast::Ref<Cast::Entity> selection = Cast::Shared.ActiveScene->RaycastSelection(
+			camera->GetPosition(), rayDir);
+
+		SceneHierarchyPanel.SetSelectionContext(selection);
+		Cast::Shared.ActiveScene->SetEditorSelectionContext(selection);
+	}
+
+	return false;
+}
+
 void EditorLayer::Render()
 {
 	ViewportRasterization.OnRender();
-	// ViewportPbr.OnRender();
+	ViewportPbr.OnRender();
 }
 
 void EditorLayer::SampleContent()
 {
-	// Light
 	const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
 	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
 	auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
-	transformComp.translation.y = 2.f;
+	transformComp.translation.y = 3.f;
 	transformComp.UpdateTransformMatrix();
 	transformComp.UpdateOnGPUMem();
+	transformComp.UpdateBBox();
 
-	//Cast::Ref<Cast::Entity> meshEntity = Cast::Shared.ActiveScene->CreateEntity("Mesh");
-	//meshEntity->AddComponents<Cast::Component::MeshComponent>();
-	//Cast::Create::Cube("Cube_1", Runtime::EditorContext.ActiveScene.get());
-
-	Cast::Create::Plane("Plane_1", Cast::Shared.ActiveScene.get());
-	//Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
+	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
 }

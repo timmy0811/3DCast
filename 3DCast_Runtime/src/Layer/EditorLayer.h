@@ -30,6 +30,7 @@ private:
 	static void SampleContent();
 
 	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
+	bool OnMousePressed(const Cast::MouseButtonPressedEvent& e);
 
 private:
 	float DeltaTime = 0.0f;
