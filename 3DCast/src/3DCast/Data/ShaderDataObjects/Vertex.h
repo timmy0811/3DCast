@@ -4,7 +4,7 @@
 
 namespace Cast::Memory
 {
-	struct BatchVertex
+	struct BatchVertexShaderObject
 	{
 		glm::vec3 Position;
 		glm::vec3 Normal;

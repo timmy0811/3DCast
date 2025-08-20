@@ -27,16 +27,18 @@ namespace Cast::Component {
 			const bool isOpen = ImGui::CollapsingHeader("PBR Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##PBRMat"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##PBRMAT"))
 				return { UIResponse::Code::Remove, Type::PBRMat };
 
 			if (isOpen) {
 				ImGui::Text("No content to show here :)");
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

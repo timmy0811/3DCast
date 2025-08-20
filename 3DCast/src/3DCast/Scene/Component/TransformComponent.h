@@ -6,7 +6,7 @@
 #include <vendor/glm/gtx/euler_angles.hpp>
 #include <vendor/glm/gtx/matrix_decompose.hpp>
 
-#include "3DCast/Scene/TransformRegistry.h"
+#include "../Registry/TransformRegistry.h"
 #include "3DCast/Misc/Structs.h"
 
 #include <imgui.h>
@@ -59,7 +59,7 @@ namespace Cast::Component
 		{
 			if (transformRegistry && isRegistered)
 			{
-				transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+				transformRegistry->Edit(transformRegistryIndex, &Transform);
 			}
 
 			other.isRegistered = false;
@@ -85,7 +85,7 @@ namespace Cast::Component
 
 				if (transformRegistry && isRegistered)
 				{
-					transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+					transformRegistry->Edit(transformRegistryIndex, &Transform);
 				}
 
 				other.isRegistered = false;
@@ -112,7 +112,7 @@ namespace Cast::Component
 
 			if (transformRegistry)
 			{
-				transformRegistryIndex = transformRegistry->RegisterTransform(&Transform);
+				transformRegistryIndex = transformRegistry->Register(&Transform);
 				isRegistered = true;
 				return true;
 			}
@@ -182,7 +182,7 @@ namespace Cast::Component
 		void UpdateOnGPUMem() const
 		{
 			if (isRegistered)
-				transformRegistry->EditTransform(transformRegistryIndex, &Transform);
+				transformRegistry->Edit(transformRegistryIndex, &Transform);
 		}
 #pragma endregion
 
@@ -208,24 +208,24 @@ namespace Cast::Component
 			if (isOpen)
 			{
 				bool edited = false;
-				ImGui::Text("Translation:");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::Text("Translation");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
 				{
 					UpdateTransformMatrix();
 					edited = true;
 				}
 
-				ImGui::Text("Scale:");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::Text("Scale");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
 				{
 					UpdateTransformMatrix();
 					edited = true;
 				}
 
-				ImGui::Text("Rotation:");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+				ImGui::Text("Rotation");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
 				{
 					UpdateTransformMatrix();
@@ -234,6 +234,8 @@ namespace Cast::Component
 
 				if (edited && transformRegistry)
 					UpdateOnGPUMem();
+
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

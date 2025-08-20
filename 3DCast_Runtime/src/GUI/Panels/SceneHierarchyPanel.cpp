@@ -234,11 +234,10 @@ void EndButtonDropDown()
 }
 void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity) const
 {
-	auto& registry = Context->GetRegistry();
-	auto entityHandle = entity->GetEntityHandle();
-
 	// Directly calling Components is faster than using CallBacks -> Append for new components
 	// Alternative:
+	//auto& registry = Context->GetRegistry();
+	//auto entityHandle = entity->GetEntityHandle();
 	// for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
 	// 	auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
 	if (entity->HasComponent<Cast::Component::TagComponent>())
@@ -330,7 +329,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		SelectionContext->AddComponents<Cast::Component::CameraComponent>();
 		break;
 	case 2:
-		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
+		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
 		break;
 	case 3:
 		SelectionContext->AddComponents<Cast::Component::MeshComponent>();
@@ -407,13 +406,13 @@ void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template 
 			Cast::Create::Plane("Plane", Context.get());
 			break;
 	case Template::DirLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Context);
 			break;
 		case Template::SpotLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLight(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLightShaderObject(), Context);
 			break;
 		case Template::PointLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLight(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLightShaderObject(), Context);
 			break;
 		case Template::CustomMesh:
 			entity->AddComponents<Cast::Component::CustomMeshComponent>();

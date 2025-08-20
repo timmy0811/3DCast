@@ -203,17 +203,38 @@ namespace Cast::Component
 					if (RootModel && RootModel->IsModelLoaded())
 					{
 						// The model is loaded
-						ImGui::Text("Model: %s", Filename.c_str());
-						ImGui::Text("Submesh Count: %d", RootModel->GetMeshCount());
-						ImGui::Text("Vertex Count: %d", RootModel->GetTotalVertexCount());
-						ImGui::Text("Indexed: %s", RootModel->IsIndexed() ? "Yes" : "No");
-						ImGui::Text("Material Assigned: %s", RootModel->MaterialAssigned() ? "Yes" : "No");
-						ImGui::Text("Texture Count: %d", RootModel->GetTextureCount());
+						ImGui::Text("Model");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%s", Filename.c_str());
+
+						ImGui::Text("Submesh Count");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%d", RootModel->GetMeshCount());
+
+						ImGui::Text("Vertex Count");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%d", RootModel->GetTotalVertexCount());
+
+						ImGui::Text("Indexed");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%s", RootModel->IsIndexed() ? "Yes" : "No");
+
+						ImGui::Text("Material Assigned");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%s", RootModel->MaterialAssigned() ? "Yes" : "No");
+
+						ImGui::Text("Texture Count");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%d", RootModel->GetTextureCount());
 					}
 					else
 					{
-						ImGui::Text("No model loaded");
-						ImGui::SameLine(SAMELINE_WIDGET_OFFSET);
+						ImGui::BeginDisabled(true);
+						ImGui::SetCursorPosX(20.f);
+						ImGui::Text("No Model loaded");
+						ImGui::EndDisabled();
+
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 
 						if (ImGui::Button("Load from file"))
 						{
@@ -228,16 +249,28 @@ namespace Cast::Component
 					if (IsMeshLeaf)
 					{
 						// Is a leaf node representing a single mesh without children
-						ImGui::Text("Vertex Count: %d", MeshInstance->GetVertexCount());
-						ImGui::Text("Indexed: %s", MeshInstance->HasIndices() ? "Yes" : "No");
-						ImGui::Text("Material Assigned: %s", MeshInstance->MaterialAssigned() ? "Yes" : "No");
+						ImGui::Text("Vertex Count");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%d", MeshInstance->GetVertexCount());
+
+						ImGui::Text("Indexed");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%s", MeshInstance->HasIndices() ? "Yes" : "No");
+
+						ImGui::Text("Has Material");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%s", MeshInstance->MaterialAssigned() ? "Yes" : "No");
 					}
 					else
 					{
 						// Is a node with children
-						ImGui::Text("Summed up Vertex Count: %d", 10); // TODO: replace placeholder
+						ImGui::Text("Summed up Vertex Count");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::Text("%d", 10); // TODO: replace placeholder
 					}
 				}
+
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

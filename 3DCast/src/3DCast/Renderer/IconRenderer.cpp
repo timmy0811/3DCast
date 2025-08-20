@@ -2,7 +2,7 @@
 #include "IconRenderer.h"
 
 #include "3DCast/Renderer/Renderer.h"
-#include "3DCast/Scene/SceneShaderCache.h"
+#include "../Scene/Registry/ShaderCacheRegistry.h"
 
 Cast::IconRenderer::IconRenderer(const std::string& palleteConfigPath, const std::string& palleteImgPath)
 {
@@ -44,7 +44,7 @@ void Cast::IconRenderer::AddIcon(const Icon icon, const glm::vec3& position)
 
 void Cast::IconRenderer::RenderAll() const
 {
-	const auto shader = AssetCache.GetShaderHandle("icon_billboard");
+	const auto shader = ShaderCacheRegistryInstance.GetHandle("icon_billboard");
 	shader->Bind();
 	Pallete->Bind(0);
 	shader->SetUniform1i("u_Pallete", Pallete->GetBoundPort());

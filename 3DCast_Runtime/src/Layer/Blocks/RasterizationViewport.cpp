@@ -23,7 +23,7 @@ Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
 void Runtime::RasterizationViewport::Init()
 {
 	constexpr int MaxIndices = 1000000;
-	constexpr size_t DefaultStorageSize = sizeof(Cast::Memory::BatchVertex) * 1000000;
+	constexpr size_t DefaultStorageSize = sizeof(Cast::Memory::BatchVertexShaderObject) * 1000000;
 	Cast::Memory::BatchMemoryHandler.Init(DefaultStorageSize, MaxIndices);
 
 	PipelineData.GBufferScreenGeometry.reset(
@@ -53,7 +53,7 @@ void Runtime::RasterizationViewport::Init()
 
 	CompileShaders();
 
-	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shading_pass");
+	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
 	shader->SetUniform1i("gBuf_Normal", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
@@ -70,7 +70,7 @@ void Runtime::RasterizationViewport::Init()
 	EditorContext.Skybox.AddCubemap("cartoon_clear", std::string(ASSET_DIR) + "img/cubemap/cartoon_clear", ".png");
 	EditorContext.Skybox.AddCubemap("cartoon_evening", std::string(ASSET_DIR) + "img/cubemap/cartoon_evening", ".png");
 	EditorContext.Skybox.SetActiveCubemap("cartoon_clear");
-	EditorContext.Skybox.SetCubemapShaderCache(Cast::AssetCache.GetShaderHandle("cubemap"));
+	EditorContext.Skybox.SetCubemapShaderCache(Cast::ShaderCacheRegistryInstance.GetHandle("cubemap"));
 }
 
 void Runtime::RasterizationViewport::Destroy()
@@ -229,7 +229,7 @@ void Runtime::RasterizationViewport::RenderGeometryPass() const
 	API::Core::RenderCommand::ClearStencilBuffer();
 	API::Core::RenderCommand::EnableStencilTestWithConstant(0xFF);
 
-	static Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("geometry_pass");
+	static Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("geometry_pass");
 	shader->Bind();
 	shader->SetUniform1f("u_ParallaxScale", EditorContext.ViewSettings.ParallaxScale);
 
@@ -252,7 +252,7 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	Cast::Shared.ActiveScene->BindSSBOforShadingPass();
 
 	// Lighting Pass Uniforms
-	const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("shading_pass");
+	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
 
@@ -287,7 +287,7 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 		API::Core::RenderCommand::SetBlendFunc(API::Core::BlendFunction::SrcAlpha, API::Core::BlendFunction::OneMinusSrcAlpha);
 		API::Core::RenderCommand::CullFace(API::Core::Face::None);
 
-		const Cast::Ref<API::Core::Shader> shader = Cast::AssetCache.GetShaderHandle("tile_grid");
+		const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("tile_grid");
 		shader->Bind();
 		API::Core::RenderCommand::IssueEmptyDrawCall(6);
 
@@ -369,22 +369,20 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 void Runtime::RasterizationViewport::CompileShaders()
 {
-	Cast::AssetCache.AddShader("geometry_pass",
-	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/geometry_pass.vert",
-	                                                     std::string(ASSET_DIR) +
-	                                                     "shader/deferred/geometry_pass.frag"));
-	Cast::AssetCache.AddShader("shading_pass",
-	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/shading_pass.vert",
-	                                                     std::string(ASSET_DIR) + "shader/deferred/shading_pass.frag"));
-	Cast::AssetCache.AddShader("icon_billboard",
-	                           API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/icon.vert",
-	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag"));
-	Cast::AssetCache.AddShader("tile_grid",
-							   API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/effect/tile_grid.vert",
-														 std::string(ASSET_DIR) + "shader/effect/tile_grid.frag"));
-	Cast::AssetCache.AddShader("cubemap",
-							   API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/world/cubemap.vert",
-														 std::string(ASSET_DIR) + "shader/world/cubemap.frag"));
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/geometry_pass.vert",
+	                                                     std::string(ASSET_DIR) + "shader/deferred/geometry_pass.frag")), "geometry_pass");
+
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/shading_pass.vert",
+	                                                     std::string(ASSET_DIR) + "shader/deferred/shading_pass.frag")), "shading_pass");
+
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/icon.vert",
+	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag")), "icon_billboard");
+
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/effect/tile_grid.vert",
+														 std::string(ASSET_DIR) + "shader/effect/tile_grid.frag")), "tile_grid");
+
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/world/cubemap.vert",
+														 std::string(ASSET_DIR) + "shader/world/cubemap.frag")), "cubemap");
 }
 
 bool Runtime::RasterizationViewport::IsUsingGizmo()
@@ -401,22 +399,22 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 {
 	const auto camPos = EditorContext.ActiveCamera->GetPosition();
 
-	const auto iconShader = Cast::AssetCache.GetShaderHandle("icon_billboard");
+	const auto iconShader = Cast::ShaderCacheRegistryInstance.GetHandle("icon_billboard");
 	iconShader->Bind();
 	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
 	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
 
-	const auto geometryShader = Cast::AssetCache.GetShaderHandle("geometry_pass");
+	const auto geometryShader = Cast::ShaderCacheRegistryInstance.GetHandle("geometry_pass");
 	geometryShader->Bind();
 	geometryShader->SetUniformMat4f("u_View", EditorContext.ActiveCamera->GetViewMat());
 	geometryShader->SetUniformMat4f("u_Projection", EditorContext.ActiveCamera->GetProjectionMat());
 	geometryShader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
 
-	const Cast::Ref<API::Core::Shader> lightingShader = Cast::AssetCache.GetShaderHandle("shading_pass");
+	const Cast::Ref<API::Core::Shader> lightingShader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	lightingShader->Bind();
 	lightingShader->SetUniform3f("u_ViewPosition", camPos.x, camPos.y, camPos.z);
 
-	const Cast::Ref<API::Core::Shader> gridShader = Cast::AssetCache.GetShaderHandle("tile_grid");
+	const Cast::Ref<API::Core::Shader> gridShader = Cast::ShaderCacheRegistryInstance.GetHandle("tile_grid");
 	gridShader->Bind();
 	gridShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
 	gridShader->SetUniform3f("u_CameraWorldPos", camPos.x, camPos.y, camPos.z);

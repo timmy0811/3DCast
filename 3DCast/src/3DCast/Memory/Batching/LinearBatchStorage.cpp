@@ -110,7 +110,7 @@ int Cast::Memory::LinearBatchStorage::RetransferVertexEntity(const uid object, c
 
 void Cast::Memory::LinearBatchStorage::Render(Ref<API::Core::Shader> shader) const
 {
-	constexpr double stride_rez = 1.0 / sizeof(BatchVertex);
+	constexpr double stride_rez = 1.0 / sizeof(BatchVertexShaderObject);
 
 	BatchMemory->Bind();
 	VertexArray->SetVBCount(std::ceil((double)BatchMemory->GetSize() * stride_rez));

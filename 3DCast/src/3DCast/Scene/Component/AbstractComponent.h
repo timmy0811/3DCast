@@ -6,41 +6,48 @@
 
 #include <string>
 
-#define SAMELINE_WIDGET_OFFSET ImGui::GetWindowWidth() / 3.0f
+#define SAMELINE_WIDGET_OFFSET_1 (ImGui::GetWindowWidth() * 0.33333f - 15.f)
+#define SAMELINE_WIDGET_OFFSET_2 (ImGui::GetWindowWidth() * 0.66666f - 15.f)
+#define SAMELINE_WIDGET_OFFSET_HALF (ImGui::GetWindowWidth() * 0.5f - 15.f)
+#define DUMMYSPACE_AFTER_COMPONENT 15.f
 
 namespace Cast
 {
-	class Entity;
+    class Entity;
 }
 
 namespace Cast::Component
 {
-	struct Component
-	{
-		virtual ~Component()
-		{
-		}
+    struct Component
+    {
+        // Important!: To avoid entt calling the destructor when moving components,
+        // implement your own copy and move constructors/operators in derived classes.
+        //
+        // Component(Component&& other) noexcept = delete;
+        // Component& operator=(Component&& other) noexcept = delete;
 
-		virtual UIResponse OnImGuiRender() { return {}; };
+        virtual ~Component() = default;
 
-		virtual void Print()
-		{
-		};
+        virtual UIResponse OnImGuiRender() { return {}; };
 
-		virtual void OnAfterEntitySetBehaviour()
-		{
-		};
+        virtual void Print()
+        {
+        };
 
-		void SetEntity(Ref<Entity> entity) { EntityNode = entity; }
+        virtual void OnAfterEntitySetBehaviour()
+        {
+        };
 
-		static std::string GetName()
-		{
-			return "Component";
-		}
+        void SetEntity(Ref<Entity> entity) { EntityNode = entity; }
 
-	protected:
-		Ref<Entity> EntityNode = nullptr;
+        static std::string GetName()
+        {
+            return "Component";
+        }
 
-		friend class Entity;
-	};
+    protected:
+        Ref<Entity> EntityNode = nullptr;
+
+        friend class Entity;
+    };
 }

@@ -1,13 +1,14 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
-#include "3DCast/Scene/DeferredSamplerRegistry.h"
+#include "../Registry/DeferredSamplerStore.h"
 
 #include <imgui.h>
 
 #include "nfd.h"
+#include "3DCast/Scene/Registry/TextureCacheRegistry.h"
 
-#define TEXTURE_THUMBNAIL_SIZE 100.f
+#define TEXTURE_THUMBNAIL_SIZE 90.f
 
 namespace Cast::Component
 {
@@ -17,10 +18,23 @@ namespace Cast::Component
 		// Sampler index used by vertex attribute for bindless textures
 		unsigned short samplerIndex = 0;
 
-		TextureInformation diffuseInfo;
-		TextureInformation specularInfo;
-		TextureInformation parallaxInfo;
-		TextureInformation normalInfo;
+		DeferredTextureInformation diffuseInfo;
+		UID diffuseID = UID::None();
+
+		DeferredTextureInformation specularInfo;
+		UID specularID = UID::None();
+
+		DeferredTextureInformation parallaxInfo;
+		UID parallaxID = UID::None();
+
+		DeferredTextureInformation normalInfo;
+		UID normalID = UID::None();
+
+		bool isCustomMaterial = false;
+		bool isPrivateMaterialCreated = false;
+		unsigned short currentMaterialInfo = 0;
+		Material currentMaterial{};
+		Material privateMaterial{};
 
 		std::string diffuseFile;
 		std::string specularFile;
@@ -36,36 +50,131 @@ namespace Cast::Component
 #pragma region CONSTRUCTOR
 		MaterialComponent(const MaterialComponent&) = default;
 
+		MaterialComponent(MaterialComponent&& other) noexcept
+			: samplerIndex(other.samplerIndex),
+			  diffuseInfo(other.diffuseInfo),
+			  diffuseID(other.diffuseID),
+			  specularInfo(other.specularInfo),
+			  specularID(other.specularID),
+			  parallaxInfo(other.parallaxInfo),
+			  parallaxID(other.parallaxID),
+			  normalInfo(other.normalInfo),
+			  normalID(other.normalID),
+			  currentMaterialInfo(other.currentMaterialInfo),
+			  diffuseFile(std::move(other.diffuseFile)),
+			  specularFile(std::move(other.specularFile)),
+			  parallaxFile(std::move(other.parallaxFile)),
+			  normalFile(std::move(other.normalFile)),
+			  diffuseLoaded(other.diffuseLoaded),
+			  specularLoaded(other.specularLoaded),
+			  parallaxLoaded(other.parallaxLoaded),
+			  normalLoaded(other.normalLoaded),
+			  windowWidth(other.windowWidth),
+			  textHeight(other.textHeight)
+		{
+			other.samplerIndex = 0;
+			other.diffuseID = UID::None();
+			other.specularID = UID::None();
+			other.parallaxID = UID::None();
+			other.normalID = UID::None();
+		}
+
+		MaterialComponent& operator=(MaterialComponent&& other) noexcept
+		{
+			if (this != &other)
+			{
+				// Clean up existing resources
+				DeferredSamplerStoreInstance.RemoveSamplerMapping(samplerIndex);
+
+				TextureCacheRegistryInstance.Remove(diffuseID);
+				DeferredSamplerStoreInstance.RemoveDiffuseTexture(diffuseInfo.samplerArrayIndex);
+
+				TextureCacheRegistryInstance.Remove(specularID);
+				DeferredSamplerStoreInstance.RemoveSpecularTexture(specularInfo.samplerArrayIndex);
+
+				TextureCacheRegistryInstance.Remove(parallaxID);
+				DeferredSamplerStoreInstance.RemoveParallaxTexture(parallaxInfo.samplerArrayIndex);
+
+				TextureCacheRegistryInstance.Remove(normalID);
+				DeferredSamplerStoreInstance.RemoveNormalTexture(normalInfo.samplerArrayIndex);
+
+				// Transfer all data members
+				samplerIndex = other.samplerIndex;
+				diffuseInfo = other.diffuseInfo;
+				diffuseID = other.diffuseID;
+				specularInfo = other.specularInfo;
+				specularID = other.specularID;
+				parallaxInfo = other.parallaxInfo;
+				parallaxID = other.parallaxID;
+				normalInfo = other.normalInfo;
+				normalID = other.normalID;
+				currentMaterialInfo = other.currentMaterialInfo;
+				diffuseFile = std::move(other.diffuseFile);
+				specularFile = std::move(other.specularFile);
+				parallaxFile = std::move(other.parallaxFile);
+				normalFile = std::move(other.normalFile);
+				diffuseLoaded = other.diffuseLoaded;
+				specularLoaded = other.specularLoaded;
+				parallaxLoaded = other.parallaxLoaded;
+				normalLoaded = other.normalLoaded;
+				windowWidth = other.windowWidth;
+				textHeight = other.textHeight;
+
+				other.samplerIndex = 0;
+				other.diffuseID = UID::None();
+				other.specularID = UID::None();
+				other.parallaxID = UID::None();
+				other.normalID = UID::None();
+			}
+			return *this;
+		}
+
 		MaterialComponent()
 		{
+			currentMaterial = MaterialCacheRegistryInstance.Get("Default");
+			currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
 			SetupSamplerMapping();
 		}
 
 		~MaterialComponent() override
 		{
-			SamplerRegistry.RemoveSamplerMapping(samplerIndex);
+			DeferredSamplerStoreInstance.RemoveSamplerMapping(samplerIndex);
+
+			TextureCacheRegistryInstance.Remove(diffuseID);
+			DeferredSamplerStoreInstance.RemoveDiffuseTexture(diffuseInfo.samplerArrayIndex);
+
+			TextureCacheRegistryInstance.Remove(specularID);
+			DeferredSamplerStoreInstance.RemoveSpecularTexture(specularInfo.samplerArrayIndex);
+
+			TextureCacheRegistryInstance.Remove(parallaxID);
+			DeferredSamplerStoreInstance.RemoveParallaxTexture(parallaxInfo.samplerArrayIndex);
+
+			TextureCacheRegistryInstance.Remove(normalID);
+			DeferredSamplerStoreInstance.RemoveNormalTexture(normalInfo.samplerArrayIndex);
 		}
 #pragma endregion
 
 #pragma region UTILITY
 		void SetupSamplerMapping()
 		{
-			samplerIndex = SamplerRegistry.CreateSamplerMapping(
-				diffuseInfo.transformRegistryIndex,
-				specularInfo.transformRegistryIndex,
-				parallaxInfo.transformRegistryIndex,
-				normalInfo.transformRegistryIndex
+			samplerIndex = DeferredSamplerStoreInstance.CreateSamplerMapping(
+				diffuseInfo.samplerArrayIndex,
+				specularInfo.samplerArrayIndex,
+				parallaxInfo.samplerArrayIndex,
+				normalInfo.samplerArrayIndex,
+				currentMaterialInfo
 			);
 		}
 
 		void UpdateSamplerMapping() const
 		{
-			SamplerRegistry.UpdateSamplerMapping(
+			DeferredSamplerStoreInstance.UpdateSamplerMapping(
 				samplerIndex,
-				diffuseInfo.transformRegistryIndex,
-				specularInfo.transformRegistryIndex,
-				parallaxInfo.transformRegistryIndex,
-				normalInfo.transformRegistryIndex
+				diffuseInfo.samplerArrayIndex,
+				specularInfo.samplerArrayIndex,
+				parallaxInfo.samplerArrayIndex,
+				normalInfo.samplerArrayIndex,
+				currentMaterialInfo
 			);
 		}
 
@@ -79,7 +188,8 @@ namespace Cast::Component
 		// Load a normal texture from file
 		void LoadDiffuseTexture(const std::string& path, const bool flipUV = false)
 		{
-			diffuseInfo = SamplerRegistry.AddDiffuseTexture(path, flipUV);
+			diffuseID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
+			diffuseInfo = DeferredSamplerStoreInstance.AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(diffuseID));
 			diffuseFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
@@ -87,7 +197,8 @@ namespace Cast::Component
 
 		void LoadDiffuseTexture(Ref<API::Texture::Texture> texture)
 		{
-			diffuseInfo = SamplerRegistry.AddDiffuseTexture(texture);
+			diffuseID = TextureCacheRegistryInstance.Add(texture);
+			diffuseInfo = DeferredSamplerStoreInstance.AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(diffuseID));
 			diffuseFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
@@ -96,7 +207,8 @@ namespace Cast::Component
 		// Load a specular texture from file
 		void LoadSpecularTexture(const std::string& path, const bool flipUV = false)
 		{
-			specularInfo = SamplerRegistry.AddSpecularTexture(path, flipUV);
+			specularID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
+			specularInfo = DeferredSamplerStoreInstance.AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(specularID));
 			specularFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			specularLoaded = true;
@@ -104,7 +216,8 @@ namespace Cast::Component
 
 		void LoadSpecularTexture(Ref<API::Texture::Texture> texture)
 		{
-			specularInfo = SamplerRegistry.AddSpecularTexture(texture);
+			specularID = TextureCacheRegistryInstance.Add(texture);
+			specularInfo = DeferredSamplerStoreInstance.AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(specularID));
 			specularFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			specularLoaded = true;
@@ -113,7 +226,8 @@ namespace Cast::Component
 		// Load a parallax texture from file
 		void LoadParallaxTexture(const std::string& path, const bool flipUV = false)
 		{
-			parallaxInfo = SamplerRegistry.AddParallaxTexture(path, flipUV);
+			parallaxID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
+			parallaxInfo = DeferredSamplerStoreInstance.AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(parallaxID));
 			parallaxFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
@@ -121,7 +235,8 @@ namespace Cast::Component
 
 		void LoadParallaxTexture(Ref<API::Texture::Texture> texture)
 		{
-			parallaxInfo = SamplerRegistry.AddParallaxTexture(texture);
+			parallaxID = TextureCacheRegistryInstance.Add(texture);
+			parallaxInfo = DeferredSamplerStoreInstance.AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(parallaxID));
 			parallaxFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
@@ -130,7 +245,8 @@ namespace Cast::Component
 		// Load a normal map from file
 		void LoadNormalTexture(const std::string& path, const bool flipUV = false)
 		{
-			normalInfo = SamplerRegistry.AddNormalTexture(path, flipUV);
+			normalID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
+			normalInfo = DeferredSamplerStoreInstance.AddNormalTexture(TextureCacheRegistryInstance.GetHandle(normalID));
 			normalFile = ExtractFilename(path);
 			UpdateSamplerMapping();
 			normalLoaded = true;
@@ -138,7 +254,8 @@ namespace Cast::Component
 
 		void LoadNormalTexture(Ref<API::Texture::Texture> texture)
 		{
-			normalInfo = SamplerRegistry.AddNormalTexture(texture);
+			normalID = TextureCacheRegistryInstance.Add(texture);
+			normalInfo = DeferredSamplerStoreInstance.AddNormalTexture(TextureCacheRegistryInstance.GetHandle(normalID));
 			normalFile = ExtractFilename(texture->GetPath());
 			UpdateSamplerMapping();
 			normalLoaded = true;
@@ -162,7 +279,7 @@ namespace Cast::Component
 			}
 			else if (result == NFD_CANCEL)
 			{
-				LOG_CORE_TRACE("Cancelled file dialoge");
+				LOG_CORE_TRACE("Cancelled file dialogue");
 			}
 			else
 			{
@@ -172,12 +289,10 @@ namespace Cast::Component
 			return "";
 		}
 
-		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, TextureInformation& info,
+		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, DeferredTextureInformation& info,
 		                            const std::string& path,
 		                            const std::function<void(const std::string& path, bool flipUV)>& loadProc) const
 		{
-			ImGui::SeparatorText(typeStr.c_str());
-
 			if (isLoaded)
 			{
 				if (ImGui::BeginTable("MaterialTable", 2))
@@ -185,8 +300,9 @@ namespace Cast::Component
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
+					ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f - TEXTURE_THUMBNAIL_SIZE * 0.5f);
 					ImGui::BeginChild("ImageContainer",
-					                  ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
+					                  ImVec2(TEXTURE_THUMBNAIL_SIZE + 40.f, TEXTURE_THUMBNAIL_SIZE), false);
 					ImGui::Image((ImTextureID)info.textureId, ImVec2(TEXTURE_THUMBNAIL_SIZE, TEXTURE_THUMBNAIL_SIZE));
 					ImGui::EndChild();
 
@@ -194,7 +310,7 @@ namespace Cast::Component
 					ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
 					ImGui::Text("File: %s", path.c_str());
 					ImGui::Text("Dimension: %d x %d", (int)info.size.x, (int)info.size.y);
-					ImGui::Dummy(ImVec2(0.f, textHeight * 2.f));
+					ImGui::Dummy(ImVec2(0.f, textHeight));
 					if (ImGui::Button("Remove Texture"))
 					{
 						info = {0, 0};
@@ -213,13 +329,16 @@ namespace Cast::Component
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
-					ImGui::BeginChild("TextContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
+					ImGui::BeginChild("TextContainer", ImVec2(SAMELINE_WIDGET_OFFSET_1, 25.f), false);
+					ImGui::BeginDisabled(true);
+					ImGui::SetCursorPosX(20.f);
 					ImGui::Text("No Texture loaded");
+					ImGui::EndDisabled();
 					ImGui::EndChild();
 
 					ImGui::TableSetColumnIndex(1);
-					ImGui::BeginChild("ButtonContainer", ImVec2(windowWidth / 2.f - 10.f, 25.f), false);
-					const std::string buttonText = "Load " + typeStr + " Texture";
+					ImGui::BeginChild("ButtonContainer", ImVec2(ImGui::GetContentRegionAvail().x, 25.f), false);
+					const std::string buttonText = ICON_FA_FOLDER_OPEN " Load " + typeStr + " Texture";
 					if (ImGui::Button(buttonText.c_str()))
 					{
 						const std::string pathToMap = OpenFileDialogue();
@@ -246,7 +365,7 @@ namespace Cast::Component
 				ICON_FA_CIRCLE_HALF_STROKE "  Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
 			if (xOffset > 0.0f)
 			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
@@ -260,29 +379,160 @@ namespace Cast::Component
 				windowWidth = ImGui::GetWindowWidth();
 				textHeight = ImGui::GetTextLineHeightWithSpacing();
 
-				RenderMaterialMapImGui("Diffuse", diffuseLoaded, diffuseInfo, diffuseFile,
-				                       [this](const std::string& path, const bool flipUV)
-				                       {
-					                       LoadDiffuseTexture(path, flipUV);
-				                       });
+				static std::string selectedItem = "Default";
+				const unsigned int previousItemInfo = currentMaterialInfo;
 
+				ImGui::BeginDisabled(isCustomMaterial);
+				ImGui::Text("Template Material");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				if (ImGui::BeginCombo("##Material", selectedItem.c_str())) {
+					for (const auto& [key, _] : MaterialCacheRegistryInstance.GetMaterialNames()) {
+						const bool isSelected = (selectedItem == key);
+						if (ImGui::Selectable(key.c_str(), isSelected)) {
+							selectedItem = key;
+							currentMaterial = MaterialCacheRegistryInstance.Get(key);
+							currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
+							DeferredSamplerStoreInstance.RemoveCustomMaterial(previousItemInfo);
+							UpdateSamplerMapping();
+						}
+
+						if (isSelected) {
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+				ImGui::EndDisabled();
+
+				ImGui::Text("Use Custom Material instead");
+				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1 * 2.f);
+				if (ImGui::Checkbox("##CustomMaterial", &isCustomMaterial))
+				{
+					if (isCustomMaterial)
+					{
+						if (!isPrivateMaterialCreated)
+						{
+							privateMaterial = MaterialCacheRegistryInstance.Get(MaterialCacheRegistryInstance.Create());
+							DeferredSamplerStoreInstance.AddCustomMaterial(privateMaterial);
+							isPrivateMaterialCreated = true;
+						}
+
+						currentMaterial = privateMaterial;
+					}
+					else
+					{
+						currentMaterial = MaterialCacheRegistryInstance.Get(selectedItem);
+					}
+
+					currentMaterialInfo = DeferredSamplerStoreInstance.GetCustomMaterialStoreId(currentMaterial.id);
+					UpdateSamplerMapping();
+				}
+
+				if (!isCustomMaterial)
+				{
+					ImGui::BeginDisabled(true);
+					ImGui::SeparatorText("Color");
+
+					ImGui::Text("Diffuse Color");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::ColorEdit3("##Diffuse", &currentMaterial.shaderObject.diffuseColor.x);
+
+					ImGui::Text("Specular Color");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::ColorEdit3("##Specular", &currentMaterial.shaderObject.specularColor.x);
+
+					ImGui::Text("Emissive Color");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::ColorEdit3("##Emissive", &currentMaterial.shaderObject.emissiveColor.x);
+
+					ImGui::SeparatorText("Surface");
+					ImGui::Text("Metallic");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::DragFloat("##Metallic", &currentMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
+
+					ImGui::Text("Roughness");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::DragFloat("##Roughness", &currentMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
+
+					ImGui::Text("Shininess");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::DragFloat("##Shininess", &currentMaterial.shaderObject.shininess, 2.f, 0.0f, 64.0f);
+
+					ImGui::Text("Reflectance");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::DragFloat("##Reflectance", &currentMaterial.shaderObject.reflectance, 0.01f, 0.0f, 1.0f);
+					ImGui::EndDisabled();
+				}
+				else
+				{
+					ImGui::SeparatorText("Color");
+					bool defaultMaterialAltered = false;
+
+					ImGui::BeginDisabled(diffuseLoaded);
+					ImGui::Text("Diffuse Color");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::ColorEdit3("##Diffuse", &privateMaterial.shaderObject.diffuseColor.x);
+					ImGui::EndDisabled();
+
+					RenderMaterialMapImGui("Diffuse", diffuseLoaded, diffuseInfo, diffuseFile,
+									   [this](const std::string& path, const bool flipUV)
+									   {
+										   LoadDiffuseTexture(path, flipUV);
+									   });
+
+					ImGui::BeginDisabled(specularLoaded);
+					ImGui::Text("Specular Color");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::ColorEdit3("##Specular", &privateMaterial.shaderObject.specularColor.x);
+					ImGui::EndDisabled();
+
+					RenderMaterialMapImGui("Specular", specularLoaded, specularInfo, specularFile,
+									   [this](const std::string& path, const bool flipUV)
+									   {
+										   LoadSpecularTexture(path, flipUV);
+									   });
+
+					ImGui::SeparatorText("Surface");
+
+					ImGui::Text("Metallic");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::DragFloat("##Metallic", &privateMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
+
+					ImGui::Text("Roughness");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::DragFloat("##Roughness", &privateMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
+
+					ImGui::Text("Shininess");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 0.5f, 0.0f, 64.0f);
+
+					ImGui::Text("Reflectance");
+					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					defaultMaterialAltered |= ImGui::DragFloat("##Reflectance", &privateMaterial.shaderObject.reflectance, 0.01f, 0.0f, 1.0f);
+
+					if (defaultMaterialAltered)
+					{
+						LOG_TRACE("updating");
+						MaterialCacheRegistryInstance.Edit(privateMaterial.id, privateMaterial);
+						DeferredSamplerStoreInstance.EditCustomMaterial(currentMaterialInfo, privateMaterial);
+					}
+				}
+
+				ImGui::SeparatorText("Normal Map");
 				RenderMaterialMapImGui("Normal", normalLoaded, normalInfo, normalFile,
-				                       [this](const std::string& path, const bool flipUV)
-				                       {
-					                       LoadNormalTexture(path, flipUV);
-				                       });
+									   [this](const std::string& path, const bool flipUV)
+									   {
+										   LoadNormalTexture(path, flipUV);
+									   });
 
-				RenderMaterialMapImGui("Specular", specularLoaded, specularInfo, specularFile,
-				                       [this](const std::string& path, const bool flipUV)
-				                       {
-					                       LoadSpecularTexture(path, flipUV);
-				                       });
-
+				ImGui::SeparatorText("Parallax Map");
 				RenderMaterialMapImGui("Parallax", parallaxLoaded, parallaxInfo, parallaxFile,
 				                       [this](const std::string& path, const bool flipUV)
 				                       {
 					                       LoadParallaxTexture(path, flipUV);
 				                       });
+
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

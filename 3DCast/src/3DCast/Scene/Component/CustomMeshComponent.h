@@ -230,6 +230,7 @@ namespace Cast::Component
 			if (isOpen)
 			{
 				ImGui::Text("No content to show here :)");
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

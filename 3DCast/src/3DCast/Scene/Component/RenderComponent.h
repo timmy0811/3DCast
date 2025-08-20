@@ -30,16 +30,18 @@ namespace Cast::Component {
 			const bool isOpen = ImGui::CollapsingHeader("Rasterizable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			const float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##Rasterizable"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Rasterizable"))
 				return { UIResponse::Code::Remove, Type::Raster };
 
 			if (isOpen) {
 				ImGui::Text("No content to show here :)");
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};
@@ -72,16 +74,18 @@ namespace Cast::Component {
 			const bool isOpen = ImGui::CollapsingHeader("PBR Renderable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
-			float xOffset = ImGui::GetContentRegionAvail().x - 80.0f;
-			if (xOffset > 0.0f) {
+			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;
+			if (xOffset > 0.0f)
+			{
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + xOffset);
 			}
 
-			if (ImGui::SmallButton("Remove##PBR"))
+			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##PBRComp"))
 				return { UIResponse::Code::Remove, Type::PBR };
 
 			if (isOpen) {
 				ImGui::Text("No content to show here :)");
+				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
 			return {};

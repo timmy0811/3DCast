@@ -35,16 +35,32 @@ layout(std430, binding = 4) buffer NormalSamplers {
     sampler2D normalSamplers[]; // normalSamplers[0] is neutral Element
 };
 
+struct CustomMaterial {
+    vec3 diffuseColor;
+    vec3 specularColor;
+    vec3 emissiveColor;
+
+    float metallic;
+    float roughness;
+    float shininess;
+    float reflectance;
+};
+
+layout(std430, binding = 5) buffer CustomMaterials {
+    CustomMaterial customMaterials[];
+};
+
 // Sampler mapping structure
 struct SamplerMapping {
     unsigned short diffuseIndex;
     unsigned short specularIndex;
     unsigned short parallaxIndex;
     unsigned short normalIndex;
+    unsigned short customMaterialIndex;
 };
 
 // Sampler mappings buffer
-layout(std430, binding = 5) buffer SamplerMap {
+layout(std430, binding = 6) buffer SamplerMap {
     SamplerMapping samplerMappings[];
 };
 
@@ -52,12 +68,12 @@ layout(std430, binding = 5) buffer SamplerMap {
 uniform vec3 u_ViewPos;
 uniform float u_ParallaxScale;
 
-#define PARALLAX_SCALE 0.03
 #include <components/texture/parallax_displace.frag>
 
 void main()
 {    
     SamplerMapping mapping = samplerMappings[v_SamplerIndex];
+    CustomMaterial material = customMaterials[mapping.customMaterialIndex];
 
     g_Position = v_FragPos;
 
@@ -81,7 +97,8 @@ void main()
     vec3 normal = normalize(TBNInterpolated * normalMap);
     g_Normal = normal;
 
-    g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], sampler_uv).rgb;
+    //g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], sampler_uv).rgb;
+    g_Albedo = material.diffuseColor;
     g_Specular = texture(specularSamplers[mapping.specularIndex], sampler_uv).rgb;
     float shininess = mix(4.0, 32.0, texture(specularSamplers[mapping.specularIndex], sampler_uv).r); // Using first bit of specular map for shininess
 

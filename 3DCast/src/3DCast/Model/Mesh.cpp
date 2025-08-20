@@ -15,9 +15,9 @@ void Cast::Mesh::SetTextures(const std::vector<Ref<API::Texture::Texture>>& text
 void Cast::Mesh::SetupVertexData()
 {
 	if (Indices.empty())
-		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
+		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size());
 	else
-		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
+		BatchId = Memory::BatchMemoryHandler.CreateBatchObject(Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size(), Indices.data(), (int)Indices.size());
 
 	if (BatchId != UID::None())
 	{
@@ -62,7 +62,7 @@ void Cast::Mesh::RemoveFromBatchStorage()
 void Cast::Mesh::RetransferToBatchMemory()
 {
 	if (Indices.empty())
-		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size());
+		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size());
 	else
-		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertex) * Vertices.size(), Indices.data(), (int)Indices.size());
+		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size(), Indices.data(), (int)Indices.size());
 }

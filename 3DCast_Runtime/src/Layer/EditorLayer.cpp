@@ -14,6 +14,8 @@
 #include <ctime>
 #include <memory>
 
+#include "GUI/Panels/DiagnosticsPanel.h"
+
 EditorLayer::EditorLayer()
 	: Layer("EditorLayer")
 {
@@ -39,7 +41,7 @@ void EditorLayer::OnAttach()
 	ViewportPbr.Init();
 	ViewportRasterization.Init();
 
-	Cast::SamplerRegistry.InitAfterDriverSetup();
+	Cast::DeferredSamplerStoreInstance.InitAfterDriverSetup();
 
 	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
@@ -259,43 +261,6 @@ void EditorLayer::OnImGuiRender()
 	ImGui::End();
 #pragma endregion
 
-#pragma region WINDOW_DIAGNOSTICS
-	ImGui::Begin(ICON_FA_STETHOSCOPE " Diagnostics");
-
-	const int fps = (int)(1.0f / DeltaTime);
-	static int maxFPS = 0;
-	static int minFPS = fps;
-	maxFPS = std::max(maxFPS, fps);
-	minFPS = std::min(minFPS, fps);
-
-	static int maxFPSDisplay = fps;
-	static int minFPSDisplay = fps;
-
-	static time_t startTime = time(nullptr);
-	if (difftime(time(nullptr), startTime) >= 1)
-	{
-		startTime = time(nullptr);
-		maxFPSDisplay = maxFPS;
-		minFPSDisplay = minFPS;
-		maxFPS = 0;
-		minFPS = fps;
-	}
-
-	ImGui::Text("FPS: %d", fps);
-	ImGui::Text("Max FPS: %d", maxFPSDisplay);
-	ImGui::Text("Min FPS: %d", minFPSDisplay);
-	ImGui::Text("Frametime: %.2f", DeltaTime * 1000.f);
-
-	ImGui::Text("Camera Position: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x,
-	            Runtime::EditorContext.ActiveCamera->GetPosition().y,
-	            Runtime::EditorContext.ActiveCamera->GetPosition().z);
-	ImGui::Text("Camera Rotation: %f, %f, %f", Runtime::EditorContext.ActiveCamera->GetRotation().x,
-				Runtime::EditorContext.ActiveCamera->GetRotation().y,
-				Runtime::EditorContext.ActiveCamera->GetRotation().z);
-
-	ImGui::End();
-#pragma endregion
-
 	ViewportRasterization.OnImGuiRender();
 	ViewportPbr.OnImGuiRender();
 
@@ -303,6 +268,7 @@ void EditorLayer::OnImGuiRender()
 	SkyboxPanel.OnImGuiRender();
 	TerminalPanel.OnImGuiRender();
 
+	Runtime::GUI::DiagnosticsPanel::OnImGuiRender(DeltaTime);
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Runtime::GUI::Keymap::OnImGuiRender();
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
@@ -365,12 +331,27 @@ void EditorLayer::Render()
 void EditorLayer::SampleContent()
 {
 	const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
-	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
+	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
 	auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
 	transformComp.translation.y = 3.f;
 	transformComp.UpdateTransformMatrix();
 	transformComp.UpdateOnGPUMem();
 	transformComp.UpdateBBox();
+
+	Cast::Material material;
+	material.shaderObject.diffuseColor = {0.7f, 0.2f, 1.0f};
+	material.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
+	Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(material), "Wood");
+
+	Cast::Material material2;
+	material2.shaderObject.diffuseColor = {0.1f, 0.8f, 1.0f};
+	material2.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
+	Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(material2), "Steel");
+
+	Cast::Material material3;
+	material3.shaderObject.diffuseColor = {0.3f, 0.2f, 0.1f};
+	material3.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
+	Cast::MaterialCacheRegistryInstance.Add(material3);
 
 	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
 }

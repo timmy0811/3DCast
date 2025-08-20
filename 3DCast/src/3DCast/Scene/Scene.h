@@ -8,7 +8,7 @@
 #include "3DCast/Renderer/IconRenderer.h"
 
 #include "3DCast/Scene/Component/Typedefinition.h"
-#include "3DCast/Scene/TransformRegistry.h"
+#include "Registry/TransformRegistry.h"
 
 #include <API/core/Buffer.h>
 

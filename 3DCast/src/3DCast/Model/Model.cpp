@@ -4,10 +4,12 @@
 #include "3DCast/Data/GlobalShared.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
-#include "3DCast/Scene/SceneShaderCache.h"
+#include "../Scene/Registry/ShaderCacheRegistry.h"
 
 #include <filesystem>
 #include <assimp/postprocess.h>
+
+#include "3DCast/Scene/Registry/TextureCacheRegistry.h"
 
 Cast::Model::Model(): ModelSize(), ModelOffset(), BoundsMin(), BoundsMax()
 {
@@ -187,7 +189,7 @@ Cast::Mesh* Cast::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Ent
 	// Process vertices
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		Memory::BatchVertex vertex{};
+		Memory::BatchVertexShaderObject vertex{};
 
 		vertex.Position = {
 			mesh->mVertices[i].x,
@@ -263,7 +265,8 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 		std::filesystem::path fullPath = std::filesystem::path(DirPath) / texturePath;
 		std::string path = fullPath.string();
 
-		auto texture = AssetCache.AddTexture(path, true); // make adjustable
+		const auto textureId = TextureCacheRegistryInstance.AddFromFile(path, true); // make adjustable
+		Ref<API::Texture::Texture> texture = TextureCacheRegistryInstance.GetHandle(textureId);
 		if (!texture) continue;
 		texture->SetType(typeAPI);
 

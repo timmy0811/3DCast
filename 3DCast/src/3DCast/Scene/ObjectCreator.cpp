@@ -69,7 +69,7 @@ Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene* scene
 	                                                               glm::vec3(-1.f, 1.f, 1.f), glm::vec2(1.f, 0.f),
 	                                                               glm::vec2(0.f, 1.f), glm::vec2(0.f, 0.f));
 
-	Memory::BatchVertex vertices[] = {
+	Memory::BatchVertexShaderObject vertices[] = {
 		// Position				// Normal			// Tangent			// Bitangent		// UVs			// SamplerIndex	// TransformIndex
 		// back face
 		{{-1.f, -1.f, -1.f}, {0.f, 0.f, -1.f}, t0Back.first, t0Back.second, {0.f, 0.f}, samplerIndex, trIndex},
@@ -183,7 +183,7 @@ Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene* scen
 	                                                               glm::vec3(-3.f, 0.f, 3.f), glm::vec2(3.f, 0.f),
 	                                                               glm::vec2(0.f, 3.f), glm::vec2(0.f, 0.f));
 
-	const Memory::BatchVertex vertices[] = {
+	const Memory::BatchVertexShaderObject vertices[] = {
 		// Position				// Normal			// Tangent			// Bitangent		// UVs			// SamplerIndex	// TransformIndex
 		{{-3.f, 0.f, -3.f}, {0.f, 3.f, 0.f}, t0Top.first, t0Top.second, {0.f, 1.f}, samplerIndex, trIndex},
 		// bottom-left

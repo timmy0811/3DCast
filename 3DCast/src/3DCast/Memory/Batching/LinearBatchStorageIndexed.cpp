@@ -196,7 +196,7 @@ int Cast::Memory::LinearBatchStorageIndexed::RetransferVertexEntity(const uid ob
 
 void Cast::Memory::LinearBatchStorageIndexed::Render(Ref<API::Core::Shader> shader) const
 {
-	constexpr double stride_rez = 1.0 / sizeof(BatchVertex);
+	constexpr double stride_rez = 1.0 / sizeof(BatchVertexShaderObject);
 
 	const auto count = std::ceil((double)BatchMemory->GetSize() * stride_rez);
 

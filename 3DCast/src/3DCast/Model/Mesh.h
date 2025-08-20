@@ -28,13 +28,13 @@ namespace Cast
 		void RemoveFromBatchStorage();
 		void RetransferToBatchMemory() override;
 
-		inline std::vector<Memory::BatchVertex>& GetVertices() { return Vertices; }
+		inline std::vector<Memory::BatchVertexShaderObject>& GetVertices() { return Vertices; }
 		inline std::vector<unsigned int>& GetIndices() { return Indices; }
 
 	private:
 		uid BatchId;
 
-		std::vector<Memory::BatchVertex> Vertices;
+		std::vector<Memory::BatchVertexShaderObject> Vertices;
 		std::vector<unsigned int> Indices;
 		std::vector<Ref<API::Texture::Texture>> Textures;
 

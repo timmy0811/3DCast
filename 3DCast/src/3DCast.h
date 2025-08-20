@@ -8,7 +8,7 @@
 #include "3DCast/Core.h"
 #include "3DCast/Data/GlobalShared.h"
 
-#include "3DCast/Scene/DeferredSamplerRegistry.h"
+#include "3DCast/Scene/Registry/DeferredSamplerStore.h"
 #include "3DCast/Scene/Scene.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/ObjectCreator.h"
@@ -26,8 +26,11 @@
 #include "3DCast/Renderer/Camera/PerspectiveCamera.h"
 #include "3DCast/Renderer/Skybox.h"
 
+#include "3DCast/Scene/Registry/ShaderCacheRegistry.h"
+#include "3DCast/Scene/Registry/TextureCacheRegistry.h"
+#include "3DCast/Scene/Registry/MaterialCacheRegistry.h"
+
 #include "3DCast/Renderer/Data/RasterizationPipelineObjects.h"
-#include "3DCast/Scene/SceneShaderCache.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 

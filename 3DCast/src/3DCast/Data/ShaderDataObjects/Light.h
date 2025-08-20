@@ -5,12 +5,12 @@
 // Structures layout must match shader structs
 namespace Cast
 {
-	struct AbstractLight
+	struct AbstractLightShaderObject
 	{
 		//virtual ~AbstractLight() = default; Misaligns data
 	};
 
-	struct DirectionalLight : public AbstractLight
+	struct DirectionalLightShaderObject : public AbstractLightShaderObject
 	{
 		alignas(16) glm::vec3 direction = {-0.2f, -1.0f, -0.3f};
 		alignas(16) glm::vec3 ambient = {0.3f, 0.3f, 0.3f};
@@ -18,7 +18,7 @@ namespace Cast
 		alignas(16) glm::vec3 specular = {1.f, 1.0f, 1.0f};
 	};
 
-	struct PointLight : public AbstractLight
+	struct PointLightShaderObject : public AbstractLightShaderObject
 	{
 		alignas(16) float affectedRadius = 1.f;
 
@@ -32,7 +32,7 @@ namespace Cast
 		float quadratic = 0.032f;
 	};
 
-	struct SpotLight : public AbstractLight
+	struct SpotLightShaderObject : public AbstractLightShaderObject
 	{
 		alignas(16) glm::vec3 position = {0.f, 2.f, 0.f};
 		alignas(16) glm::vec3 direction = {-0.2f, -1.0f, -0.3f};

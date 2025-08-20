@@ -89,7 +89,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                         AvailableCubemaps = Skybox->GetAvailableCubemapNames();
                         SelectedCubemap = cubemapName;
                         Skybox->SetActiveCubemap(cubemapName);
-                        Skybox->SetActiveCubemapShaderCache(Cast::AssetCache.GetShaderHandle("cubemap"));
+                        Skybox->SetActiveCubemapShaderCache(Cast::ShaderCacheRegistryInstance.GetHandle("cubemap"));
                     }
                 }
             }
@@ -110,7 +110,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                         EnvironmentLightEntity = Context->CreateEntity("Environment Light", true);
                         if (const auto newEntity = EnvironmentLightEntity.lock())
                         {
-                            newEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLight(), Cast::Shared.ActiveScene);
+                            newEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
                             EnvironmentLightComponent = &newEntity->GetComponent<Cast::Component::LightComponent>();
                             EnvironmentLightComponent->IsEnvironmentLight = true;
                         }
@@ -198,7 +198,7 @@ void Runtime::GUI::SkyboxPanel::UpdateEnvironmentLight() const
 {
     if (EnvironmentLightComponent)
     {
-        const auto dirLight = (Cast::DirectionalLight*)(EnvironmentLightComponent->Light);
+        const auto dirLight = (Cast::DirectionalLightShaderObject*)(EnvironmentLightComponent->Light);
         dirLight->ambient = Skybox->GetLightAmbientColor();
         dirLight->diffuse = Skybox->GetLightDiffuseColor();
         dirLight->specular = Skybox->GetLightSpecularColor();
