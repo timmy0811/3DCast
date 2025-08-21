@@ -9,7 +9,7 @@
 #define SAMELINE_WIDGET_OFFSET_1 (ImGui::GetWindowWidth() * 0.33333f - 15.f)
 #define SAMELINE_WIDGET_OFFSET_2 (ImGui::GetWindowWidth() * 0.66666f - 15.f)
 #define SAMELINE_WIDGET_OFFSET_HALF (ImGui::GetWindowWidth() * 0.5f - 15.f)
-#define DUMMYSPACE_AFTER_COMPONENT 15.f
+#define DUMMYSPACE_AFTER_COMPONENT 8.f
 
 namespace Cast
 {

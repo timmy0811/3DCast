@@ -215,7 +215,7 @@ namespace Cast::Component
 
 		UIResponse OnImGuiRender() override
 		{
-			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_DRAW_POLYGON "  Custom Mesh", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader(ICON_FA_DRAW_POLYGON "  Custom Mesh", ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
 			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;

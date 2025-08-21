@@ -49,6 +49,91 @@ namespace Cast::Memory
 			return EntityIdToMemoryPosition.find(entityId) != EntityIdToMemoryPosition.end();
 		}
 
+#pragma region ANALYTICS
+		inline size_t GetBatchStorageCount() const { return BatchStorages.size(); }
+		inline size_t GetBatchStorageIndexedCount() const { return BatchStoragesIndexed.size(); }
+		inline size_t GetTotalObjectCount() const { return EntityIdToMemoryPosition.size(); }
+		inline size_t GetBulkObjectCount() const { return BulkDisplay.size(); }
+
+		inline size_t GetBatchStorageSize() const { return BatchStorageSize; }
+
+		inline size_t GetBatchStorageMemoryUsed(const int index) const
+		{
+			if (index >= 0 && index < BatchStorages.size())
+				return BatchStorages[index].GetSize();
+			return 0;
+		}
+
+		inline size_t GetBatchStorageMemoryCapacity(const int index) const
+		{
+			if (index >= 0 && index < BatchStorages.size())
+				return BatchStorages[index].GetCapacity();
+			return 0;
+		}
+
+		inline size_t GetBatchStorageObjectCount(const int index) const
+		{
+			if (index >= 0 && index < BatchStorages.size())
+				return BatchStorages[index].GetObjectCount();
+			return 0;
+		}
+
+		inline int GetMaxIndices() const { return MaxIndices; }
+
+		inline size_t GetBatchStorageIndexedMemoryUsed(const int index) const
+		{
+			if (index >= 0 && index < BatchStoragesIndexed.size())
+				return BatchStoragesIndexed[index].GetSize();
+			return 0;
+		}
+
+		inline size_t GetBatchStorageIndexedMemoryCapacity(const int index) const
+		{
+			if (index >= 0 && index < BatchStoragesIndexed.size())
+				return BatchStoragesIndexed[index].GetCapacity();
+			return 0;
+		}
+
+		inline size_t GetBatchStorageIndexedObjectCount(const int index) const
+		{
+			if (index >= 0 && index < BatchStoragesIndexed.size())
+				return BatchStoragesIndexed[index].GetObjectCount();
+			return 0;
+		}
+
+		inline size_t GetTotalBatchStorageMemoryUsed() const
+		{
+			size_t total = 0;
+			for (const auto& storage : BatchStorages)
+				total += storage.GetSize();
+			return total;
+		}
+
+		inline size_t GetTotalBatchStorageMemoryCapacity() const
+		{
+			size_t total = 0;
+			for (const auto& storage : BatchStorages)
+				total += storage.GetCapacity();
+			return total;
+		}
+
+		inline size_t GetTotalBatchStorageIndexedMemoryUsed() const
+		{
+			size_t total = 0;
+			for (const auto& storage : BatchStoragesIndexed)
+				total += storage.GetSize();
+			return total;
+		}
+
+		inline size_t GetTotalBatchStorageIndexedMemoryCapacity() const
+		{
+			size_t total = 0;
+			for (const auto& storage : BatchStoragesIndexed)
+				total += storage.GetCapacity();
+			return total;
+		}
+#pragma endregion
+
 	private:
 		static void QueueRetransfers(const std::vector<uid>& ids);
 

@@ -27,7 +27,7 @@ namespace Cast::Component {
 		static inline std::string GetName() { return "Rasterizable"; }
 
 		UIResponse OnImGuiRender() override {
-			const bool isOpen = ImGui::CollapsingHeader("Rasterizable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			const bool isOpen = ImGui::CollapsingHeader("Rasterizable", ImGuiTreeNodeFlags_AllowItemOverlap);
 			ImGui::SameLine();
 
 			const float xOffset = ImGui::GetContentRegionAvail().x - 30.0f;

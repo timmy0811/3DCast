@@ -6,10 +6,19 @@
 
 #include "imgui.h"
 #include "Data/SharedEditorData.h"
+#include "3DCast/Memory/Batching/BatchManager.h"
 
-void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(float dt)
+void Runtime::GUI::DiagnosticsPanel::Open()
 {
-    ImGui::Begin(ICON_FA_STETHOSCOPE " Diagnostics");
+    IsOpen = true;
+}
+
+void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(const float dt)
+{
+    if (!IsOpen)
+        return;
+
+    ImGui::Begin(ICON_FA_STETHOSCOPE " Diagnostics", &IsOpen);
 
     const int fps = (int)(1.0f / dt);
     static int maxFPS = 0;
@@ -104,6 +113,90 @@ void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(float dt)
         ImGui::Text("Defined Proxies");
         ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
         ImGui::Text("%d", Cast::MaterialCacheRegistryInstance.GetProxyCount());
+    }
+
+    if (ImGui::CollapsingHeader("Batch Manager"))
+    {
+        // Basic stats
+        ImGui::Text("Batch Storages");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu", Cast::Memory::BatchMemoryHandler.GetBatchStorageCount());
+
+        ImGui::Text("Indexed Batch Storages");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu", Cast::Memory::BatchMemoryHandler.GetBatchStorageIndexedCount());
+
+        ImGui::Text("Total Batch Objects");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu", Cast::Memory::BatchMemoryHandler.GetTotalObjectCount());
+
+        ImGui::Text("Bulk Display Objects");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu", Cast::Memory::BatchMemoryHandler.GetBulkObjectCount());
+
+        ImGui::Separator();
+
+        const size_t totalStdUsed = Cast::Memory::BatchMemoryHandler.GetTotalBatchStorageMemoryUsed();
+        const size_t totalStdCapacity = Cast::Memory::BatchMemoryHandler.GetTotalBatchStorageMemoryCapacity();
+        const float stdUsagePercent = totalStdCapacity > 0 ? (float)totalStdUsed / (float)totalStdCapacity * 100.0f : 0;
+
+        ImGui::Text("Default Storage Size");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu bytes", Cast::Memory::BatchMemoryHandler.GetBatchStorageSize());
+
+        ImGui::Text("Memory Used");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu of %zu bytes (%.1f%%)", totalStdUsed, totalStdCapacity, stdUsagePercent);
+
+        const size_t totalIdxUsed = Cast::Memory::BatchMemoryHandler.GetTotalBatchStorageIndexedMemoryUsed();
+        const size_t totalIdxCapacity = Cast::Memory::BatchMemoryHandler.GetTotalBatchStorageIndexedMemoryCapacity();
+        const float idxUsagePercent = totalIdxCapacity > 0 ? (float)totalIdxUsed / (float)totalIdxCapacity * 100.0f : 0;
+
+        ImGui::Text("Max Indices");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%d", Cast::Memory::BatchMemoryHandler.GetMaxIndices());
+
+        ImGui::Text("Indexed Memory Used");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%zu of %zu bytes (%.1f%%)", totalIdxUsed, totalIdxCapacity, idxUsagePercent);
+
+        if (ImGui::TreeNode("Standard Batch Storages"))
+        {
+            for (size_t i = 0; i < Cast::Memory::BatchMemoryHandler.GetBatchStorageCount(); i++)
+            {
+                const size_t used = Cast::Memory::BatchMemoryHandler.GetBatchStorageMemoryUsed(i);
+                const size_t capacity = Cast::Memory::BatchMemoryHandler.GetBatchStorageMemoryCapacity(i);
+                const float usagePercent = capacity > 0 ? (float)used / (float)capacity * 100.0f : 0;
+                const size_t objectCount = Cast::Memory::BatchMemoryHandler.GetBatchStorageObjectCount(i);
+
+                ImGui::Text("Storage #%zu", i);
+                ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+                ImGui::Text("%zu objects", objectCount);
+
+                ImGui::SetCursorPosX(SAMELINE_WIDGET_OFFSET_HALF);
+                ImGui::Text("%zu of %zu bytes (%.1f%%)", used, capacity, usagePercent);
+            }
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Indexed Batch Storages"))
+        {
+            for (size_t i = 0; i < Cast::Memory::BatchMemoryHandler.GetBatchStorageIndexedCount(); i++)
+            {
+                const size_t used = Cast::Memory::BatchMemoryHandler.GetBatchStorageIndexedMemoryUsed(i);
+                const size_t capacity = Cast::Memory::BatchMemoryHandler.GetBatchStorageIndexedMemoryCapacity(i);
+                const float usagePercent = capacity > 0 ? (float)used / (float)capacity * 100.0f : 0;
+                const size_t objectCount = Cast::Memory::BatchMemoryHandler.GetBatchStorageIndexedObjectCount(i);
+
+                ImGui::Text("Storage #%zu", i);
+                ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+                ImGui::Text("%zu objects", objectCount);
+
+                ImGui::SetCursorPosX(SAMELINE_WIDGET_OFFSET_HALF);
+                ImGui::Text("%zu of %zu bytes (%.1f%%)", used, capacity, usagePercent);
+            }
+            ImGui::TreePop();
+        }
     }
 
     if (ImGui::CollapsingHeader("Deferred Sampler Store"))

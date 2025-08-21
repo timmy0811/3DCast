@@ -88,19 +88,37 @@ void main()
     if(sampler_uv.x > 1.0 || sampler_uv.y > 1.0 || sampler_uv.x < 0.0 || sampler_uv.y < 0.0)
         discard;
 
-    // Sample the normal map and convert from [0,1] to [-1,1]
+    // Sample normal map and convert from [0,1] to [-1,1]
     vec3 normalMap = texture(normalSamplers[mapping.normalIndex], sampler_uv).rgb;
     normalMap = normalMap * 2.0 - 1.0;
     normalMap.x = -normalMap.x;
     
-    // Transform the tangent-space normal to world space
+    // Transform tangent-space normal to world space
     vec3 normal = normalize(TBNInterpolated * normalMap);
     g_Normal = normal;
 
-    //g_Albedo = texture(diffuseSamplers[mapping.diffuseIndex], sampler_uv).rgb;
-    g_Albedo = material.diffuseColor;
-    g_Specular = texture(specularSamplers[mapping.specularIndex], sampler_uv).rgb;
-    float shininess = mix(4.0, 32.0, texture(specularSamplers[mapping.specularIndex], sampler_uv).r); // Using first bit of specular map for shininess
+    // Check if material index is not 0 (1.0 if true, 0.0 if false)
+    float hasMaterial = step(0.5, float(mapping.customMaterialIndex));
 
-    g_Shine_Reflectance = vec2(shininess, 0.5);
+    // Check if diffuse and specular sampler indices are not 0
+    float hasDiffuseSampler = step(0.5, float(mapping.diffuseIndex));
+    float hasSpecularSampler = step(0.5, float(mapping.specularIndex));
+
+    // Use sampler only when both material exists AND sampler index exists
+    float useDiffuseSampler = hasMaterial * hasDiffuseSampler;
+    float useSpecularSampler = hasMaterial * hasSpecularSampler;
+
+    // Sample textures
+    vec3 sampledDiffuse = texture(diffuseSamplers[mapping.diffuseIndex], sampler_uv).rgb;
+    vec3 sampledSpecular = texture(specularSamplers[mapping.specularIndex], sampler_uv).rgb;
+
+    // Mix between material color and sampler color based on conditions
+    g_Albedo = mix(material.diffuseColor, sampledDiffuse, useDiffuseSampler);
+    g_Specular = mix(material.specularColor, sampledSpecular, useSpecularSampler);
+
+    // Calculate shininess - mix between material shininess and sampler-based shininess
+    float sampledShininess = mix(2.0, 256.0, texture(specularSamplers[mapping.specularIndex], sampler_uv).r);
+    float finalShininess = mix(material.shininess, sampledShininess, useSpecularSampler);
+
+    g_Shine_Reflectance = vec2(finalShininess, material.reflectance);
 }

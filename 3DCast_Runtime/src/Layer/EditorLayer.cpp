@@ -181,6 +181,19 @@ void EditorLayer::OnImGuiRender()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Debug"))
+		{
+			if (ImGui::MenuItem("Diagnostics"))
+			{
+				Runtime::GUI::DiagnosticsPanel::Open();
+			}
+			{
+				SkyboxPanel.Open();
+			}
+
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Extras"))
 		{
 			if (ImGui::MenuItem("Find Viewport"))

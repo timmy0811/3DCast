@@ -120,10 +120,9 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                 }
                 else
                 {
-                    if (auto entity = EnvironmentLightEntity.lock())
+                    if (const auto entity = EnvironmentLightEntity.lock())
                     {
-                        LOG_WARN("Cannot delete light yet. FIX THIS BUG");
-                        //Context->RemoveEntity(*entity);
+                        Context->RemoveEntity(*entity);
                     }
                 }
             }

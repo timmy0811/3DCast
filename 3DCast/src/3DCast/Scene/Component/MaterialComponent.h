@@ -185,7 +185,6 @@ namespace Cast::Component
 		}
 
 #pragma region LOADERS
-		// Load a normal texture from file
 		void LoadDiffuseTexture(const std::string& path, const bool flipUV = false)
 		{
 			diffuseID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
@@ -204,7 +203,6 @@ namespace Cast::Component
 			diffuseLoaded = true;
 		}
 
-		// Load a specular texture from file
 		void LoadSpecularTexture(const std::string& path, const bool flipUV = false)
 		{
 			specularID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
@@ -223,7 +221,6 @@ namespace Cast::Component
 			specularLoaded = true;
 		}
 
-		// Load a parallax texture from file
 		void LoadParallaxTexture(const std::string& path, const bool flipUV = false)
 		{
 			parallaxID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
@@ -242,7 +239,6 @@ namespace Cast::Component
 			parallaxLoaded = true;
 		}
 
-		// Load a normal map from file
 		void LoadNormalTexture(const std::string& path, const bool flipUV = false)
 		{
 			normalID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
@@ -494,6 +490,7 @@ namespace Cast::Component
 
 					ImGui::SeparatorText("Surface");
 
+					ImGui::BeginDisabled(true);
 					ImGui::Text("Metallic");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 					defaultMaterialAltered |= ImGui::DragFloat("##Metallic", &privateMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
@@ -501,10 +498,11 @@ namespace Cast::Component
 					ImGui::Text("Roughness");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 					defaultMaterialAltered |= ImGui::DragFloat("##Roughness", &privateMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
+					ImGui::EndDisabled();
 
 					ImGui::Text("Shininess");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
-					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 0.5f, 0.0f, 64.0f);
+					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 1.f, 0.0f, 512.0f);
 
 					ImGui::Text("Reflectance");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
@@ -512,7 +510,6 @@ namespace Cast::Component
 
 					if (defaultMaterialAltered)
 					{
-						LOG_TRACE("updating");
 						MaterialCacheRegistryInstance.Edit(privateMaterial.id, privateMaterial);
 						DeferredSamplerStoreInstance.EditCustomMaterial(currentMaterialInfo, privateMaterial);
 					}

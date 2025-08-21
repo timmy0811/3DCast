@@ -47,9 +47,12 @@ void main()
     vec3 viewDirection = normalize(u_ViewPosition - fragPos);
     vec3 normal = texture(gBuf_Normal, fragCoord).rgb;
 
-    float shine = texture(gBuf_Shine_Reflectance, fragCoord).r;
+    vec2 shine_reflectance = texture(gBuf_Shine_Reflectance, fragCoord).rg;
+    float shine = shine_reflectance.r;
+    float reflectance = shine_reflectance.g;
+
     vec3 albedo = texture(gBuf_Albedo, fragCoord).rgb;
-    vec3 specular = texture(gBuf_Specular, fragCoord).rgb;
+    vec3 specular = texture(gBuf_Specular, fragCoord).rgb * reflectance;
 
     // Directional Light
     for(int i = 0; i < BufferCountDirectionalLight; i++){

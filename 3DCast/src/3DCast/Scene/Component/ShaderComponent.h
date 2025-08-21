@@ -41,7 +41,7 @@ namespace Cast::Component {
 				return { UIResponse::Code::Remove, Type::Shader };
 
 			if (isOpen) {
-				ImGui::Text("No content to show here :)");
+				ImGui::Text("Custom Shaders coming soon :)");
 				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
 			}
 
