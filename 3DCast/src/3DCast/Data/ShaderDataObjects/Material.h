@@ -6,7 +6,7 @@
 namespace Cast
 {
 	struct CustomMaterialShaderObject {
-	    alignas(16) glm::vec3 diffuseColor = glm::vec3(0.9f, 0.0f, 0.8f);
+	    alignas(16) glm::vec3 diffuseColor = glm::vec3(0.85f, 0.85f, 0.85f);
 	    alignas(16) glm::vec3 specularColor = glm::vec3(0.5f, 0.5f, 0.5f);
 	    alignas(16) glm::vec3 emissiveColor = glm::vec3(0.0f, 0.0f, 0.0f);
 

@@ -26,9 +26,6 @@ public:
 private:
 	void Render();
 
-	// Temporary
-	static void SampleContent();
-
 	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
 	bool OnMousePressed(const Cast::MouseButtonPressedEvent& e);
 

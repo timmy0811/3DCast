@@ -11,7 +11,7 @@ Cast::TextureCacheRegistry::TextureCacheRegistry()
     Textures.reserve(0x1000);
 }
 
-Cast::UID Cast::TextureCacheRegistry::Add(Ref<API::Texture::Texture> texture, const bool useCached)
+Cast::UID Cast::TextureCacheRegistry::Add(Ref<API::Texture::Texture> texture, const bool useCached, const bool removable)
 {
     if (useCached)
     {
@@ -21,7 +21,7 @@ Cast::UID Cast::TextureCacheRegistry::Add(Ref<API::Texture::Texture> texture, co
             const auto itTex = Textures.find(it->second);
             if (itTex != Textures.end())
             {
-                itTex->second.second++;
+                itTex->second.useCount++;
                 return itTex->first;
             }
             else
@@ -34,13 +34,13 @@ Cast::UID Cast::TextureCacheRegistry::Add(Ref<API::Texture::Texture> texture, co
     }
 
     UID id = UID::Create();
-    Textures.insert({id, {texture, 1}});
+    Textures.insert({id, {texture, 1, removable}});
     PathCache.insert({texture->GetPath(), id});
 
     return id;
 }
 
-Cast::UID Cast::TextureCacheRegistry::AddFromFile(const std::string& path, bool const flipUV)
+Cast::UID Cast::TextureCacheRegistry::AddFromFile(const std::string& path, bool const flipUV, const bool removable)
 {
     const auto itId = PathCache.find(path);
     if (itId != PathCache.end())
@@ -48,6 +48,7 @@ Cast::UID Cast::TextureCacheRegistry::AddFromFile(const std::string& path, bool 
         const auto itTex = Textures.find(itId->second);
         if (itTex != Textures.end())
         {
+            itTex->second.useCount++;
             return itTex->first;
         }
         else
@@ -59,13 +60,13 @@ Cast::UID Cast::TextureCacheRegistry::AddFromFile(const std::string& path, bool 
     }
 
     LOG_CORE_TRACE("Loading uncached texture from file: {0}", path);
-    auto texture = Ref<API::Texture::Texture>(
+    const auto texture = Ref<API::Texture::Texture>(
         API::Texture::Texture::Create(path, API::Texture::TextureFilter::LINEAR, flipUV));
     if (texture->GetError())
         return UID::None();
 
     UID id = UID::Create();
-    Textures.insert({id, {texture, 1}});
+    Textures.insert({id, {texture, 1, removable}});
     PathCache.insert({path, id});
 
     return id;
@@ -74,16 +75,16 @@ Cast::UID Cast::TextureCacheRegistry::AddFromFile(const std::string& path, bool 
 void Cast::TextureCacheRegistry::Remove(UID textureId, const bool force)
 {
     const auto texIt = Textures.find(textureId);
-    if (texIt == Textures.end())
+    if (texIt == Textures.end() || !texIt->second.removable)
     {
         return;
     }
 
-    texIt->second.second--;
+    texIt->second.useCount--;
 
-    if (texIt->second.second == 0 || force)
+    if (texIt->second.useCount == 0 || force)
     {
-        const std::string texturePath = texIt->second.first->GetPath();
+        const std::string texturePath = texIt->second.texture->GetPath();
 
         const auto pathIt = PathCache.find(texturePath);
         if (pathIt != PathCache.end() && pathIt->second == textureId)
@@ -102,12 +103,13 @@ void Cast::TextureCacheRegistry::Remove(UID textureId, const bool force)
     }
     else
     {
-        LOG_CORE_TRACE("Texture with ID {} use count decreased to {}", textureId, texIt->second.second);
+        LOG_CORE_TRACE("Texture with ID {} use count decreased to {}", textureId, texIt->second.useCount);
     }
 }
 
-void Cast::TextureCacheRegistry::Remove(std::string proxy, const bool force)
+void Cast::TextureCacheRegistry::Remove(const std::string& proxy, const bool force)
 {
+    // Todo: even though texture is not removable, this function still removes the proxy -> fix
     const auto proxyIt = ProxyIds.find(proxy);
     if (proxyIt == ProxyIds.end())
     {
@@ -139,7 +141,7 @@ Cast::Ref<API::Texture::Texture> Cast::TextureCacheRegistry::GetHandleByPath(con
     {
         const auto itTex = Textures.find(it->second);
         if (itTex != Textures.end())
-            return itTex->second.first;
+            return itTex->second.texture;
         else
         {
             LOG_CORE_ERROR(
@@ -157,7 +159,7 @@ Cast::Ref<API::Texture::Texture> Cast::TextureCacheRegistry::GetHandleByProxy(co
     {
         const auto itTex = Textures.find(it->second);
         if (itTex != Textures.end())
-            return itTex->second.first;
+            return itTex->second.texture;
         else
         {
             LOG_CORE_ERROR(
@@ -172,7 +174,7 @@ Cast::Ref<API::Texture::Texture> Cast::TextureCacheRegistry::GetHandle(const UID
 {
     const auto it = Textures.find(textureId);
     if (it != Textures.end())
-        return it->second.first;
+        return it->second.texture;
     return nullptr;
 }
 

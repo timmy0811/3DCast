@@ -40,17 +40,17 @@ namespace Cast
 
 		void InitAfterDriverSetup();
 
-		unsigned short AddCustomMaterial(const Material& customMaterial);
+		unsigned short AddCustomMaterial(const Material& customMaterial, bool removable = true);
 		unsigned short GetCustomMaterialStoreId(UID id) const;
 
 		void EditCustomMaterial(unsigned short position, const Material& customMaterial);
 
 		void RemoveCustomMaterial(unsigned short position, bool force = false);
 
-		DeferredTextureInformation AddDiffuseTexture(Ref<API::Texture::Texture> texture);
-		DeferredTextureInformation AddSpecularTexture(Ref<API::Texture::Texture> texture);
-		DeferredTextureInformation AddParallaxTexture(Ref<API::Texture::Texture> texture);
-		DeferredTextureInformation AddNormalTexture(Ref<API::Texture::Texture> texture);
+		DeferredTextureInformation AddDiffuseTexture(Ref<API::Texture::Texture> texture, bool removable = true);
+		DeferredTextureInformation AddSpecularTexture(Ref<API::Texture::Texture> texture, bool removable = true);
+		DeferredTextureInformation AddParallaxTexture(Ref<API::Texture::Texture> texture, bool removable = true);
+		DeferredTextureInformation AddNormalTexture(Ref<API::Texture::Texture> texture, bool removable = true);
 
 		void RemoveDiffuseTexture(unsigned short position, bool force = false);
 		void RemoveSpecularTexture(unsigned short position, bool force = false);
@@ -72,7 +72,7 @@ namespace Cast
 			unsigned short normalId = 0,
 			unsigned short customMatId = 0);
 
-		inline void RemoveSamplerMapping(const int index) { SetMappingUnused(index); }
+		inline void RemoveSamplerMapping(const int index) { if (index != 0) SetMappingUnused(index); }
 		inline bool IsSamplerMappingUsed(const int index) const { return IsMappingUsed(index); }
 
 		Ref<API::Texture::Texture> GetDiffuseTexture(unsigned short position);
@@ -131,13 +131,19 @@ namespace Cast
 		}
 
 	private:
-		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, unsigned int>> DiffuseTextures;
-		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, unsigned int>> SpecularTextures;
-		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, unsigned int>> ParallaxTextures;
-		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, unsigned int>> NormalTextures;
+		struct EntryInformation
+		{
+			unsigned int useCount;
+			bool removable = true;
+		};
+
+		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, EntryInformation>> DiffuseTextures;
+		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, EntryInformation>> SpecularTextures;
+		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, EntryInformation>> ParallaxTextures;
+		std::unordered_map<unsigned short, std::pair<Ref<API::Texture::Texture>, EntryInformation>> NormalTextures;
 
 		// Todo: Add map<UID, Material> to improve performance of material lookups
-		std::unordered_map<unsigned short, std::pair<Material, unsigned int>> Materials;
+		std::unordered_map<unsigned short, std::pair<Material, EntryInformation>> Materials;
 
 		unsigned short DiffuseCounter = 0;
 		unsigned short SpecularCounter = 0;

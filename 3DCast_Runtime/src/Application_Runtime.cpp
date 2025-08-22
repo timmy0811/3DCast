@@ -5,6 +5,7 @@
 
 #include "Layer/EditorLayer.h"
 #include "Config.h"
+#include "Data/SeedData.h"
 
 class Application_Runtime : public Cast::Application
 {
@@ -14,10 +15,10 @@ public:
 		                                     Runtime::conf.WIN_HEIGHT))
 	{
 		PushLayer(new EditorLayer());
+		Runtime::SetupSeedData();
 	}
 
-	~Application_Runtime()
-	= default;
+	~Application_Runtime() = default;
 };
 
 Cast::Application* Cast::CreateApplication()

@@ -11,7 +11,6 @@
 #include <3DCast/Math/Collision.h>
 
 #include <imgui_internal.h>
-#include <ctime>
 #include <memory>
 
 #include "GUI/Panels/DiagnosticsPanel.h"
@@ -45,8 +44,6 @@ void EditorLayer::OnAttach()
 
 	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
-
-	SampleContent();
 }
 
 void EditorLayer::OnDetach()
@@ -339,32 +336,4 @@ void EditorLayer::Render()
 {
 	ViewportRasterization.OnRender();
 	ViewportPbr.OnRender();
-}
-
-void EditorLayer::SampleContent()
-{
-	const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
-	lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
-	auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
-	transformComp.translation.y = 3.f;
-	transformComp.UpdateTransformMatrix();
-	transformComp.UpdateOnGPUMem();
-	transformComp.UpdateBBox();
-
-	Cast::Material material;
-	material.shaderObject.diffuseColor = {0.7f, 0.2f, 1.0f};
-	material.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
-	Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(material), "Wood");
-
-	Cast::Material material2;
-	material2.shaderObject.diffuseColor = {0.1f, 0.8f, 1.0f};
-	material2.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
-	Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(material2), "Steel");
-
-	Cast::Material material3;
-	material3.shaderObject.diffuseColor = {0.3f, 0.2f, 0.1f};
-	material3.shaderObject.specularColor = {0.0f, 0.0f, 1.0f};
-	Cast::MaterialCacheRegistryInstance.Add(material3);
-
-	Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
 }

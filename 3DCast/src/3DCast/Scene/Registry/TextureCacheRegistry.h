@@ -27,11 +27,11 @@ namespace Cast
 			Reflectance
 		};
 
-		UID Add(Ref<API::Texture::Texture> texture, bool useCached = true);
-		UID AddFromFile(const std::string& path, bool flipUV = false);
+		UID Add(Ref<API::Texture::Texture> texture, bool useCached = true, bool removable = true);
+		UID AddFromFile(const std::string& path, bool flipUV = false, bool removable = true);
 
 		void Remove(UID textureId, bool force = false);
-		void Remove(std::string proxy, bool force = false);
+		void Remove(const std::string& proxy, bool force = false);
 
 		bool AddProxy(UID textureId, const std::string& proxyName);
 
@@ -51,11 +51,12 @@ namespace Cast
 	private:
 		struct CacheEntry
 		{
-			UID id;
+			Ref<API::Texture::Texture> texture;
 			unsigned short useCount;
+			bool removable = true;
 		};
 
-		std::unordered_map<UID, std::pair<Ref<API::Texture::Texture>, unsigned int>> Textures;
+		std::unordered_map<UID, CacheEntry> Textures;
 		std::unordered_map<std::string, UID> PathCache;
 		std::unordered_map<std::string, UID> ProxyIds;
 	};

@@ -68,10 +68,10 @@ namespace Cast
 		));
 
 		// Default samplers
-		AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_diffuse.png")));
-		AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_specular.png")));
-		AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_parallax.png")));
-		AddNormalTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_normal.png")));
+		AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_diffuse.png", false, false)), false);
+		AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_specular.png", false, false)), false);
+		AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_parallax.png", false, false)), false);
+		AddNormalTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_normal.png", false, false)), false);
 
 		const UID defaultMaterialId = MaterialCacheRegistryInstance.Create();
 		MaterialCacheRegistryInstance.AddProxy(defaultMaterialId, "Default");
@@ -80,7 +80,7 @@ namespace Cast
 		CreateSamplerMapping(0, 0, 0, 0, 0);
 	}
 
-	unsigned short DeferredSamplerStore::AddCustomMaterial(const Material& customMaterial)
+	unsigned short DeferredSamplerStore::AddCustomMaterial(const Material& customMaterial, const bool removable)
 	{
 		if (std::find(MaterialCache.begin(), MaterialCache.end(), customMaterial.id) != MaterialCache.end())
 		{
@@ -88,7 +88,7 @@ namespace Cast
 			{
 				if (materialPair.first.id == customMaterial.id)
 				{
-					Materials[arrayPosition].second++;
+					Materials[arrayPosition].second.useCount++;
 					return arrayPosition;
 				}
 			}
@@ -97,7 +97,7 @@ namespace Cast
 			return {};
 		}
 
-		Materials[MatCounter] = {customMaterial, 1}; // Initialize with use count 1
+		Materials[MatCounter] = {customMaterial, {1, removable}}; // Initialize with use count 1
 		MaterialCache.push_back(customMaterial.id);
 		UpdateMaterialBuffer();
 
@@ -141,9 +141,9 @@ namespace Cast
 		if (it == Materials.end())
 			return;
 
-		it->second.second--;
+		it->second.second.useCount--;
 
-		if (it->second.second == 0 || force)
+		if (it->second.second.useCount == 0 || force)
 		{
 			const auto cacheIt = std::find(MaterialCache.begin(), MaterialCache.end(), it->second.first.id);
 			if (cacheIt != MaterialCache.end())
@@ -155,12 +155,12 @@ namespace Cast
 		}
 		else
 		{
-			LOG_CORE_TRACE("Material with ID {} use count decreased to {}", position, it->second.second);
+			LOG_CORE_TRACE("Material with ID {} use count decreased to {}", position, it->second.second.useCount);
 		}
 	}
 
 #pragma region ADDERS_AND_REMOVERS
-	DeferredTextureInformation DeferredSamplerStore::AddDiffuseTexture(Ref<API::Texture::Texture> texture)
+	DeferredTextureInformation DeferredSamplerStore::AddDiffuseTexture(Ref<API::Texture::Texture> texture, const bool removable)
 	{
 		if (!texture) return {};
 
@@ -171,7 +171,7 @@ namespace Cast
 				if (pair.first->GetRendererID() == texture->GetRendererID())
 				{
 					// Increment usage count
-					DiffuseTextures[fst].second++;
+					DiffuseTextures[fst].second.useCount++;
 					return {fst, (int)texture->GetRendererID()};
 				}
 			}
@@ -181,7 +181,7 @@ namespace Cast
 		}
 
 		texture->SetType(API::Texture::TextureType::DIFFUSE);
-		DiffuseTextures[DiffuseCounter] = {texture, 1}; // Initialize with use count 1
+		DiffuseTextures[DiffuseCounter] = {texture, {1, removable}}; // Initialize with use count 1
 		texture->MakeResident();
 		DiffuseTexIdCache.push_back(texture->GetRendererID());
 
@@ -193,12 +193,12 @@ namespace Cast
 	void DeferredSamplerStore::RemoveDiffuseTexture(unsigned short position, const bool force)
 	{
 		const auto it = DiffuseTextures.find(position);
-		if (it == DiffuseTextures.end())
+		if (it == DiffuseTextures.end() || !it->second.second.removable)
 			return;
 
-		it->second.second--;
+		it->second.second.useCount--;
 
-		if (it->second.second == 0 || force)
+		if (it->second.second.useCount == 0 || force)
 		{
 			const auto cacheIt = std::find(DiffuseTexIdCache.begin(), DiffuseTexIdCache.end(), it->second.first->GetRendererID());
 			if (cacheIt != DiffuseTexIdCache.end())
@@ -210,11 +210,11 @@ namespace Cast
 		}
 		else
 		{
-			LOG_CORE_TRACE("Diffuse texture with ID {} use count decreased to {}", position, it->second.second);
+			LOG_CORE_TRACE("Diffuse texture with ID {} use count decreased to {}", position, it->second.second.useCount);
 		}
 	}
 
-	DeferredTextureInformation DeferredSamplerStore::AddSpecularTexture(Ref<API::Texture::Texture> texture)
+	DeferredTextureInformation DeferredSamplerStore::AddSpecularTexture(Ref<API::Texture::Texture> texture, const bool removable)
 	{
 		if (!texture) return {};
 
@@ -224,7 +224,7 @@ namespace Cast
 			{
 				if (pair.first->GetRendererID() == texture->GetRendererID())
 				{
-					SpecularTextures[fst].second++;
+					SpecularTextures[fst].second.useCount++;
 					return {fst, (int)texture->GetRendererID()};
 				}
 			}
@@ -234,7 +234,7 @@ namespace Cast
 		}
 
 		texture->SetType(API::Texture::TextureType::SPECULAR);
-		SpecularTextures[SpecularCounter] = {texture, 1}; // Initialize with use count 1
+		SpecularTextures[SpecularCounter] = {texture, {1, removable}}; // Initialize with use count 1
 		texture->MakeResident();
 		SpecularTexIdCache.push_back((int)texture->GetRendererID());
 
@@ -246,12 +246,12 @@ namespace Cast
 	void DeferredSamplerStore::RemoveSpecularTexture(unsigned short position, const bool force)
 	{
 		const auto it = SpecularTextures.find(position);
-		if (it == SpecularTextures.end())
+		if (it == SpecularTextures.end() || !it->second.second.removable)
 			return;
 
-		it->second.second--;
+		it->second.second.useCount--;
 
-		if (it->second.second == 0 || force)
+		if (it->second.second.useCount == 0 || force)
 		{
 			const auto cacheIt = std::find(SpecularTexIdCache.begin(), SpecularTexIdCache.end(), it->second.first->GetRendererID());
 			if (cacheIt != SpecularTexIdCache.end())
@@ -263,11 +263,11 @@ namespace Cast
 		}
 		else
 		{
-			LOG_CORE_TRACE("Specular texture with ID {} use count decreased to {}", position, it->second.second);
+			LOG_CORE_TRACE("Specular texture with ID {} use count decreased to {}", position, it->second.second.useCount);
 		}
 	}
 
-	DeferredTextureInformation DeferredSamplerStore::AddParallaxTexture(Ref<API::Texture::Texture> texture)
+	DeferredTextureInformation DeferredSamplerStore::AddParallaxTexture(Ref<API::Texture::Texture> texture, const bool removable)
 	{
 		if (!texture) return {};
 
@@ -277,7 +277,7 @@ namespace Cast
 			{
 				if (pair.first->GetRendererID() == texture->GetRendererID())
 				{
-					ParallaxTextures[fst].second++;
+					ParallaxTextures[fst].second.useCount++;
 					return {fst, (int)texture->GetRendererID()};
 				}
 			}
@@ -287,7 +287,7 @@ namespace Cast
 		}
 
 		texture->SetType(API::Texture::TextureType::HEIGHT);
-		ParallaxTextures[ParallaxCounter] = {texture, 1}; // Initialize with use count 1
+		ParallaxTextures[ParallaxCounter] = {texture, {1, removable}}; // Initialize with use count 1
 		texture->MakeResident();
 		ParallaxTexIdCache.push_back(texture->GetRendererID());
 
@@ -299,12 +299,12 @@ namespace Cast
 	void DeferredSamplerStore::RemoveParallaxTexture(unsigned short position, const bool force)
 	{
 		const auto it = ParallaxTextures.find(position);
-		if (it == ParallaxTextures.end())
+		if (it == ParallaxTextures.end() || !it->second.second.removable)
 			return;
 
-		it->second.second--;
+		it->second.second.useCount--;
 
-		if (it->second.second == 0 || force)
+		if (it->second.second.useCount == 0 || force)
 		{
 			const auto cacheIt = std::find(ParallaxTexIdCache.begin(), ParallaxTexIdCache.end(), it->second.first->GetRendererID());
 			if (cacheIt != ParallaxTexIdCache.end())
@@ -316,11 +316,11 @@ namespace Cast
 		}
 		else
 		{
-			LOG_CORE_TRACE("Parallax texture with ID {} use count decreased to {}", position, it->second.second);
+			LOG_CORE_TRACE("Parallax texture with ID {} use count decreased to {}", position, it->second.second.useCount);
 		}
 	}
 
-	DeferredTextureInformation DeferredSamplerStore::AddNormalTexture(Ref<API::Texture::Texture> texture)
+	DeferredTextureInformation DeferredSamplerStore::AddNormalTexture(Ref<API::Texture::Texture> texture, const bool removable)
 	{
 		if (!texture) return {};
 
@@ -330,7 +330,7 @@ namespace Cast
 			{
 				if (pair.first->GetRendererID() == texture->GetRendererID())
 				{
-					NormalTextures[fst].second++;
+					NormalTextures[fst].second.useCount++;
 					return {fst, (int)texture->GetRendererID()};
 				}
 			}
@@ -340,7 +340,7 @@ namespace Cast
 		}
 
 		texture->SetType(API::Texture::TextureType::NORMAL);
-		NormalTextures[NormalCounter] = {texture, 1}; // Initialize with use count 1
+		NormalTextures[NormalCounter] = {texture, {1, removable}}; // Initialize with use count 1
 		texture->MakeResident();
 		NormalTexIdCache.push_back(texture->GetRendererID());
 
@@ -352,12 +352,12 @@ namespace Cast
 	void DeferredSamplerStore::RemoveNormalTexture(unsigned short position, const bool force)
 	{
 		const auto it = NormalTextures.find(position);
-		if (it == NormalTextures.end())
+		if (it == NormalTextures.end() || !it->second.second.removable)
 			return;
 
-		it->second.second--;
+		it->second.second.useCount--;
 
-		if (it->second.second == 0 || force)
+		if (it->second.second.useCount == 0 || force)
 		{
 			const auto cacheIt = std::find(NormalTexIdCache.begin(), NormalTexIdCache.end(), it->second.first->GetRendererID());
 			if (cacheIt != NormalTexIdCache.end())
@@ -369,7 +369,7 @@ namespace Cast
 		}
 		else
 		{
-			LOG_CORE_TRACE("Normal texture with ID {} use count decreased to {}", position, it->second.second);
+			LOG_CORE_TRACE("Normal texture with ID {} use count decreased to {}", position, it->second.second.useCount);
 		}
 	}
 #pragma endregion

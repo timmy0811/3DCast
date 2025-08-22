@@ -151,6 +151,9 @@ namespace Cast::Component
 
 			TextureCacheRegistryInstance.Remove(normalID);
 			DeferredSamplerStoreInstance.RemoveNormalTexture(normalInfo.samplerArrayIndex);
+
+			if (isPrivateMaterialCreated)
+				MaterialCacheRegistryInstance.Remove(privateMaterial.id);
 		}
 #pragma endregion
 
@@ -388,7 +391,7 @@ namespace Cast::Component
 							selectedItem = key;
 							currentMaterial = MaterialCacheRegistryInstance.Get(key);
 							currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
-							DeferredSamplerStoreInstance.RemoveCustomMaterial(previousItemInfo);
+							//DeferredSamplerStoreInstance.RemoveCustomMaterial(previousItemInfo);
 							UpdateSamplerMapping();
 						}
 
