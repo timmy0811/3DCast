@@ -4,6 +4,7 @@
 #include "../Registry/DeferredSamplerStore.h"
 
 #include <imgui.h>
+#include <optional>
 
 #include "nfd.h"
 #include "3DCast/Scene/Registry/TextureCacheRegistry.h"
@@ -287,7 +288,7 @@ namespace Cast::Component
 
 		void RenderMaterialMapImGui(const std::string& typeStr, bool& isLoaded, DeferredTextureInformation& info,
 		                            const std::string& path,
-		                            const std::function<void(const std::string& path, bool flipUV)>& loadProc) const
+		                            const std::function<void(const std::string& path, bool flipUV)>& loadProc)
 		{
 			if (isLoaded)
 			{
@@ -343,10 +344,143 @@ namespace Cast::Component
 							loadProc(pathToMap, false);
 						}
 					}
+
+					if (typeStr == "Diffuse")
+					{
+						ImGui::SameLine();
+						RenderSampleTextureSelector();
+					}
+					
 					ImGui::EndChild();
 
 					ImGui::EndTable();
 				}
+			}
+		}
+
+		void RenderSampleTextureSelector()
+		{
+			if (ImGui::Button(ICON_FA_WAND_MAGIC_SPARKLES, {30, 0.f}))
+			{
+				ImGui::OpenPopup("PrototypeTexture");
+			}
+
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text("Select a prototype texture");
+				ImGui::EndTooltip();
+			}
+
+			std::optional<std::string> selectedPrototypeTexture;
+
+			if (ImGui::BeginPopup("PrototypeTexture"))
+			{
+				ImGui::Text("Prototype Texture");
+				ImGui::Separator();
+
+				if (ImGui::BeginMenu("Wall"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/wall.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/wall.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/wall.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/wall.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/wall.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/wall.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Grid"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/grid_light.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/grid_light.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/grid_light.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/grid_light.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/grid_light.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/grid_light.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Checker"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/checker.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/checker.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/checker.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/checker.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/checker.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/checker.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Checker Small"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/checker_small.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/checker_small.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/checker_small.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/checker_small.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/checker_small.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/checker_small.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Checker Crossed"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/checker_cross.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/checker_cross.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/checker_cross.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/checker_cross.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/checker_cross.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/checker_cross.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Mesh"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/mesh.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/mesh.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/mesh.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/mesh.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/mesh.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/mesh.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Mesh Fine"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/mesh_light.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/mesh_light.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/mesh_light.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/mesh_light.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/mesh_light.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/mesh_light.png";
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Quarter Cross"))
+				{
+					if (ImGui::MenuItem("Light")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/light/center_light.png";
+					if (ImGui::MenuItem("Dark")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/dark/center_light.png";
+					if (ImGui::MenuItem("Orange")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/orange/center_light.png";
+					if (ImGui::MenuItem("Purple")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/purple/center_light.png";
+					if (ImGui::MenuItem("Green")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/green/center_light.png";
+					if (ImGui::MenuItem("Red")) selectedPrototypeTexture = std::string(ASSET_DIR) + "img/prototype_default/red/center_light.png";
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndPopup();
+			}
+
+			if (selectedPrototypeTexture)
+			{
+				LoadDiffuseTexture(selectedPrototypeTexture.value(), true);
 			}
 		}
 #pragma endregion
@@ -388,7 +522,7 @@ namespace Cast::Component
 							selectedItem = key;
 							currentMaterial = MaterialCacheRegistryInstance.Get(key);
 							currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
-							//DeferredSamplerStoreInstance.RemoveCustomMaterial(previousItemInfo);
+							DeferredSamplerStoreInstance.RemoveCustomMaterial(previousItemInfo);
 							UpdateSamplerMapping();
 						}
 

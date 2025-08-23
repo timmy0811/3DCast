@@ -336,11 +336,13 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 			const float snap[3] = {snapValue, snapValue, snapValue};
 
+			// Does not really snap but adds offset
 			const bool changed = ImGuizmo::Manipulate(
 				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetViewMat()),
 				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetProjectionMat()),
 				operation, ImGuizmo::LOCAL, transform, nullptr,
 				Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SNAP) ? snap : nullptr);
+
 
 			if (changed)
 			{
