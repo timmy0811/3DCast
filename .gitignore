@@ -20,6 +20,7 @@ _deps
 
 3DCast/resources/img/*
 !3DCast/resources/img/samples/*
+!3DCast/resources/img/prototype_default/*
 !3DCast/resources/img/cubemap/cartoon_evening/*
 !3DCast/resources/img/cubemap/cartoon_clear/*
 
