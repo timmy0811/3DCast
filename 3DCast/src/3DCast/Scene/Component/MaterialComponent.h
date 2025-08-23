@@ -50,6 +50,7 @@ namespace Cast::Component
 #pragma region CONSTRUCTOR
 		MaterialComponent(const MaterialComponent&) = default;
 
+		// Todo: Check if move fields are up to date
 		MaterialComponent(MaterialComponent&& other) noexcept
 			: samplerIndex(other.samplerIndex),
 			  diffuseInfo(other.diffuseInfo),
@@ -60,7 +61,11 @@ namespace Cast::Component
 			  parallaxID(other.parallaxID),
 			  normalInfo(other.normalInfo),
 			  normalID(other.normalID),
+			  isCustomMaterial(other.isCustomMaterial),
+			  isPrivateMaterialCreated(other.isPrivateMaterialCreated),
 			  currentMaterialInfo(other.currentMaterialInfo),
+			  currentMaterial(other.currentMaterial),
+			  privateMaterial(other.privateMaterial),
 			  diffuseFile(std::move(other.diffuseFile)),
 			  specularFile(std::move(other.specularFile)),
 			  parallaxFile(std::move(other.parallaxFile)),
@@ -77,27 +82,13 @@ namespace Cast::Component
 			other.specularID = UID::None();
 			other.parallaxID = UID::None();
 			other.normalID = UID::None();
+			other.isPrivateMaterialCreated = false;
 		}
 
 		MaterialComponent& operator=(MaterialComponent&& other) noexcept
 		{
 			if (this != &other)
 			{
-				// Clean up existing resources
-				DeferredSamplerStoreInstance.RemoveSamplerMapping(samplerIndex);
-
-				TextureCacheRegistryInstance.Remove(diffuseID);
-				DeferredSamplerStoreInstance.RemoveDiffuseTexture(diffuseInfo.samplerArrayIndex);
-
-				TextureCacheRegistryInstance.Remove(specularID);
-				DeferredSamplerStoreInstance.RemoveSpecularTexture(specularInfo.samplerArrayIndex);
-
-				TextureCacheRegistryInstance.Remove(parallaxID);
-				DeferredSamplerStoreInstance.RemoveParallaxTexture(parallaxInfo.samplerArrayIndex);
-
-				TextureCacheRegistryInstance.Remove(normalID);
-				DeferredSamplerStoreInstance.RemoveNormalTexture(normalInfo.samplerArrayIndex);
-
 				// Transfer all data members
 				samplerIndex = other.samplerIndex;
 				diffuseInfo = other.diffuseInfo;
@@ -108,7 +99,11 @@ namespace Cast::Component
 				parallaxID = other.parallaxID;
 				normalInfo = other.normalInfo;
 				normalID = other.normalID;
+				isCustomMaterial = other.isCustomMaterial;
+				isPrivateMaterialCreated = other.isPrivateMaterialCreated;
 				currentMaterialInfo = other.currentMaterialInfo;
+				currentMaterial = other.currentMaterial;
+				privateMaterial = other.privateMaterial;
 				diffuseFile = std::move(other.diffuseFile);
 				specularFile = std::move(other.specularFile);
 				parallaxFile = std::move(other.parallaxFile);
@@ -125,7 +120,9 @@ namespace Cast::Component
 				other.specularID = UID::None();
 				other.parallaxID = UID::None();
 				other.normalID = UID::None();
+				other.isPrivateMaterialCreated = false;
 			}
+
 			return *this;
 		}
 
