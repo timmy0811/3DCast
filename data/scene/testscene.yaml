@@ -1,0 +1,73 @@
+Scene: Untitled Scene
+Entities:
+  - Entity: 1048578
+    TagComponent:
+      Tag: Model
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    MeshComponent:
+      ModelPath: /mnt/SSD1TB/Git/3DCast/3DCast/resources/model/samples/bag/backpack.obj
+      Filename: backpack.obj
+    Children:
+      - Entity: 3
+        TagComponent:
+          Tag: $MergedNode_0
+        TransformComponent:
+          Translation: [0, 0, 0]
+          Rotation: [0, 0, 0]
+          Scale: [1, 1, 1]
+          IsRegistered: false
+          BBox:
+            Center: [0, 0, 0]
+            Radius: 0.5
+            Min: [-0.5, -0.5, -0.5]
+            Max: [0.5, 0.5, 0.5]
+        Children:
+          []
+  - Entity: 1
+    TagComponent:
+      Tag: Light
+    TransformComponent:
+      Translation: [0, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 3, 0]
+        Radius: 0.5
+        Min: [-0.5, 2.5, -0.5]
+        Max: [0.5, 3.5, 0.5]
+    LightComponent:
+      IsEnvironmentLight: false
+      Type: 0
+      Direction: [-0.2, -1, -0.3]
+      Ambient: [0.3, 0.3, 0.3]
+      Diffuse: [0.6, 0.6, 0.6]
+      Specular: [1, 1, 1]
+  - Entity: 0
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    CameraComponent:
+      Camera:
+        Projection: 0
+        Position: [4, 3, 4]
+        Rotation: [-20, -135, 0]
+        WorldUp: [0, 1, 0]

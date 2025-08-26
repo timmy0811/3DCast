@@ -18,7 +18,7 @@ namespace Cast::Component
 
 	public:
 		Memory::MemoryPosition memPos{};
-		bool IsAvailableInMemory = true;
+		bool isAvailableInMemory = true;
 
 		float* vertexData = nullptr;
 		unsigned int* indexData = nullptr;
@@ -43,7 +43,7 @@ namespace Cast::Component
 
 		CustomMeshComponent(CustomMeshComponent&& other) noexcept
 			: BatchId(other.BatchId), memPos(other.memPos),
-			  IsAvailableInMemory(other.IsAvailableInMemory),
+			  isAvailableInMemory(other.isAvailableInMemory),
 			  vertexData(other.vertexData), indexData(other.indexData),
 			  isIndexed(other.isIndexed), vertexDataSize(other.vertexDataSize),
 			  indexDataSize(other.indexDataSize), isHeapAlloc(other.isHeapAlloc)
@@ -76,7 +76,7 @@ namespace Cast::Component
 
 				BatchId = other.BatchId;
 				memPos = other.memPos;
-				IsAvailableInMemory = other.IsAvailableInMemory;
+				isAvailableInMemory = other.isAvailableInMemory;
 				vertexData = other.vertexData;
 				indexData = other.indexData;
 				isIndexed = other.isIndexed;
@@ -139,12 +139,12 @@ namespace Cast::Component
 
 		void SwapToDisk()
 		{
-			IsAvailableInMemory = false;
+			isAvailableInMemory = false;
 		}
 
 		void SwapToMemory()
 		{
-			IsAvailableInMemory = true;
+			isAvailableInMemory = true;
 		}
 
 		void AddAndAllocVertexData(const float* data, const size_t size)

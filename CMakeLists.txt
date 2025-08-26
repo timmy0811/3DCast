@@ -76,9 +76,15 @@ endif ()
 set(ASSETS_PATH_DEV "${CMAKE_SOURCE_DIR}/3DCast/resources/")
 set(ASSETS_PATH_DEPLOY "./resources/")
 
+set(DATA_PATH_DEV "${CMAKE_SOURCE_DIR}/data/")
+set(DATA_PATH_DEPLOY "./data/")
+
 add_compile_definitions(
         $<$<CONFIG:Debug>:ASSET_DIR="${ASSETS_PATH_DEV}">
         $<$<CONFIG:Release>:ASSET_DIR="${ASSETS_PATH_DEPLOY}">
+
+        $<$<CONFIG:Debug>:DATA_DIR="${DATA_PATH_DEV}">
+        $<$<CONFIG:Release>:DATA_DIR="${DATA_PATH_DEPLOY}">
 )
 
 # ------------------------------------------------------------------------------

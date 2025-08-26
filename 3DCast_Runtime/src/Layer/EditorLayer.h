@@ -31,11 +31,12 @@ private:
 
 private:
 	float DeltaTime = 0.0f;
+	float CameraSpeed = 4.f;
 
 	Runtime::PBRViewport ViewportPbr;
 	Runtime::RasterizationViewport ViewportRasterization;
 
-	float CameraSpeed = 4.f;
+	Cast::Serialization::SceneSerializer Serializer;
 
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;

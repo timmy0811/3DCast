@@ -37,5 +37,7 @@ namespace Cast
 
         glm::vec3 Center_{0.0f, 0.0f, 0.0f};
         float Radius_ = 0.0f;
+
+        friend class Serialization::SceneSerializer;
     };
 }

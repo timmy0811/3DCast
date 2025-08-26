@@ -14,6 +14,11 @@
 
 namespace Cast
 {
+	namespace Serialization
+	{
+		class SceneSerializer;
+	}
+
 	class Entity;
 
 	class Scene
@@ -38,7 +43,7 @@ namespace Cast
 		void OnUpdate() const;
 		void ReallocateLights(int type);
 
-		void BindSSBOforShadingPass() const;
+		void BindSSBOForShadingPass() const;
 
 		inline void SetEditorSelectionContext(Ref<Entity> entity) {EditorSelectionContext = entity; }
 
@@ -78,7 +83,7 @@ namespace Cast
 		inline void BindSymbolSSBOs() const;
 		inline void BindTransformSSBO() const;
 
-	private:
+	protected:
 		entt::registry Registry;
 		std::vector<ComponentHandler> ComponentHandlers;
 		std::unordered_map<entt::entity, Ref<Entity>> EntityDescriptorPool;
@@ -95,5 +100,6 @@ namespace Cast
 		Ref<API::Core::Buffer> PointLightsSSBO;
 
 		friend class Entity;
+		friend class Serialization::SceneSerializer;
 	};
 }

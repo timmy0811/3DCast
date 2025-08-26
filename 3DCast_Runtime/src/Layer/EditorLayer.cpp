@@ -16,7 +16,7 @@
 #include "GUI/Panels/DiagnosticsPanel.h"
 
 EditorLayer::EditorLayer()
-	: Layer("EditorLayer")
+	: Layer("EditorLayer"), Serializer(nullptr)
 {
 	ViewportPbr = Runtime::PBRViewport(this);
 	ViewportRasterization = Runtime::RasterizationViewport(this);
@@ -44,6 +44,8 @@ void EditorLayer::OnAttach()
 
 	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
+
+	Serializer = Cast::Serialization::SceneSerializer(Cast::Shared.ActiveScene.get());
 }
 
 void EditorLayer::OnDetach()
@@ -144,7 +146,17 @@ void EditorLayer::OnImGuiRender()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("Exit")) Cast::Application::Get().Close();
+			if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN "  Open Scene", "Ctrl+O"))
+				Serializer.Deserialize("assets/scenes/scene_1.3dcast");
+
+			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene", "Ctrl+S"))
+				Serializer.Serialize(std::string(DATA_DIR) + "scene/testscene.yaml");
+
+			ImGui::Separator();
+
+			if (ImGui::MenuItem(ICON_FA_XMARK "  Exit", "Ctrl+Esc"))
+				Cast::Application::Get().Close();
+
 			ImGui::EndMenu();
 		}
 

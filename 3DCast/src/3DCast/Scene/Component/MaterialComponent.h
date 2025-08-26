@@ -42,9 +42,10 @@ namespace Cast::Component
 		std::string parallaxFile;
 		std::string normalFile;
 
+		std::string selectedItem;
+
 		bool diffuseLoaded = false, specularLoaded = false, parallaxLoaded = false, normalLoaded = false;
 
-		float windowWidth = 0.f;
 		float textHeight = 0.f;
 #pragma endregion
 
@@ -75,7 +76,6 @@ namespace Cast::Component
 			  specularLoaded(other.specularLoaded),
 			  parallaxLoaded(other.parallaxLoaded),
 			  normalLoaded(other.normalLoaded),
-			  windowWidth(other.windowWidth),
 			  textHeight(other.textHeight)
 		{
 			other.samplerIndex = 0;
@@ -113,7 +113,6 @@ namespace Cast::Component
 				specularLoaded = other.specularLoaded;
 				parallaxLoaded = other.parallaxLoaded;
 				normalLoaded = other.normalLoaded;
-				windowWidth = other.windowWidth;
 				textHeight = other.textHeight;
 
 				other.samplerIndex = 0;
@@ -190,7 +189,7 @@ namespace Cast::Component
 		{
 			diffuseID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
 			diffuseInfo = DeferredSamplerStoreInstance.AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(diffuseID));
-			diffuseFile = ExtractFilename(path);
+			diffuseFile = path;
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
 		}
@@ -199,7 +198,7 @@ namespace Cast::Component
 		{
 			diffuseID = TextureCacheRegistryInstance.Add(texture);
 			diffuseInfo = DeferredSamplerStoreInstance.AddDiffuseTexture(TextureCacheRegistryInstance.GetHandle(diffuseID));
-			diffuseFile = ExtractFilename(texture->GetPath());
+			diffuseFile = texture->GetPath();
 			UpdateSamplerMapping();
 			diffuseLoaded = true;
 		}
@@ -208,7 +207,7 @@ namespace Cast::Component
 		{
 			specularID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
 			specularInfo = DeferredSamplerStoreInstance.AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(specularID));
-			specularFile = ExtractFilename(path);
+			specularFile = path;
 			UpdateSamplerMapping();
 			specularLoaded = true;
 		}
@@ -217,7 +216,7 @@ namespace Cast::Component
 		{
 			specularID = TextureCacheRegistryInstance.Add(texture);
 			specularInfo = DeferredSamplerStoreInstance.AddSpecularTexture(TextureCacheRegistryInstance.GetHandle(specularID));
-			specularFile = ExtractFilename(texture->GetPath());
+			specularFile = texture->GetPath();
 			UpdateSamplerMapping();
 			specularLoaded = true;
 		}
@@ -226,7 +225,7 @@ namespace Cast::Component
 		{
 			parallaxID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
 			parallaxInfo = DeferredSamplerStoreInstance.AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(parallaxID));
-			parallaxFile = ExtractFilename(path);
+			parallaxFile = path;
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
 		}
@@ -235,7 +234,7 @@ namespace Cast::Component
 		{
 			parallaxID = TextureCacheRegistryInstance.Add(texture);
 			parallaxInfo = DeferredSamplerStoreInstance.AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(parallaxID));
-			parallaxFile = ExtractFilename(texture->GetPath());
+			parallaxFile = texture->GetPath();
 			UpdateSamplerMapping();
 			parallaxLoaded = true;
 		}
@@ -244,7 +243,7 @@ namespace Cast::Component
 		{
 			normalID = TextureCacheRegistryInstance.AddFromFile(path, flipUV);
 			normalInfo = DeferredSamplerStoreInstance.AddNormalTexture(TextureCacheRegistryInstance.GetHandle(normalID));
-			normalFile = ExtractFilename(path);
+			normalFile = path;
 			UpdateSamplerMapping();
 			normalLoaded = true;
 		}
@@ -253,7 +252,7 @@ namespace Cast::Component
 		{
 			normalID = TextureCacheRegistryInstance.Add(texture);
 			normalInfo = DeferredSamplerStoreInstance.AddNormalTexture(TextureCacheRegistryInstance.GetHandle(normalID));
-			normalFile = ExtractFilename(texture->GetPath());
+			normalFile = texture->GetPath();
 			UpdateSamplerMapping();
 			normalLoaded = true;
 		}
@@ -305,7 +304,7 @@ namespace Cast::Component
 
 					ImGui::TableSetColumnIndex(1);
 					ImGui::BeginChild("TextContainer", ImVec2(0, TEXTURE_THUMBNAIL_SIZE + 20.f), false);
-					ImGui::Text("File: %s", path.c_str());
+					ImGui::Text("File: %s", ExtractFilename(path).c_str());
 					ImGui::Text("Dimension: %d x %d", (int)info.size.x, (int)info.size.y);
 					ImGui::Dummy(ImVec2(0.f, textHeight));
 					if (ImGui::Button("Remove Texture"))
@@ -506,10 +505,9 @@ namespace Cast::Component
 
 			if (isOpen)
 			{
-				windowWidth = ImGui::GetWindowWidth();
 				textHeight = ImGui::GetTextLineHeightWithSpacing();
 
-				static std::string selectedItem = "Default";
+				selectedItem = "Default";
 				const unsigned int previousItemInfo = currentMaterialInfo;
 
 				ImGui::BeginDisabled(isCustomMaterial);
@@ -636,7 +634,7 @@ namespace Cast::Component
 
 					ImGui::Text("Shininess");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
-					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 1.f, 0.0f, 512.0f);
+					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 1.f, 1.0f, 512.0f);
 
 					ImGui::Text("Reflectance");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);

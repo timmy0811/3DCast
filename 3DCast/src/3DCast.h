@@ -10,6 +10,7 @@
 
 #include "3DCast/Scene/Registry/DeferredSamplerStore.h"
 #include "3DCast/Scene/Scene.h"
+#include "3DCast/Scene/Serialization/Serializer.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/ObjectCreator.h"
 #include "3DCast/Scene/Component/Component.h"

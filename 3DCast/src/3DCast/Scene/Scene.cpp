@@ -194,7 +194,7 @@ void Cast::Scene::ReallocateLights(const int type)
 	});
 }
 
-void Cast::Scene::BindSSBOforShadingPass() const
+void Cast::Scene::BindSSBOForShadingPass() const
 {
 	BindLightSSBOs();
 }
