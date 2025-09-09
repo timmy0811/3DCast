@@ -8,11 +8,13 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <filesystem>
+
+#include "3DCast/Misc/Helper.h"
 #include "entt/entt.hpp"
 
 namespace Cast::Serialization
 {
-    SceneSerializer::SceneSerializer(Cast::Scene* scene)
+    SceneSerializer::SceneSerializer(Scene* scene)
         : CurrentScene(scene)
     {
     }
@@ -22,6 +24,33 @@ namespace Cast::Serialization
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << "Untitled Scene";
+
+        // Skybox
+        out << YAML::Key << "Skybox";
+        out << YAML::BeginMap; // Skybox
+
+        out << YAML::Key << "Mode" << YAML::Value << (int)CallbackData.Skybox->Mode;
+
+        switch (CallbackData.Skybox->Mode)
+        {
+        case Renderer::Skybox::RenderMode::ClearColor:
+            out << YAML::Key << "ClearColor" << YAML::Value << CallbackData.Skybox->ClearColor;
+            break;
+
+        case Renderer::Skybox::RenderMode::Cubemap:
+            out << YAML::Key << "ActiveCubemapName" << YAML::Value << CallbackData.Skybox->ActiveCubemapName;
+            out << YAML::Key << "ActiveCubemapDirPath" << YAML::Value << CallbackData.Skybox->ActiveCubemap->GetPath();
+            out << YAML::Key << "ActiveCubemapFileFormat" << YAML::Value << CallbackData.Skybox->ActiveCubemap->GetFileFormat();
+            break;
+
+        default:
+            break;
+        }
+
+        out << YAML::Key << "UseEnvironmentLighting" << YAML::Value << SerializableData.UseEnvironmentLighting;
+        out << YAML::EndMap; // Skybox
+
+        // Entities
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
         auto& entityMap = CurrentScene->EntityDescriptorPool;
@@ -33,6 +62,7 @@ namespace Cast::Serialization
             }
         }
 
+        // Close Yaml Context
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
@@ -90,7 +120,7 @@ namespace Cast::Serialization
             out << YAML::Key << "TransformComponent";
             out << YAML::BeginMap; // TransformComponent
 
-            auto& tc = entity->GetComponent<Component::TransformComponent>();
+            const auto& tc = entity->GetComponent<Component::TransformComponent>();
             out << YAML::Key << "Translation" << YAML::Value << tc.translation;
             out << YAML::Key << "Rotation" << YAML::Value << tc.rotation;
             out << YAML::Key << "Scale" << YAML::Value << tc.scale;
@@ -116,6 +146,8 @@ namespace Cast::Serialization
             auto& cc = entity->GetComponent<Component::CameraComponent>();
             out << YAML::Key << "Camera" << YAML::Value;
             out << YAML::BeginMap; // Camera
+            out << YAML::Key << "IsScenePrimary" << YAML::Value << cc.Camera.IsScenePrimary;
+
             out << YAML::Key << "Projection" << YAML::Value << (int)cc.Camera.ProjectionType;
             out << YAML::Key << "Position" << YAML::Value << cc.Camera.Position;
             out << YAML::Key << "Rotation" << YAML::Value << cc.Camera.Rotation;
@@ -169,7 +201,7 @@ namespace Cast::Serialization
             {
                 case Component::LightComponent::Type::Directional:
                 {
-                    const auto dirLight = static_cast<DirectionalLightShaderObject*>(lc.Light);
+                    const auto dirLight = reinterpret_cast<DirectionalLightShaderObject*>(lc.Light);
                     out << YAML::Key << "Direction" << YAML::Value << dirLight->direction;
                     out << YAML::Key << "Ambient" << YAML::Value << dirLight->ambient;
                     out << YAML::Key << "Diffuse" << YAML::Value << dirLight->diffuse;
@@ -178,7 +210,7 @@ namespace Cast::Serialization
                 }
                 case Component::LightComponent::Type::Point:
                 {
-                    const auto pointLight = static_cast<PointLightShaderObject*>(lc.Light);
+                    const auto pointLight = reinterpret_cast<PointLightShaderObject*>(lc.Light);
                     out << YAML::Key << "Position" << YAML::Value << pointLight->position;
                     out << YAML::Key << "Ambient" << YAML::Value << pointLight->ambient;
                     out << YAML::Key << "Diffuse" << YAML::Value << pointLight->diffuse;
@@ -190,7 +222,7 @@ namespace Cast::Serialization
                 }
                 case Component::LightComponent::Type::Spot:
                 {
-                    const auto spotLight = static_cast<SpotLightShaderObject*>(lc.Light);
+                    const auto spotLight = reinterpret_cast<SpotLightShaderObject*>(lc.Light);
                     out << YAML::Key << "Position" << YAML::Value << spotLight->position;
                     out << YAML::Key << "Direction" << YAML::Value << spotLight->direction;
                     out << YAML::Key << "Ambient" << YAML::Value << spotLight->ambient;
@@ -213,24 +245,33 @@ namespace Cast::Serialization
             out << YAML::BeginMap; // MaterialComponent
 
             const auto& mc = entity->GetComponent<Component::MaterialComponent>();
-            out << YAML::Key << "DiffusePath" << YAML::Value << mc.diffuseFile;
-            out << YAML::Key << "SpecularPath" << YAML::Value << mc.specularFile;
-            out << YAML::Key << "ParallaxPath" << YAML::Value << mc.parallaxFile;
-            out << YAML::Key << "NormalPath" << YAML::Value << mc.normalFile;
 
-            if (mc.isPrivateMaterialCreated)
+            if (mc.isPrivateMaterialCreated && mc.isCustomMaterial)
             {
                 out << YAML::Key << "PrivateMaterial" << YAML::Value;
                 out << YAML::BeginMap; // PrivateMaterial
+                out << YAML::Key << "DiffusePath" << YAML::Value << mc.diffuseFile;
+                out << YAML::Key << "SpecularPath" << YAML::Value << mc.specularFile;
+
+                out << YAML::Key << "DiffuseLoaded" << YAML::Value << mc.diffuseLoaded;
+                out << YAML::Key << "SpecularLoaded" << YAML::Value << mc.specularLoaded;
+
                 out << YAML::Key << "Diffuse" << YAML::Value << mc.privateMaterial.shaderObject.diffuseColor;
                 out << YAML::Key << "Specular" << YAML::Value << mc.privateMaterial.shaderObject.specularColor;
                 out << YAML::Key << "Emissive" << YAML::Value << mc.privateMaterial.shaderObject.emissiveColor;
                 out << YAML::Key << "Metallic" << YAML::Value << mc.privateMaterial.shaderObject.metallic;
+
                 out << YAML::Key << "Roughness" << YAML::Value << mc.privateMaterial.shaderObject.roughness;
                 out << YAML::Key << "Shininess" << YAML::Value << mc.privateMaterial.shaderObject.shininess;
                 out << YAML::Key << "Reflectance" << YAML::Value << mc.privateMaterial.shaderObject.reflectance;
                 out << YAML::EndMap; // PrivateMaterial
             }
+
+            out << YAML::Key << "ParallaxPath" << YAML::Value << mc.parallaxFile;
+            out << YAML::Key << "NormalPath" << YAML::Value << mc.normalFile;
+
+            out << YAML::Key << "ParallaxLoaded" << YAML::Value << mc.parallaxLoaded;
+            out << YAML::Key << "NormalLoaded" << YAML::Value << mc.normalLoaded;
 
             out << YAML::Key << "IsCustomMaterial" << YAML::Value << mc.isCustomMaterial;
             out << YAML::Key << "SelectedMaterialProxy" << YAML::Value << mc.selectedItem;
@@ -312,52 +353,330 @@ namespace Cast::Serialization
 
     bool SceneSerializer::Deserialize(const std::string& filepath)
     {
-#if 0
-        // Check if file exists
-        if (!std::filesystem::exists(filepath))
+        std::ifstream file(filepath);
+        if (!file.is_open())
         {
-            LOG_CORE_ERROR("Scene file does not exist: {0}", filepath);
+            LOG_CORE_ERROR("Failed to open scene file: {0}", filepath);
             return false;
         }
 
-        // Clear existing entities before deserializing
-        auto& registry = CurrentScene->Registry;
-        registry.clear();
-        CurrentScene->GetEntityDescriptors().clear();
+        std::stringstream ss;
+        ss << file.rdbuf();
 
         YAML::Node data;
         try
         {
-            data = YAML::LoadFile(filepath);
+            data = YAML::Load(ss.str());
         }
-        catch (const YAML::ParserException& e)
+        catch (YAML::ParserException& e)
         {
-            LOG_CORE_ERROR("Failed to load scene file '{0}': {1}", filepath, e.what());
+            LOG_CORE_ERROR("Failed to parse scene file: {0}", e.what());
             return false;
         }
 
         if (!data["Scene"])
         {
-            LOG_CORE_ERROR("Scene file is invalid: {0}", filepath);
+            LOG_CORE_ERROR("Invalid scene file: missing Scene section");
             return false;
         }
 
-        std::string sceneName = data["Scene"].as<std::string>();
-        LOG_CORE_INFO("Deserializing scene: {0}", sceneName);
-
-        auto entities = data["Entities"];
-        if (entities)
+        if (auto entitiesNode = data["Entities"])
         {
-            for (auto entityNode : entities)
+            for (auto entityNode : entitiesNode)
             {
-                DeserializeEntity(entityNode);
+                std::string name = "Untagged";
+                if (auto tagComponent = entityNode["TagComponent"])
+                {
+                    if (tagComponent["Tag"])
+                        name = tagComponent["Tag"].as<std::string>();
+                }
+
+                auto entity = CurrentScene->CreateEntity(name);
+                //DeserializeEntityRecursive(entityNode, entity);
+            }
+
+            // // Second pass: establish parent-child relationships
+            // for (auto entityNode : entitiesNode)
+            // {
+            //     uint32_t entityID = entityNode["Entity"].as<uint32_t>();
+            //     auto entity = entityMap[entityID];
+            //
+            //     if (auto children = entityNode["Children"])
+            //     {
+            //         for (auto childNode : children)
+            //         {
+            //             uint32_t childID = childNode["Entity"].as<uint32_t>();
+            //             if (entityMap.find(childID) != entityMap.end()) {
+            //                 auto childEntity = entityMap[childID];
+            //                 childEntity->SetParent(entity);
+            //                 entity->AddChild(childEntity);
+            //             }
+            //         }
+            //     }
+            // }
+        }
+        return true;
+        // Parse Skybox
+        if (auto skyboxNode = data["Skybox"])
+        {
+            CallbackData.Skybox->Mode = (Renderer::Skybox::RenderMode)skyboxNode["Mode"].as<int>();
+
+            switch (CallbackData.Skybox->Mode)
+            {
+            case Renderer::Skybox::RenderMode::ClearColor:
+                {
+                    CallbackData.Skybox->ClearColor = skyboxNode["ClearColor"].as<glm::vec4>();
+                    break;
+                }
+            case Renderer::Skybox::RenderMode::Cubemap:
+                {
+                    auto dirPath = skyboxNode["ActiveCubemapDirPath"].as<std::string>();
+                    auto fileFormat = skyboxNode["ActiveCubemapFileFormat"].as<std::string>();
+
+                    *CallbackData.EnvironmentLightEntity = *DeserializedEnvironmentLightEntity;
+                    CallbackData.Skybox->AddCubemap(dirPath, fileFormat);
+                    CallbackData.Skybox->SetActiveCubemap(skyboxNode["ActiveCubemapName"].as<std::string>());
+                    break;
+                }
+            default:
+                break;
+            }
+
+            SerializableData.UseEnvironmentLighting = skyboxNode["UseEnvironmentLighting"].as<bool>();
+        }
+
+        LOG_CORE_INFO("Scene deserialized from '{0}'", filepath);
+        return true;
+    }
+
+    void SceneSerializer::DeserializeEntityRecursive(const YAML::Node& entityNode, const Ref<Entity>& entity)
+    {
+        // Deserialize TransformComponent
+        if (auto transformComponent = entityNode["TransformComponent"])
+        {
+            auto& tc = entity->GetComponent<Component::TransformComponent>();
+            tc.translation = transformComponent["Translation"].as<glm::vec3>();
+            tc.rotation = transformComponent["Rotation"].as<glm::vec3>();
+            tc.scale = transformComponent["Scale"].as<glm::vec3>();
+            bool registerTF = transformComponent["IsRegistered"].as<bool>();
+
+            tc.UpdateTransformMatrix();
+
+            auto bboxNode = transformComponent["BBox"];
+            tc.BBox.Center_ = bboxNode["Center"].as<glm::vec3>();
+            tc.BBox.Radius_ = bboxNode["Radius"].as<float>();
+            tc.BBox.Min_ = bboxNode["Min"].as<glm::vec3>();
+            tc.BBox.Max_ = bboxNode["Max"].as<glm::vec3>();
+
+            if (registerTF)
+            {
+                CurrentScene->RegisterTransformComponent(entity);
             }
         }
 
-        return true;
-#endif
-        // Add a return statement
-        return false;
+        // Deserialize CameraComponent
+        if (auto cameraComponent = entityNode["CameraComponent"])
+        {
+            auto& cc = entity->AddComponents<Component::CameraComponent>();
+            auto cameraNode = cameraComponent["Camera"];
+
+            cc.Camera.ProjectionType = (Renderer::Camera::Type)cameraNode["Projection"].as<int>();
+            cc.Camera.Position = cameraNode["Position"].as<glm::vec3>();
+            cc.Camera.Rotation = cameraNode["Rotation"].as<glm::vec3>();
+            cc.Camera.WorldUp = cameraNode["WorldUp"].as<glm::vec3>();
+
+            if (cameraNode["IsScenePrimary"].as<bool>())
+            {
+                cc.Camera.IsScenePrimary = true;
+                memset(cc.Camera.HasChangedField, true, sizeof(cc.Camera.HasChangedField));
+                *CallbackData.ActiveCamera = cc.Camera;
+            }
+        }
+
+        // Deserialize MaterialComponent
+        if (auto materialComponent = entityNode["MaterialComponent"])
+        {
+            auto selectedMaterial = materialComponent["SelectedMaterialProxy"].as<std::string>();
+            auto& mc = entity->AddComponents<Component::MaterialComponent>(selectedMaterial);
+
+            mc.diffuseFile = materialComponent["DiffusePath"].as<std::string>();
+            mc.specularFile = materialComponent["SpecularPath"].as<std::string>();
+            mc.parallaxFile = materialComponent["ParallaxPath"].as<std::string>();
+            mc.normalFile = materialComponent["NormalPath"].as<std::string>();
+
+            auto privateMaterial = materialComponent["PrivateMaterial"];
+            if (privateMaterial && materialComponent["IsCustomMaterial"].as<bool>())
+            {
+                if (materialComponent["DiffuseLoaded"].as<bool>() && !mc.diffuseFile.empty())
+                    mc.LoadDiffuseTexture(mc.diffuseFile);
+
+                if (materialComponent["SpecularLoaded"].as<bool>() && !mc.specularFile.empty())
+                    mc.LoadSpecularTexture(mc.specularFile);
+
+                mc.isCustomMaterial = true;
+                mc.isPrivateMaterialCreated = true;
+
+                mc.privateMaterial.shaderObject.diffuseColor = privateMaterial["Diffuse"].as<glm::vec3>();
+                mc.privateMaterial.shaderObject.specularColor = privateMaterial["Specular"].as<glm::vec3>();
+                mc.privateMaterial.shaderObject.emissiveColor = privateMaterial["Emissive"].as<glm::vec3>();
+
+                mc.privateMaterial.shaderObject.metallic = privateMaterial["Metallic"].as<float>();
+                mc.privateMaterial.shaderObject.roughness = privateMaterial["Roughness"].as<float>();
+                mc.privateMaterial.shaderObject.shininess = privateMaterial["Shininess"].as<float>();
+                mc.privateMaterial.shaderObject.reflectance = privateMaterial["Reflectance"].as<float>();
+            }
+
+            if (materialComponent["ParallaxLoaded"].as<bool>() && !mc.parallaxFile.empty())
+                mc.LoadParallaxTexture(mc.parallaxFile);
+
+            if (materialComponent["NormalLoaded"].as<bool>() && !mc.normalFile.empty())
+                mc.LoadNormalTexture(mc.normalFile);
+        }
+
+        // Deserialize CustomMeshComponent
+        if (auto customMeshComponent = entityNode["CustomMeshComponent"])
+        {
+            bool isIndexed = customMeshComponent["IsIndexed"].as<bool>();
+            auto vertexDataSize = customMeshComponent["VertexDataSize"].as<size_t>();
+            auto indexDataSize = customMeshComponent["IndexDataSize"].as<size_t>();
+
+            if (!entity->HasComponent<Component::TransformComponent>())
+            {
+                LOG_CORE_ERROR("In order to add CustomMeshData, a registered TransformComponent is required.");
+                return;
+            }
+
+            auto& tc = entity->GetComponent<Component::TransformComponent>();
+            if (!tc.isRegistered)
+            {
+                CurrentScene->RegisterTransformComponent(entity);
+                LOG_CORE_INFO("Registered transform component during CustomMeshComponent deserialization.");
+            }
+
+            auto& mc = entity->AddComponents<Component::CustomMeshComponent>();
+            int samplerIndex = entity->HasComponent<Component::MaterialComponent>() ?
+                               entity->GetComponent<Component::MaterialComponent>().samplerIndex : 0;
+
+            if (vertexDataSize > 0)
+            {
+                auto encodedVertexData = customMeshComponent["VertexData"].as<std::string>();
+                if (!encodedVertexData.empty()) {
+                    mc.SetVertexBuffer((float*)Base64Decode(encodedVertexData, vertexDataSize), vertexDataSize, true);
+                    mc.PatchRegistryData(samplerIndex, tc.transformRegistryIndex);
+                }
+            }
+
+            if (isIndexed && indexDataSize > 0)
+            {
+                auto encodedIndexData = customMeshComponent["IndexData"].as<std::string>();
+                if (!encodedIndexData.empty()) {
+                    mc.SetIndexBuffer((unsigned int*)Base64Decode(encodedIndexData, indexDataSize), indexDataSize, true);
+                }
+            }
+
+            mc.AddToBatchMemory();
+        }
+
+        // Deserialize LightComponent
+        if (auto lightComponent = entityNode["LightComponent"])
+        {
+            bool isEnvironmentLight = lightComponent["IsEnvironmentLight"].as<bool>();
+            auto type = (Component::LightComponent::Type)lightComponent["Type"].as<int>();
+
+            auto& lc = entity->AddComponents<Component::LightComponent>(type, CurrentScene);
+            lc.IsEnvironmentLight = isEnvironmentLight;
+
+            if (isEnvironmentLight)
+                DeserializedEnvironmentLightEntity = entity.get();
+
+            switch (type)
+            {
+            case Component::LightComponent::Type::Directional:
+            {
+                auto dirLight = reinterpret_cast<DirectionalLightShaderObject*>(lc.Light);
+                dirLight->direction = lightComponent["Direction"].as<glm::vec3>();
+                dirLight->ambient = lightComponent["Ambient"].as<glm::vec3>();
+                dirLight->diffuse = lightComponent["Diffuse"].as<glm::vec3>();
+                dirLight->specular = lightComponent["Specular"].as<glm::vec3>();
+                break;
+            }
+            case Component::LightComponent::Type::Point:
+            {
+                auto pointLight = reinterpret_cast<PointLightShaderObject*>(lc.Light);
+                pointLight->position = lightComponent["Position"].as<glm::vec3>();
+                pointLight->ambient = lightComponent["Ambient"].as<glm::vec3>();
+                pointLight->diffuse = lightComponent["Diffuse"].as<glm::vec3>();
+                pointLight->specular = lightComponent["Specular"].as<glm::vec3>();
+                pointLight->constant = lightComponent["Constant"].as<float>();
+                pointLight->linear = lightComponent["Linear"].as<float>();
+                pointLight->quadratic = lightComponent["Quadratic"].as<float>();
+                break;
+            }
+            case Component::LightComponent::Type::Spot:
+            {
+                auto spotLight = reinterpret_cast<SpotLightShaderObject*>(lc.Light);
+                spotLight->position = lightComponent["Position"].as<glm::vec3>();
+                spotLight->direction = lightComponent["Direction"].as<glm::vec3>();
+                spotLight->ambient = lightComponent["Ambient"].as<glm::vec3>();
+                spotLight->diffuse = lightComponent["Diffuse"].as<glm::vec3>();
+                spotLight->specular = lightComponent["Specular"].as<glm::vec3>();
+                spotLight->constant = lightComponent["Constant"].as<float>();
+                spotLight->cutOff = lightComponent["Cutoff"].as<float>();
+                spotLight->outerCutOff = lightComponent["OuterCutoff"].as<float>();
+                break;
+            }
+            }
+
+            lc.UpdateLightData();
+        }
+
+        // Deserialize MeshComponent
+        if (auto meshComponent = entityNode["MeshComponent"])
+        {
+            auto path = meshComponent["ModelPath"].as<std::string>();
+            //std::string filename = meshComponent["Filename"].as<std::string>();
+            auto& mc = entity->AddComponents<Component::MeshComponent>(path);
+        }
+
+        // Deserialize RasterizableComponent
+        if (auto rasterizableComponent = entityNode["RasterizableComponent"])
+        {
+            auto& rc = entity->AddComponents<Component::RasterizableComponent>();
+            rc.Renderable = rasterizableComponent["Renderable"].as<bool>();
+        }
+
+        // Deserialize PBRComponent
+        if (auto pbrComponent = entityNode["PBRComponent"])
+        {
+            auto& pc = entity->AddComponents<Component::PBRComponent>();
+            pc.Renderable = pbrComponent["Renderable"].as<bool>();
+        }
+
+        // Deserialize ShaderComponent
+        if (auto shaderComponent = entityNode["ShaderComponent"])
+        {
+            auto& sc = entity->AddComponents<Component::ShaderComponent>();
+            sc.Identifier = shaderComponent["Proxy"].as<std::string>();
+        }
+
+        // Deserialize children
+        if (auto children = entityNode["Children"])
+        {
+            for (auto childNode : children)
+            {
+                std::string name = "Untagged";
+                if (auto tagComponent = entityNode["TagComponent"])
+                {
+                    if (tagComponent["Tag"])
+                        name = tagComponent["Tag"].as<std::string>();
+                }
+
+                auto child = CurrentScene->CreateEntity(name);
+                DeserializeEntityRecursive(entityNode, child);
+                child->SetParent(entity);
+                entity->AddChild(child);
+            }
+        }
     }
 
     bool SceneSerializer::DeserializeRuntime(const std::string& filepath)
@@ -365,34 +684,5 @@ namespace Cast::Serialization
         // Runtime deserialization - could be binary or have different format
         // For now, just use the same format
         return Deserialize(filepath);
-    }
-
-    Cast::Ref<Cast::Entity> SceneSerializer::DeserializeEntity(const YAML::Node& entityNode)
-    {
-        // Extract entity name from TagComponent
-        std::string name = "Untagged";
-        if (auto tagComponent = entityNode["TagComponent"])
-        {
-            if (tagComponent["Tag"])
-                name = tagComponent["Tag"].as<std::string>();
-        }
-
-        // Create the entity
-        auto entity = CurrentScene->CreateEntity(name);
-
-        // No need to manually add the TagComponent since CreateEntity already does that
-
-        // Deserialize children
-        if (auto children = entityNode["Children"])
-        {
-            for (auto childNode : children)
-            {
-                auto childEntity = DeserializeEntity(childNode);
-                childEntity->SetParent(entity);
-                entity->AddChild(childEntity);
-            }
-        }
-
-        return entity;
     }
 }

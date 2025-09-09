@@ -42,7 +42,7 @@ namespace Cast::Component
 		std::string parallaxFile;
 		std::string normalFile;
 
-		std::string selectedItem;
+		std::string selectedItem = "Default";
 
 		bool diffuseLoaded = false, specularLoaded = false, parallaxLoaded = false, normalLoaded = false;
 
@@ -126,9 +126,9 @@ namespace Cast::Component
 			return *this;
 		}
 
-		MaterialComponent()
+		explicit MaterialComponent(const std::string& defaultMat = "Default")
 		{
-			currentMaterial = MaterialCacheRegistryInstance.Get("Default");
+			currentMaterial = MaterialCacheRegistryInstance.Get(defaultMat);
 			currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
 			SetupSamplerMapping();
 		}
@@ -507,7 +507,6 @@ namespace Cast::Component
 			{
 				textHeight = ImGui::GetTextLineHeightWithSpacing();
 
-				selectedItem = "Default";
 				const unsigned int previousItemInfo = currentMaterialInfo;
 
 				ImGui::BeginDisabled(isCustomMaterial);

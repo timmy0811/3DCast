@@ -12,7 +12,7 @@ namespace Cast
 	struct SharedClass
 	{
 #pragma region SCENE
-		Ref<Scene> ActiveScene;
+		Optional<Scene> ActiveScene;
 		std::map<uid, IVertexEntity*> VertexEntities;
 #pragma endregion
 

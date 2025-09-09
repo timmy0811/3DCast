@@ -330,6 +330,11 @@ void Cast::Memory::BatchManager::Clear()
 	{
 		BatchStorage.Clear();
 	}
+
+	for (auto& BatchStorageIndexed : BatchStoragesIndexed)
+	{
+		BatchStorageIndexed.Clear();
+	}
 }
 
 void Cast::Memory::BatchManager::DeleteUnused()

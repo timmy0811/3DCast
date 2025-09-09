@@ -13,6 +13,7 @@
 #include <imgui_internal.h>
 #include <memory>
 
+#include "Data/SeedData.h"
 #include "GUI/Panels/DiagnosticsPanel.h"
 
 EditorLayer::EditorLayer()
@@ -28,7 +29,7 @@ void EditorLayer::OnAttach()
 
 	Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::NewDark);
 
-	Cast::Shared.ActiveScene = Cast::CreateRef<Cast::Scene>();
+	Cast::Shared.ActiveScene.emplace();
 	const Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
 
 	Runtime::EditorContext.ActiveCamera = std::make_shared<Cast::Renderer::PerspectiveCamera>(
@@ -42,10 +43,10 @@ void EditorLayer::OnAttach()
 
 	Cast::DeferredSamplerStoreInstance.InitAfterDriverSetup();
 
-	SkyboxPanel.SetContext(Cast::Shared.ActiveScene);
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
 
-	Serializer = Cast::Serialization::SceneSerializer(Cast::Shared.ActiveScene.get());
+	Serializer.SetScene(&Cast::Shared.ActiveScene.value());
+	Serializer.SetSkyboxCallback(&Runtime::EditorContext.Skybox);
 }
 
 void EditorLayer::OnDetach()
@@ -54,48 +55,49 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate(const Cast::Timestep ts)
 {
-	const float CameraSpeedCorrected = CameraSpeed * ts;
-	glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
-	if (ViewportRasterization.IsViewportFocused())
+	if (Cast::Shared.ActiveScene)
 	{
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_L))
+		const float CameraSpeedCorrected = CameraSpeed * ts;
+		glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
+		if (ViewportRasterization.IsViewportFocused())
 		{
-			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
-		}
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_R))
-		{
-			cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
-		}
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_UP))
-		{
-			cameraPosition.y += CameraSpeedCorrected;
-		}
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_DOWN))
-		{
-			cameraPosition.y -= CameraSpeedCorrected;
-		}
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_FW))
-		{
-			cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
-		}
-		if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_BW))
-		{
-			cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_L))
+			{
+				cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+			}
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_R))
+			{
+				cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+			}
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_UP))
+			{
+				cameraPosition.y += CameraSpeedCorrected;
+			}
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_DOWN))
+			{
+				cameraPosition.y -= CameraSpeedCorrected;
+			}
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_FW))
+			{
+				cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+			}
+			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_BW))
+			{
+				cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+			}
+
+			Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
 		}
 
-		Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
+		ViewportPbr.OnUpdate(ts);
+		ViewportRasterization.OnUpdate(ts);
+
+		Cast::Shared.ActiveScene->OnUpdate();
+		//Runtime::EditorContext.Skybox.SetActiveCubemapViewProjectionMatrix(Runtime::EditorContext.ActiveCamera->GetViewMat(),
+		//	Runtime::EditorContext.ActiveCamera->GetProjectionMat());
+
+		Render();
 	}
-
-	ViewportPbr.OnUpdate(ts);
-	ViewportRasterization.OnUpdate(ts);
-
-	Cast::Shared.ActiveScene->OnUpdate();
-	Runtime::EditorContext.Skybox.SetActiveCubemapViewProjectionMatrix(Runtime::EditorContext.ActiveCamera->GetViewMat(),
-		Runtime::EditorContext.ActiveCamera->GetProjectionMat());
-
-	Render();
-
-	SceneHierarchyPanel.SetContext(Cast::Shared.ActiveScene);
 
 	DeltaTime = ts.GetSeconds();
 }
@@ -147,10 +149,31 @@ void EditorLayer::OnImGuiRender()
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN "  Open Scene", "Ctrl+O"))
-				Serializer.Deserialize("assets/scenes/scene_1.3dcast");
+			{
+				if (Cast::Shared.ActiveScene)
+					CloseScene();
 
+				Cast::Shared.ActiveScene.emplace();
+				if (Serializer.Deserialize(std::string(DATA_DIR) + "scene/testscene.yaml"))
+				{
+					SkyboxPanel.UpdateEnvironmentLight();
+				}
+			}
+
+			ImGui::BeginDisabled(!Cast::Shared.ActiveScene);
 			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene", "Ctrl+S"))
+			{
+				Serializer.SetActiveCameraCallback(Runtime::EditorContext.ActiveCamera.get());
+				Serializer.SetEnvironmentLightEntityCallback(SkyboxPanel.GetEnvironmentLightEntityRef());
+				Serializer.AddDataUseEnvironmentLighting(SkyboxPanel.IsUsingEnvironmentMapping());
 				Serializer.Serialize(std::string(DATA_DIR) + "scene/testscene.yaml");
+			}
+
+			if (ImGui::MenuItem(ICON_FA_FOLDER_CLOSED "  Close Scene"))
+			{
+				CloseScene();
+			}
+			ImGui::EndDisabled();
 
 			ImGui::Separator();
 
@@ -283,8 +306,11 @@ void EditorLayer::OnImGuiRender()
 	ImGui::End();
 #pragma endregion
 
-	ViewportRasterization.OnImGuiRender();
-	ViewportPbr.OnImGuiRender();
+	if (Cast::Shared.ActiveScene)
+	{
+		ViewportRasterization.OnImGuiRender();
+		ViewportPbr.OnImGuiRender();
+	}
 
 	SceneHierarchyPanel.OnImGuiRender();
 	SkyboxPanel.OnImGuiRender();
@@ -298,12 +324,15 @@ void EditorLayer::OnImGuiRender()
 
 void EditorLayer::OnEvent(Cast::Event& e)
 {
-	Cast::EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
-	dispatcher.Dispatch<Cast::MouseButtonPressedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMousePressed));
+	if (Cast::Shared.ActiveScene)
+	{
+		Cast::EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<Cast::MouseScrolledEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMouseScrolled));
+		dispatcher.Dispatch<Cast::MouseButtonPressedEvent>(CAST_BIND_EVENT_FUNC(EditorLayer::OnMousePressed));
 
-	ViewportPbr.OnEvent(e);
-	ViewportRasterization.OnEvent(e);
+		ViewportPbr.OnEvent(e);
+		ViewportRasterization.OnEvent(e);
+	}
 }
 
 bool EditorLayer::OnMouseScrolled(const Cast::MouseScrolledEvent& e)
@@ -342,6 +371,15 @@ bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
 	}
 
 	return false;
+}
+
+void EditorLayer::CloseScene()
+{
+	Cast::ResetSceneContext();
+	Cast::Shared.ActiveScene->Shutdown();
+	Cast::Shared.ActiveScene.reset();
+
+	Runtime::SetupSeedData();
 }
 
 void EditorLayer::Render()

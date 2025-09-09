@@ -11,16 +11,6 @@
 
 #include "imgui_internal.h"
 
-Runtime::GUI::SceneHierarchyPanel::SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene)
-{
-	SetContext(scene);
-}
-
-void Runtime::GUI::SceneHierarchyPanel::SetContext(const Cast::Ref<Cast::Scene>& scene)
-{
-	Context = scene;
-}
-
 void Runtime::GUI::SceneHierarchyPanel::SetSelectionContext(const Cast::Ref<Cast::Entity>& entity)
 {
 	SelectionContext = entity;
@@ -31,93 +21,116 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	ImGui::Begin(ICON_FA_FOLDER_TREE " Scene Hierarchy");
 
 	const ImVec2 windowSize = ImGui::GetWindowSize();
-	const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
 	const ImGuiStyle& style = ImGui::GetStyle();
 
-	constexpr float buttonHeight = 20.0f;
-	constexpr float padding = 10.0f;
-	const float childHeight = availableRegion.y - (buttonHeight + padding);
-
-	// Begin scrollable region
-	ImGui::BeginChild("EntityList", ImVec2(0, childHeight), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
-
-	for (const auto& [handle, entity] : Context->GetEntityDescriptors())
+	if (Cast::Shared.ActiveScene)
 	{
-		if (!entity->IsChild())
-			DrawEntityNode(entity);
+		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+		constexpr float buttonHeight = 20.0f;
+		constexpr float padding = 10.0f;
+		const float childHeight = availableRegion.y - (buttonHeight + padding);
+
+		// Begin scrollable region
+		ImGui::BeginChild("EntityList", ImVec2(0, childHeight), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+		for (const auto& [handle, entity] :Cast::Shared.ActiveScene->GetEntityDescriptors())
+		{
+			if (!entity->IsChild())
+				DrawEntityNode(entity);
+		}
+
+		ImGui::EndChild();
+
+		if (ImGui::IsMouseDown(0) && ImGui::IsItemHovered())
+		{
+			SelectionContext = nullptr;
+			Cast::Shared.ActiveScene->SetEditorSelectionContext(nullptr);
+		}
+
+		ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
+
+		constexpr float cellDiv = 1.f / 5.f;
+		const float cellWidth = (ImGui::GetContentRegionAvail().x - 10.f) * cellDiv;
+
+		if (ImGui::Button("New Entity", {cellWidth * 3.f, 0.f}))
+		{
+			Cast::Shared.ActiveScene->CreateEntity("New Entity", false);
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("An entity that can carry multiple components to give it functionality");
+			ImGui::EndTooltip();
+		}
+
+		ImGui::SameLine();
+
+		DrawTemplateSelector(cellWidth);
+
+		ImGui::SameLine();
+
+		ImGui::BeginDisabled(!SelectionContext);
+		if (ImGui::Button(ICON_FA_TRASH_CAN, {cellWidth, 0.f}))
+		{
+			RemoveEntity();
+		}
+		ImGui::EndDisabled();
 	}
-
-	ImGui::EndChild();
-
-	if (ImGui::IsMouseDown(0) && ImGui::IsItemHovered())
+	else
 	{
-		SelectionContext = nullptr;
-		Context->SetEditorSelectionContext(nullptr);
+		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+		const ImVec2 textSize = ImGui::CalcTextSize("No scene opened");
+		ImGui::SetCursorPos(ImVec2((availableRegion.x - textSize.x) * 0.5f, availableRegion.y * 0.5f));
+		ImGui::Text("No scene opened");
 	}
-
-	ImGui::SetCursorPosY(windowSize.y - buttonHeight - padding - 3.f);
-
-	constexpr float cellDiv = 1.f / 5.f;
-	const float cellWidth = (ImGui::GetContentRegionAvail().x - 10.f) * cellDiv;
-
-	if (ImGui::Button("New Entity", {cellWidth * 3.f, 0.f}))
-	{
-		Context->CreateEntity("New Entity", false);
-	}
-
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		ImGui::Text("An entity that can carry multiple components to give it functionality");
-		ImGui::EndTooltip();
-	}
-
-	ImGui::SameLine();
-
-	DrawTemplateSelector(cellWidth);
-
-	ImGui::SameLine();
-
-	ImGui::BeginDisabled(!SelectionContext);
-	if (ImGui::Button(ICON_FA_TRASH_CAN, {cellWidth, 0.f}))
-	{
-		RemoveEntity();
-	}
-	ImGui::EndDisabled();
 
 	ImGui::End();
 
 	static bool drawAddComponentModal = false;
 
 	ImGui::Begin(ICON_FA_SLIDERS " Properties");
-	ImGui::Checkbox("Render View", &Cast::Shared.ActiveScene->GetInRenderView());
-	ImGui::SameLine();
-	ImGui::BeginDisabled(!SelectionContext);
-	ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f);
-	if (ImGui::Button("Remove Entity"))
-	{
-		RemoveEntity();
-	}
-	ImGui::EndDisabled();
-	ImGui::Separator();
 
-	if (SelectionContext)
+	if (Cast::Shared.ActiveScene)
 	{
-		DrawComponents(SelectionContext);
+		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+		ImGui::Checkbox("Render View", &Cast::Shared.ActiveScene->GetInRenderView());
+		ImGui::SameLine();
+		ImGui::BeginDisabled(!SelectionContext);
+		ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x * 0.5f);
+		if (ImGui::Button("Remove Entity"))
+		{
+			RemoveEntity();
+		}
+		ImGui::EndDisabled();
 		ImGui::Separator();
 
-		const float size = ImGui::CalcTextSize(ICON_FA_SHAPES " Add Component").x + style.FramePadding.x * 2.0f;
-
-		const float off = (availableRegion.x - size) * 0.5f;
-		if (off > 0.0f)
-			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-
-		if (ImGui::Button(ICON_FA_SHAPES " Add Component"))
+		if (SelectionContext)
 		{
-			GUI::ComponentList::Reset();
-			drawAddComponentModal = true;
+			DrawComponents(SelectionContext);
+			ImGui::Separator();
+
+			const float size = ImGui::CalcTextSize(ICON_FA_SHAPES " Add Component").x + style.FramePadding.x * 2.0f;
+
+			const float off = (availableRegion.x - size) * 0.5f;
+			if (off > 0.0f)
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+			if (ImGui::Button(ICON_FA_SHAPES " Add Component"))
+			{
+				GUI::ComponentList::Reset();
+				drawAddComponentModal = true;
+			}
 		}
 	}
+	else
+	{
+		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+		const ImVec2 textSize = ImGui::CalcTextSize("No scene opened");
+		ImGui::SetCursorPos(ImVec2((availableRegion.x - textSize.x) * 0.5f, availableRegion.y * 0.5f));
+		ImGui::Text("No scene opened");
+	}
+
 
 	ImGui::End();
 
@@ -211,7 +224,7 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> e
 	if (ImGui::IsItemClicked())
 	{
 		SelectionContext = entity;
-		Context->SetEditorSelectionContext(entity);
+		Cast::Shared.ActiveScene->SetEditorSelectionContext(entity);
 	}
 
 	ImGui::PopID();
@@ -236,9 +249,9 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> e
 {
 	// Directly calling Components is faster than using CallBacks -> Append for new components
 	// Alternative:
-	//auto& registry = Context->GetRegistry();
+	//auto& registry =Cast::Shared.ActiveScene->GetRegistry();
 	//auto entityHandle = entity->GetEntityHandle();
-	// for (const auto& ImGuiCallback : Context->GetComponentImGuiCallbacks())
+	// for (const auto& ImGuiCallback :Cast::Shared.ActiveScene->GetComponentImGuiCallbacks())
 	// 	auto [action, component] = ImGuiCallback(Context->GetRegistry(), entity->GetEntityHandle());
 	if (entity->HasComponent<Cast::Component::TagComponent>())
 	{
@@ -329,7 +342,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		SelectionContext->AddComponents<Cast::Component::CameraComponent>();
 		break;
 	case 2:
-		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
+		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
 		break;
 	case 3:
 		SelectionContext->AddComponents<Cast::Component::MeshComponent>();
@@ -383,36 +396,36 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 
 void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 {
-	Context->RemoveEntityBulkOptimized(SelectionContext);
+	Cast::Shared.ActiveScene->RemoveEntityBulkOptimized(SelectionContext);
 	if (SelectionContext->IsChild())
 		SelectionContext->GetParent()->RemoveChild(SelectionContext);
 
 	SelectionContext = nullptr;
-	Context->SetEditorSelectionContext(nullptr);
+	Cast::Shared.ActiveScene->SetEditorSelectionContext(nullptr);
 }
 
 void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template templateName)
 {
 	Cast::Ref<Cast::Entity> entity = nullptr;
 	if (templateName != Template::Cube && templateName != Template::Plane)
-		entity = Context->CreateEntity(TemplateToString(templateName), false);
+		entity =Cast::Shared.ActiveScene->CreateEntity(TemplateToString(templateName), false);
 
 	switch (templateName)
 	{
 		case Template::Cube:
-			Cast::Create::Cube("Cube", Context.get());
+			Cast::Create::Cube("Cube", Cast::Shared.ActiveScene.value());
 			break;
 		case Template::Plane:
-			Cast::Create::Plane("Plane", Context.get());
+			Cast::Create::Plane("Plane", Cast::Shared.ActiveScene.value());
 			break;
 	case Template::DirLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
 			break;
 		case Template::SpotLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLightShaderObject(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLightShaderObject(), &Cast::Shared.ActiveScene.value());
 			break;
 		case Template::PointLight:
-			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLightShaderObject(), Context);
+			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLightShaderObject(), &Cast::Shared.ActiveScene.value());
 			break;
 		case Template::CustomMesh:
 			entity->AddComponents<Cast::Component::CustomMeshComponent>();
@@ -428,5 +441,5 @@ void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template 
 	}
 
 	SelectionContext = entity;
-	Context->SetEditorSelectionContext(entity);
+	Cast::Shared.ActiveScene->SetEditorSelectionContext(entity);
 }

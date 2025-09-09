@@ -9,19 +9,7 @@ namespace Runtime
         // It can be used to initialize default values, configurations, or any
         // other necessary data that the application needs to start with.
 
-#pragma region Entity
-        const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
-        lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
-        auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
-        transformComp.translation.y = 3.f;
-        transformComp.UpdateTransformMatrix();
-        transformComp.UpdateOnGPUMem();
-        transformComp.UpdateBBox();
-
-        Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.get());
-#pragma endregion
-
-#pragma region Material
+        #pragma region Material
         // Gold material
         Cast::Material goldMaterial;
         goldMaterial.shaderObject.diffuseColor = {1.0f, 0.84f, 0.0f};
@@ -29,7 +17,7 @@ namespace Runtime
         goldMaterial.shaderObject.shininess = 65.0f;
         goldMaterial.shaderObject.reflectance = 0.85f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(goldMaterial), "Gold");
-        
+
         // Copper material
         Cast::Material copperMaterial;
         copperMaterial.shaderObject.diffuseColor = {0.85f, 0.53f, 0.1f};
@@ -37,7 +25,7 @@ namespace Runtime
         copperMaterial.shaderObject.shininess = 55.0f;
         copperMaterial.shaderObject.reflectance = 0.75f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(copperMaterial), "Copper");
-        
+
         // Plastic material
         Cast::Material plasticMaterial;
         plasticMaterial.shaderObject.diffuseColor = {0.9f, 0.9f, 0.9f};
@@ -45,7 +33,7 @@ namespace Runtime
         plasticMaterial.shaderObject.shininess = 25.0f;
         plasticMaterial.shaderObject.reflectance = 0.4f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(plasticMaterial), "Plastic");
-        
+
         // Marble material
         Cast::Material marbleMaterial;
         marbleMaterial.shaderObject.diffuseColor = {0.9f, 0.9f, 0.9f};
@@ -53,7 +41,7 @@ namespace Runtime
         marbleMaterial.shaderObject.shininess = 50.0f;
         marbleMaterial.shaderObject.reflectance = 0.6f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(marbleMaterial), "Marble");
-        
+
         // Glass material
         Cast::Material glassMaterial;
         glassMaterial.shaderObject.diffuseColor = {0.1f, 0.1f, 0.1f};
@@ -61,7 +49,7 @@ namespace Runtime
         glassMaterial.shaderObject.shininess = 96.0f;
         glassMaterial.shaderObject.reflectance = 0.95f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(glassMaterial), "Glass");
-        
+
         // Rubber material
         Cast::Material rubberMaterial;
         rubberMaterial.shaderObject.diffuseColor = {0.3f, 0.3f, 0.3f};
@@ -69,7 +57,7 @@ namespace Runtime
         rubberMaterial.shaderObject.shininess = 8.0f;
         rubberMaterial.shaderObject.reflectance = 0.15f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(rubberMaterial), "Rubber");
-        
+
         // Concrete material
         Cast::Material concreteMaterial;
         concreteMaterial.shaderObject.diffuseColor = {0.6f, 0.6f, 0.6f};
@@ -77,7 +65,7 @@ namespace Runtime
         concreteMaterial.shaderObject.shininess = 3.0f;
         concreteMaterial.shaderObject.reflectance = 0.25f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(concreteMaterial), "Concrete");
-        
+
         // Leather material
         Cast::Material leatherMaterial;
         leatherMaterial.shaderObject.diffuseColor = {0.4f, 0.2f, 0.1f};
@@ -85,7 +73,7 @@ namespace Runtime
         leatherMaterial.shaderObject.shininess = 15.0f;
         leatherMaterial.shaderObject.reflectance = 0.3f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(leatherMaterial), "Leather");
-        
+
         // Fabric material
         Cast::Material fabricMaterial;
         fabricMaterial.shaderObject.diffuseColor = {0.5f, 0.5f, 0.8f};
@@ -93,7 +81,7 @@ namespace Runtime
         fabricMaterial.shaderObject.shininess = 2.0f;
         fabricMaterial.shaderObject.reflectance = 0.1f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(fabricMaterial), "Fabric");
-        
+
         // Glossy Red material
         Cast::Material glossyRedMaterial;
         glossyRedMaterial.shaderObject.diffuseColor = {0.8f, 0.1f, 0.1f};
@@ -109,6 +97,21 @@ namespace Runtime
         lightBlueMaterial.shaderObject.shininess = 80.0f;
         lightBlueMaterial.shaderObject.reflectance = 0.85f;
         Cast::MaterialCacheRegistryInstance.AddProxy(Cast::MaterialCacheRegistryInstance.Add(lightBlueMaterial), "LightBlue");
+#pragma endregion
+    }
+
+    inline void SetupSceneGeometrySeed()
+    {
+#pragma region Entity
+        const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
+        lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+        auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
+        transformComp.translation.y = 3.f;
+        transformComp.UpdateTransformMatrix();
+        transformComp.UpdateOnGPUMem();
+        transformComp.UpdateBBox();
+
+        Cast::Create::Cube("Cube_1", Cast::Shared.ActiveScene.value());
 #pragma endregion
     }
 }

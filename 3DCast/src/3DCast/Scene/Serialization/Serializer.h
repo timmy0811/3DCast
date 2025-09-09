@@ -4,12 +4,17 @@
 #include <yaml-cpp/yaml.h>
 #include <string>
 
+#include "3DCast/Renderer/Skybox.h"
+#include "3DCast/Renderer/Camera/Camera.h"
+
 namespace Cast::Serialization
 {
     class SceneSerializer
     {
     public:
         explicit SceneSerializer(Scene* scene);
+
+        void SetScene(Scene* scene) { CurrentScene = scene; }
 
         // Serialization
         void Serialize(const std::string& filepath) const;
@@ -19,10 +24,32 @@ namespace Cast::Serialization
         bool Deserialize(const std::string& filepath);
         bool DeserializeRuntime(const std::string& filepath);
 
+        // Callback data
+        inline void SetSkyboxCallback(Renderer::Skybox* skybox) { CallbackData.Skybox = skybox; }
+        inline void SetActiveCameraCallback(Renderer::Camera* camera) { CallbackData.ActiveCamera = camera; }
+        inline void SetEnvironmentLightEntityCallback(Entity* entity) { CallbackData.EnvironmentLightEntity = entity; }
+
+        // Additional data
+        inline void AddDataUseEnvironmentLighting(const bool useEnvironmentLighting) { SerializableData.UseEnvironmentLighting = useEnvironmentLighting; }
+
     private:
         static void SerializeEntity(YAML::Emitter& out, const Ref<Entity>& entity);
-        Ref<Entity> DeserializeEntity(const YAML::Node& entityNode);
+        void DeserializeEntityRecursive(const YAML::Node& entityNode, const Ref<Entity>& entity);
 
+    private:
+        struct CallbackObjectsData
+        {
+            Renderer::Camera* ActiveCamera = nullptr;
+            Entity* EnvironmentLightEntity = nullptr;
+            Renderer::Skybox* Skybox = nullptr;
+        } CallbackData{};
+
+        struct AdditionalSerializableData
+        {
+            bool UseEnvironmentLighting;
+        } SerializableData{};
+
+        Entity* DeserializedEnvironmentLightEntity ;
         Scene* CurrentScene = nullptr;
     };
 }

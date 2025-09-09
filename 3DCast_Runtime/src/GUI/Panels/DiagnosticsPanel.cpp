@@ -67,7 +67,20 @@ void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(const float dt)
                 Runtime::EditorContext.ActiveCamera->GetRotation().y,
                 Runtime::EditorContext.ActiveCamera->GetRotation().z);
 
-    if (ImGui::CollapsingHeader("Transform Registry"))
+    if (ImGui::CollapsingHeader("Shader Registry"))
+    {
+        ImGui::Text("Cached Shaders");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%d", Cast::ShaderCacheRegistryInstance.GetShaderCount());
+
+        ImGui::Text("Defined Proxies");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%d", Cast::ShaderCacheRegistryInstance.GetProxyCount());
+    }
+
+    if (Cast::Shared.ActiveScene)
+    {
+        if (ImGui::CollapsingHeader("Transform Registry"))
     {
         ImGui::Text("Registered Transforms");
         ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
@@ -91,17 +104,6 @@ void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(const float dt)
         ImGui::Text("Cached Paths");
         ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
         ImGui::Text("%d", Cast::TextureCacheRegistryInstance.GetPathCacheCount());
-    }
-
-    if (ImGui::CollapsingHeader("Shader Registry"))
-    {
-        ImGui::Text("Cached Shaders");
-        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
-        ImGui::Text("%d", Cast::ShaderCacheRegistryInstance.GetShaderCount());
-
-        ImGui::Text("Defined Proxies");
-        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
-        ImGui::Text("%d", Cast::ShaderCacheRegistryInstance.GetProxyCount());
     }
 
     if (ImGui::CollapsingHeader("Material Registry"))
@@ -235,6 +237,7 @@ void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(const float dt)
         ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
         ImGui::Text("%d of %d bytes used", Cast::DeferredSamplerStoreInstance.GetSamplerMappingsSSAOSize(),
                     Cast::DeferredSamplerStoreInstance.GetSamplerMappingsSSAOCapacity());
+    }
     }
 
     ImGui::End();

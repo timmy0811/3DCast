@@ -20,9 +20,7 @@ namespace Runtime::GUI
 
 	public:
 		SceneHierarchyPanel() = default;
-		explicit SceneHierarchyPanel(const Cast::Ref<Cast::Scene>& scene);
 
-		void SetContext(const Cast::Ref<Cast::Scene>& scene);
 		void SetSelectionContext(const Cast::Ref<Cast::Entity>& entity);
 
 		void OnImGuiRender();
@@ -55,7 +53,6 @@ namespace Runtime::GUI
 		void CreateEntityFromTemplate(Template templateName);
 
 	private:
-		Cast::Ref<Cast::Scene> Context;
 		Cast::Ref<Cast::Entity> SelectionContext;
 	};
 }

@@ -101,7 +101,6 @@ void Cast::Renderer::Skybox::CalculateEnvironmentLightForCurrentCubemap()
     }
 
     direction = glm::normalize(direction);
-
     light.direction = direction;
 
     CubemapLightCache[ActiveCubemapName] = light;

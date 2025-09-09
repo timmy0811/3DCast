@@ -7,6 +7,8 @@
 
 #include <imgui.h>
 
+#include "3DCast/Misc/Helper.h"
+
 namespace Cast::Component
 {
 	struct CustomMeshComponent final : public Component, public IVertexEntity
@@ -159,14 +161,36 @@ namespace Cast::Component
 			memcpy(indexData, data, size);
 		}
 
-		void AddVertexData(const float* data, const size_t size) const
+		void CopyIntoVertexBuffer(const float* data, const size_t size) const
 		{
 			memcpy(vertexData, data, size);
 		}
 
-		void AddIndexData(const unsigned int* data, const size_t size) const
+		void CopyIntoIndexBuffer(const unsigned int* data, const size_t size) const
 		{
 			memcpy(indexData, data, size);
+		}
+
+		void SetVertexBuffer(float* data, const size_t size, const bool needsCleanup = false)
+		{
+			vertexData = data;
+			vertexDataSize = size;
+
+			isHeapAlloc = needsCleanup;
+		}
+
+		void SetIndexBuffer(unsigned int* data, const size_t size, const bool needsCleanup = false)
+		{
+			indexData = data;
+			indexDataSize = size;
+
+			isHeapAlloc = needsCleanup;
+		}
+
+		void PatchRegistryData(const int samplerIndex, const int transformIndex) const
+		{
+			if (vertexData && vertexDataSize > 0)
+				Helper::patchRegistryDataOnVertexBlob((Memory::BatchVertexShaderObject*)vertexData, vertexDataSize / sizeof(Memory::BatchVertexShaderObject), samplerIndex, transformIndex);
 		}
 
 		void Clear()

@@ -23,7 +23,7 @@ namespace Cast::Component
 
 		Type LightType{Directional};
 		AbstractLightShaderObject* Light{};
-		Ref<Scene> SceneInstance;
+		Scene* SceneInstance = nullptr;
 
 		size_t BufferPos = 0;
 		unsigned int BufferIndex = 0;
@@ -36,28 +36,39 @@ namespace Cast::Component
 		{}
 		LightComponent(const LightComponent&) = default;
 
-		LightComponent(const DirectionalLightShaderObject& light, Ref<Scene> scene)
+		LightComponent(const Type type, Scene* scene)
+			: LightType(type), SceneInstance(scene)
+		{
+			switch (type)
+			{
+				case Directional: Light = new DirectionalLightShaderObject(); SetupDirLight(); break;
+				case Spot: Light = new SpotLightShaderObject(); SetupSpotLight(); break;
+				case Point: Light = new PointLightShaderObject(); SetupPointLight(); break;
+			}
+		}
+
+		LightComponent(const DirectionalLightShaderObject& light, Scene* scene)
 			: Light(new DirectionalLightShaderObject(light)), SceneInstance(scene)
 		{
 			LightType = Directional;
 			SetupDirLight();
 		}
 
-		LightComponent(const SpotLightShaderObject& light, Ref<Scene> scene)
+		LightComponent(const SpotLightShaderObject& light, Scene* scene)
 			: Light(new SpotLightShaderObject(light)), SceneInstance(scene)
 		{
 			LightType = Spot;
 			SetupSpotLight();
 		}
 
-		LightComponent(const PointLightShaderObject& light, Ref<Scene> scene)
+		LightComponent(const PointLightShaderObject& light, Scene* scene)
 			: Light(new PointLightShaderObject(light)), SceneInstance(scene)
 		{
 			LightType = Point;
 			SetupPointLight();
 		}
 
-		~LightComponent()
+		~LightComponent() override
 		{
 			SafeCleanup();
 		}

@@ -3,23 +3,22 @@
 #include <vendor/glm/glm.hpp>
 #include <yaml-cpp/yaml.h>
 #include <string>
-#include <vector>
 
-namespace YAML {
-    // Template specialization for glm::vec3
+namespace YAML
+{
     template<>
     struct convert<glm::vec3>
     {
-        static Node encode(const glm::vec3& rhs)
+        static YAML::Node encode(const glm::vec3& rhs)
         {
-            Node node;
+            YAML::Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
             node.push_back(rhs.z);
             return node;
         }
 
-        static bool decode(const Node& node, glm::vec3& rhs)
+        static bool decode(const YAML::Node& node, glm::vec3& rhs)
         {
             if (!node.IsSequence() || node.size() != 3)
                 return false;
@@ -31,13 +30,12 @@ namespace YAML {
         }
     };
 
-    // Template specialization for glm::vec4
     template<>
     struct convert<glm::vec4>
     {
-        static Node encode(const glm::vec4& rhs)
+        static YAML::Node encode(const glm::vec4& rhs)
         {
-            Node node;
+            YAML::Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
             node.push_back(rhs.z);
@@ -45,7 +43,7 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node& node, glm::vec4& rhs)
+        static bool decode(const YAML::Node& node, glm::vec4& rhs)
         {
             if (!node.IsSequence() || node.size() != 4)
                 return false;
@@ -57,10 +55,7 @@ namespace YAML {
             return true;
         }
     };
-}
 
-namespace Cast::Serialization
-{
     inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
     {
         out << YAML::Flow;
@@ -74,7 +69,10 @@ namespace Cast::Serialization
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
         return out;
     }
+}
 
+namespace Cast::Serialization
+{
     // Base64 encoding utility functions
     inline std::string Base64Encode(const void* data, const size_t size)
     {
@@ -103,7 +101,7 @@ namespace Cast::Serialization
         return result;
     }
 
-    inline std::vector<unsigned char> Base64Decode(const std::string& encoded)
+    inline unsigned char* Base64Decode(const std::string& encoded, const size_t size = 0)
     {
         static const unsigned char lookup[256] = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -116,10 +114,10 @@ namespace Cast::Serialization
             41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 0, 0, 0, 0, 0
         };
 
-        std::vector<unsigned char> result;
-        result.reserve((encoded.size() * 3) / 4); // Reserve space for decoded data
+        const size_t maxSize = size == 0 ? (encoded.size() * 3) / 4 : size;
+        const auto result = (unsigned char*)malloc(maxSize);
+        size_t resultIndex = 0;
 
-        size_t i = 0;
         unsigned int buffer = 0;
         int bits = 0;
 
@@ -133,10 +131,10 @@ namespace Cast::Serialization
             buffer = (buffer << 6) | lookup[c];
             bits += 6;
 
-            if (bits >= 8)
+            if (bits >= 8 && resultIndex < maxSize)
             {
                 bits -= 8;
-                result.push_back((buffer >> bits) & 0xFF);
+                result[resultIndex++] = (buffer >> bits) & 0xFF;
             }
         }
 

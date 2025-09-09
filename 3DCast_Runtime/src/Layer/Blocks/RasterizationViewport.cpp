@@ -22,9 +22,7 @@ Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
 
 void Runtime::RasterizationViewport::Init()
 {
-	constexpr int MaxIndices = 1000000;
-	constexpr size_t DefaultStorageSize = sizeof(Cast::Memory::BatchVertexShaderObject) * 500000;
-	Cast::Memory::BatchMemoryHandler.Init(DefaultStorageSize, MaxIndices);
+	Cast::Memory::BatchMemoryHandler.Init(sizeof(Cast::Memory::BatchVertexShaderObject) * MAX_BATCH_VERTICES, MAX_BATCH_INDICES);
 
 	PipelineData.GBufferScreenGeometry.reset(
 		API::Advanced::GBufferScreenGeometry::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));

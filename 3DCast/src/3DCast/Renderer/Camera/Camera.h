@@ -99,6 +99,7 @@ namespace Cast
 			void UpdateDirections();
 
 		protected:
+			bool IsScenePrimary = false;
 			Type ProjectionType;
 			bool HasChangedField[10] = {true};
 

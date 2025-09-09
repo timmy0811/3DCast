@@ -27,7 +27,9 @@ namespace Cast
 
 	public:
 		Scene();
-		~Scene() = default;
+		~Scene();
+
+		void Shutdown();
 
 		Ref<Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
 		void RemoveEntity(Entity& entity, bool recursive = true);
@@ -92,6 +94,7 @@ namespace Cast
 		IconRenderer IconRenderer_;
 
 		bool InRenderView = false;
+		bool IsShutdown = false;
 
 		TransformRegistry TransRegistry{};
 

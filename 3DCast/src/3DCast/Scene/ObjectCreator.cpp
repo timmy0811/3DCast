@@ -5,10 +5,10 @@
 #include "Entity.h"
 #include "3DCast/Data/ShaderDataObjects/Vertex.h"
 
-Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene* scene)
+Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene& scene)
 {
 	// Cube
-	Ref<Entity> entity = scene->CreateEntity(name, true);
+	Ref<Entity> entity = scene.CreateEntity(name, true);
 	entity->AddComponents<Component::CustomMeshComponent>();
 	entity->AddComponents<Component::RasterizableComponent>();
 	entity->AddComponents<Component::MaterialComponent>();
@@ -160,10 +160,10 @@ Cast::Ref<Cast::Entity> Cast::Create::Cube(const std::string& name, Scene* scene
 	return entity;
 }
 
-Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene* scene)
+Cast::Ref<Cast::Entity> Cast::Create::Plane(const std::string& name, Scene& scene)
 {
 	// Plane
-	Ref<Entity> entity = scene->CreateEntity(name, true);
+	Ref<Entity> entity = scene.CreateEntity(name, true);
 	entity->AddComponents<Component::CustomMeshComponent>();
 	entity->AddComponents<Component::RasterizableComponent>();
 	entity->AddComponents<Component::MaterialComponent>();

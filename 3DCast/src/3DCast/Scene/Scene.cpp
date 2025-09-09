@@ -39,6 +39,34 @@ Cast::Scene::Scene()
 	                                                sizeof(PointLightShaderObject)));
 }
 
+Cast::Scene::~Scene()
+{
+	LOG_CORE_TRACE("[internal] Scene going out of scope");
+	Shutdown();
+}
+
+void Cast::Scene::Shutdown()
+{
+	if (!IsShutdown)
+	{
+		LOG_CORE_TRACE("Closing Scene and releasing resources.");
+
+		Registry.clear();
+		EntityDescriptorPool.clear();
+		EditorSelectionContext.reset();
+
+		TransRegistry.Clear();
+
+		DirLightsSSBO.reset();
+		SpotLightsSSBO.reset();
+		PointLightsSSBO.reset();
+
+		IconRenderer_.Clear();
+
+		IsShutdown = true;
+	}
+}
+
 Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const bool registerTransform)
 {
 	entt::entity handle = Registry.create();
@@ -57,7 +85,7 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const
 	return entity;
 }
 
-void Cast::Scene::RemoveEntity(Entity& entity, bool recursive)
+void Cast::Scene::RemoveEntity(Entity& entity, const bool recursive)
 {
 	if (!Registry.valid(entity.GetEntityHandle()))
 	{
@@ -67,7 +95,7 @@ void Cast::Scene::RemoveEntity(Entity& entity, bool recursive)
 
 	if (recursive)
 	{
-		for (const Ref<Entity> child : entity.GetChildren())
+		for (const Ref<Entity>& child : entity.GetChildren())
 		{
 			RemoveEntity(child);
 		}

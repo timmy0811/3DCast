@@ -14,21 +14,22 @@ namespace Runtime::GUI
 
         void Open();
 
-        inline void SetContext(const Cast::Ref<Cast::Scene>& scene) {Context = scene; }
         void SetSkybox(Cast::Renderer::Skybox* skybox);
+        void UpdateEnvironmentLight() const;
 
         void OnImGuiRender();
 
+        inline bool IsUsingEnvironmentMapping() const { return UseEnvironmentLighting; }
+        Cast::Entity* GetEnvironmentLightEntityRef() const { return EnvironmentLightEntity; }
+
     private:
         static std::string OpenCubemapDirectoryDialogue();
-        void UpdateEnvironmentLight() const;
 
     private:
         bool IsOpen = true;
         Cast::Renderer::Skybox* Skybox = nullptr;
 
-        Cast::Ref<Cast::Scene> Context;
-        Cast::WeakRef<Cast::Entity> EnvironmentLightEntity;
+        Cast::Entity* EnvironmentLightEntity;
         Cast::Component::LightComponent* EnvironmentLightComponent = nullptr;
 
         // Render mode state

@@ -29,6 +29,8 @@ private:
 	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
 	bool OnMousePressed(const Cast::MouseButtonPressedEvent& e);
 
+	void CloseScene();
+
 private:
 	float DeltaTime = 0.0f;
 	float CameraSpeed = 4.f;

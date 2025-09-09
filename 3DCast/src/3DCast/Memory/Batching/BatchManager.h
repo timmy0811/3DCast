@@ -6,6 +6,9 @@
 
 #include <API/core/Shader.h>
 
+#define MAX_BATCH_INDICES 1000000
+#define MAX_BATCH_VERTICES 500000
+
 namespace Cast::Memory
 {
 	struct MemoryPosition

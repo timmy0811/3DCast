@@ -26,6 +26,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
         return;
 
     ImGui::Begin(ICON_FA_CLOUD_SUN_RAIN " Skybox", &IsOpen);
+    ImGui::BeginDisabled(!Cast::Shared.ActiveScene);
 
     static const char* renderModes[] = { "Clear Color", "Cubemap", "Procedural" };
     if (ImGui::Combo("Render Mode", &CurrentRenderMode, renderModes, IM_ARRAYSIZE(renderModes)))
@@ -104,26 +105,20 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                 {
                     Skybox->CalculateEnvironmentLightForCurrentCubemap();
 
-                    const auto entity = EnvironmentLightEntity.lock();
-                    if (!entity)
+                    if (EnvironmentLightEntity)
                     {
-                        EnvironmentLightEntity = Context->CreateEntity("Environment Light", true);
-                        if (const auto newEntity = EnvironmentLightEntity.lock())
-                        {
-                            newEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), Cast::Shared.ActiveScene);
-                            EnvironmentLightComponent = &newEntity->GetComponent<Cast::Component::LightComponent>();
-                            EnvironmentLightComponent->IsEnvironmentLight = true;
-                        }
+                        EnvironmentLightEntity = Cast::Shared.ActiveScene->CreateEntity("Environment Light", true).get();
+
+                        EnvironmentLightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+                        EnvironmentLightComponent = &EnvironmentLightEntity->GetComponent<Cast::Component::LightComponent>();
+                        EnvironmentLightComponent->IsEnvironmentLight = true;
                     }
 
                     UpdateEnvironmentLight();
                 }
                 else
                 {
-                    if (const auto entity = EnvironmentLightEntity.lock())
-                    {
-                        Context->RemoveEntity(*entity);
-                    }
+                    Cast::Shared.ActiveScene->RemoveEntity(*EnvironmentLightEntity);
                 }
             }
 
@@ -166,6 +161,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
     default: ;
     }
 
+    ImGui::EndDisabled();
     ImGui::End();
 }
 
