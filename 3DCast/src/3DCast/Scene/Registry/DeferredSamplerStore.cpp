@@ -73,9 +73,7 @@ namespace Cast
 		AddParallaxTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_parallax.png", false, false)), false);
 		AddNormalTexture(TextureCacheRegistryInstance.GetHandle(TextureCacheRegistryInstance.AddFromFile(std::string(ASSET_DIR) + "img/default_samplers/default_normal.png", false, false)), false);
 
-		const UID defaultMaterialId = MaterialCacheRegistryInstance.Create();
-		MaterialCacheRegistryInstance.AddProxy(defaultMaterialId, "Default");
-		AddCustomMaterial(MaterialCacheRegistryInstance.Get(defaultMaterialId));
+		AddCustomMaterial(MaterialCacheRegistryInstance.Get(MaterialCacheRegistryInstance.GetDefaultID()));
 
 		CreateSamplerMapping(0, 0, 0, 0, 0);
 	}

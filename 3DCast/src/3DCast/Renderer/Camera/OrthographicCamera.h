@@ -5,6 +5,7 @@
 namespace Cast::Renderer {
 	class OrthographicCamera final : public Camera {
 	public:
+		OrthographicCamera() = default;
 		OrthographicCamera(float left, float right, float bottom, float top, float nearPlane = -1.f, float farPlane = 1.f);
 
 		void SetFrustumOnResized(float width, float height);

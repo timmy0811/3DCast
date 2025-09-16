@@ -8,9 +8,15 @@
 
 namespace Cast
 {
+    namespace Serialization
+    {
+        class SceneSerializer;
+    }
+
     struct Material
     {
         UID id = UID::Create();
+        unsigned char isSystemMaterial{ false };
         CustomMaterialShaderObject shaderObject{};
     };
 
@@ -43,6 +49,7 @@ namespace Cast
         [[nodiscard]] Material Get(const std::string& proxy) const;
         [[nodiscard]] Material Get(UID id) const;
 
+        UID GetDefaultID() const { return DefaultMaterialId; }
         [[nodiscard]] UID GetMaterialId(const std::string& proxy) const;
         [[nodiscard]] inline const std::unordered_map<std::string, UID>& GetMaterialNames() const { return ProxyIds; }
 
@@ -52,8 +59,11 @@ namespace Cast
 #pragma endregion
 
     private:
+        UID DefaultMaterialId;
         std::unordered_map<UID, Material> Materials;
         std::unordered_map<std::string, UID> ProxyIds;
+
+        friend class Serialization::SceneSerializer;
     };
 
     extern MaterialCacheRegistry MaterialCacheRegistryInstance;

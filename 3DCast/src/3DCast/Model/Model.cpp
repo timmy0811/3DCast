@@ -79,7 +79,7 @@ void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
 	}
 }
 
-Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiScene* scene, Ref<Entity> parent)
+Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiScene* scene, const Ref<Entity>& parent, const bool isRoot)
 {
 	const std::string nodeName = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed Node";
 	Ref<Entity> currentEntity = Shared.ActiveScene->CreateEntity(nodeName);
@@ -97,7 +97,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiSce
 		currentEntity->AddChild(meshEntity);
 
 		meshEntity->AddComponents<Component::MaterialComponent>();
-		auto& meshComp = meshEntity->AddComponents<Component::MeshComponent>(false);
+		auto& meshComp = meshEntity->AddComponents<Component::MeshComponent>(MeshNodeType::Leaf);
 		const auto& transformComp = meshEntity->GetComponent<Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -111,6 +111,9 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiSce
 
 		meshComp.SetMeshAsChildNode(sceneMesh);
 	}
+
+	if (!isRoot && (node->mNumChildren > 0 || node->mNumMeshes > 0))
+		currentEntity->AddComponents<Component::MeshComponent>(MeshNodeType::Intermediate);
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{

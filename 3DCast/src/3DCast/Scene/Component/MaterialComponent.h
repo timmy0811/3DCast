@@ -168,14 +168,26 @@ namespace Cast::Component
 
 		void UpdateSamplerMapping() const
 		{
-			DeferredSamplerStoreInstance.UpdateSamplerMapping(
+			if (isCustomMaterial)
+			{
+				DeferredSamplerStoreInstance.UpdateSamplerMapping(
 				samplerIndex,
 				diffuseInfo.samplerArrayIndex,
 				specularInfo.samplerArrayIndex,
 				parallaxInfo.samplerArrayIndex,
 				normalInfo.samplerArrayIndex,
-				currentMaterialInfo
-			);
+				currentMaterialInfo);
+			}
+			else
+			{
+				DeferredSamplerStoreInstance.UpdateSamplerMapping(
+				samplerIndex,
+				0,
+				0,
+				parallaxInfo.samplerArrayIndex,
+				normalInfo.samplerArrayIndex,
+				currentMaterialInfo);
+			}
 		}
 
 		static std::string ExtractFilename(const std::string& path)

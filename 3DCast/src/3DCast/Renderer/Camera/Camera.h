@@ -3,6 +3,8 @@
 #include <vendor/glm/glm.hpp>
 #include <vendor/glm/gtc/type_ptr.hpp>
 
+#include "3DCast/Misc/UID.h"
+
 namespace Cast
 {
 	namespace Serialization
@@ -78,7 +80,9 @@ namespace Cast
 			[[nodiscard]] inline Type GetType() const { return ProjectionType; }
 			[[nodiscard]] virtual inline const glm::vec3& GetPosition() const { return Position; }
 
-			[[nodiscard]]virtual inline float* GetViewMatValuePtr() { return glm::value_ptr(ViewMat); }
+			[[nodiscard]] virtual inline float* GetViewMatValuePtr() { return glm::value_ptr(ViewMat); }
+
+			[[nodiscard]] inline UID GetID() const { return ID; }
 
 			[[nodiscard]] virtual inline float GetRoll() const { return Rotation.z; }
 			[[nodiscard]] virtual inline float GetPitch() const { return Rotation.x; }
@@ -99,7 +103,7 @@ namespace Cast
 			void UpdateDirections();
 
 		protected:
-			bool IsScenePrimary = false;
+			UID ID = UID::Create();
 			Type ProjectionType;
 			bool HasChangedField[10] = {true};
 

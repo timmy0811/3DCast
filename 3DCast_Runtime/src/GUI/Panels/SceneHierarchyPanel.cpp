@@ -80,8 +80,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	else
 	{
 		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
-		const ImVec2 textSize = ImGui::CalcTextSize("No scene opened");
-		ImGui::SetCursorPos(ImVec2((availableRegion.x - textSize.x) * 0.5f, availableRegion.y * 0.5f));
+		ImGui::SetCursorPos(ImVec2(availableRegion.x * 0.5, availableRegion.y * 0.5f));
 		ImGui::Text("No scene opened");
 	}
 
@@ -126,8 +125,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 	else
 	{
 		const ImVec2 availableRegion = ImGui::GetContentRegionAvail();
-		const ImVec2 textSize = ImGui::CalcTextSize("No scene opened");
-		ImGui::SetCursorPos(ImVec2((availableRegion.x - textSize.x) * 0.5f, availableRegion.y * 0.5f));
+		ImGui::SetCursorPos(ImVec2(availableRegion.x * 0.5, availableRegion.y * 0.5f));
 		ImGui::Text("No scene opened");
 	}
 
@@ -207,7 +205,7 @@ void Runtime::GUI::SceneHierarchyPanel::DrawTemplateSelector(float width)
 	}
 }
 
-void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(Cast::Ref<Cast::Entity> entity)
+void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(const Cast::Ref<Cast::Entity>& entity)
 {
 	const std::string& tag = entity->GetComponent<Cast::Component::TagComponent>().Tag;
 
@@ -245,7 +243,7 @@ void EndButtonDropDown()
 	ImGui::PopStyleColor(3);
 	ImGui::EndPopup();
 }
-void Runtime::GUI::SceneHierarchyPanel::DrawComponents(Cast::Ref<Cast::Entity> entity) const
+void Runtime::GUI::SceneHierarchyPanel::DrawComponents(const Cast::Ref<Cast::Entity>& entity)
 {
 	// Directly calling Components is faster than using CallBacks -> Append for new components
 	// Alternative:
@@ -345,7 +343,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
 		break;
 	case 3:
-		SelectionContext->AddComponents<Cast::Component::MeshComponent>();
+		SelectionContext->AddComponents<Cast::Component::MeshComponent>(Cast::MeshNodeType::Root);
 		break;
 	case 4:
 		SelectionContext->AddComponents<Cast::Component::CustomMeshComponent>();
@@ -431,8 +429,8 @@ void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template 
 			entity->AddComponents<Cast::Component::CustomMeshComponent>();
 			entity->AddComponents<Cast::Component::MaterialComponent>();
 			break;
-		case Template::Model:
-			entity->AddComponents<Cast::Component::MeshComponent>();
+	case Template::Model:
+			entity->AddComponents<Cast::Component::MeshComponent>(Cast::MeshNodeType::Root);
 			break;
 		case Template::Camera:
 			entity->AddComponents<Cast::Component::CameraComponent>();

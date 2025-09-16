@@ -69,6 +69,49 @@ namespace YAML
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
         return out;
     }
+
+    template<>
+    struct convert<glm::mat4>
+    {
+        static YAML::Node encode(const glm::mat4& rhs)
+        {
+            YAML::Node node;
+            // Store all 16 values in column-major order
+            for (int col = 0; col < 4; col++) {
+                for (int row = 0; row < 4; row++) {
+                    node.push_back(rhs[col][row]);
+                }
+            }
+            return node;
+        }
+
+        static bool decode(const YAML::Node& node, glm::mat4& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 16)
+                return false;
+
+            // Read all 16 values in column-major order
+            for (int col = 0; col < 4; col++) {
+                for (int row = 0; row < 4; row++) {
+                    rhs[col][row] = node[col * 4 + row].as<float>();
+                }
+            }
+            return true;
+        }
+    };
+
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& m)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        for (int col = 0; col < 4; col++) {
+            for (int row = 0; row < 4; row++) {
+                out << m[col][row];
+            }
+        }
+        out << YAML::EndSeq;
+        return out;
+    }
 }
 
 namespace Cast::Serialization

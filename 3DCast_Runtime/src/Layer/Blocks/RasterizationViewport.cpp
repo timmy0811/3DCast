@@ -103,7 +103,7 @@ void Runtime::RasterizationViewport::OnUpdate(Cast::Timestep ts, const bool hasC
 		initCameraRotation = true;
 	}
 
-	if (Runtime::EditorContext.ActiveCamera->HasChanged(0))
+	if (Runtime::EditorContext.ActiveCamera.value()->HasChanged(0))
 	{
 		UpdateCameraUniforms();
 	}
@@ -138,14 +138,14 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 		//Framebuffer->Resize({ static_cast<uint32_t>(viewportSize.x), static_cast<uint32_t>(viewportSize.y) });
 
-		switch (EditorContext.ActiveCamera->GetType())
+		switch (EditorContext.ActiveCamera.value()->GetType())
 		{
 		case Cast::Renderer::Camera::Type::Orthographic:
-			((Cast::Renderer::OrthographicCamera*)EditorContext.ActiveCamera.get())->SetFrustumOnResized(
+			((Cast::Renderer::OrthographicCamera*)EditorContext.ActiveCamera.value())->SetFrustumOnResized(
 				lastViewportSize.x, lastViewportSize.y);
 			break;
 		case Cast::Renderer::Camera::Type::Perspective:
-			((Cast::Renderer::PerspectiveCamera*)EditorContext.ActiveCamera.get())->SetAspectRatio(
+			((Cast::Renderer::PerspectiveCamera*)EditorContext.ActiveCamera.value())->SetAspectRatio(
 				lastViewportSize.x / lastViewportSize.y);
 		}
 	}
@@ -200,7 +200,7 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 void Runtime::RasterizationViewport::OnRender()
 {
-	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera);
+	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera.value());
 
 	RenderGeometryPass();
 	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(),
@@ -305,7 +305,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 	ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
-	float* cameraView = Runtime::EditorContext.ActiveCamera->GetViewMatValuePtr();
+	float* cameraView = Runtime::EditorContext.ActiveCamera.value()->GetViewMatValuePtr();
 
 	IsGizmoScaleURendered = false;
 	Cast::Ref<Cast::Entity> selectedEntity = nullptr;
@@ -336,8 +336,8 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 			// Does not really snap but adds offset
 			const bool changed = ImGuizmo::Manipulate(
-				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetViewMat()),
-				glm::value_ptr(Runtime::EditorContext.ActiveCamera->GetProjectionMat()),
+				glm::value_ptr(Runtime::EditorContext.ActiveCamera.value()->GetViewMat()),
+				glm::value_ptr(Runtime::EditorContext.ActiveCamera.value()->GetProjectionMat()),
 				operation, ImGuizmo::LOCAL, transform, nullptr,
 				Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SNAP) ? snap : nullptr);
 
@@ -350,7 +350,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 		}
 	}
 
-	const glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
+	const glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera.value()->GetPosition();
 	const float cameraDistance = selectedEntity ? glm::length(cameraPosition - selectedEntity->GetComponent<Cast::Component::TransformComponent>().GetTranslation()) : 3.0f;
 
 	constexpr float widgetWidth = 100.0f;
@@ -363,7 +363,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 	if (ImGuizmo::IsUsingViewManipulate())
 	{
-		Runtime::EditorContext.ActiveCamera->MakeConsistentViewMatBase();
+		Runtime::EditorContext.ActiveCamera.value()->MakeConsistentViewMatBase();
 	}
 }
 
@@ -397,17 +397,17 @@ bool Runtime::RasterizationViewport::IsHoveringGizmo()
 
 void Runtime::RasterizationViewport::UpdateCameraUniforms()
 {
-	const auto camPos = EditorContext.ActiveCamera->GetPosition();
+	const auto camPos = EditorContext.ActiveCamera.value()->GetPosition();
 
 	const auto iconShader = Cast::ShaderCacheRegistryInstance.GetHandle("icon_billboard");
 	iconShader->Bind();
-	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
+	iconShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera.value()->GetViewProjectionMat());
 	iconShader->SetUniform3f("u_CameraPos", camPos.x, camPos.y, camPos.z);
 
 	const auto geometryShader = Cast::ShaderCacheRegistryInstance.GetHandle("geometry_pass");
 	geometryShader->Bind();
-	geometryShader->SetUniformMat4f("u_View", EditorContext.ActiveCamera->GetViewMat());
-	geometryShader->SetUniformMat4f("u_Projection", EditorContext.ActiveCamera->GetProjectionMat());
+	geometryShader->SetUniformMat4f("u_View", EditorContext.ActiveCamera.value()->GetViewMat());
+	geometryShader->SetUniformMat4f("u_Projection", EditorContext.ActiveCamera.value()->GetProjectionMat());
 	geometryShader->SetUniform3f("u_ViewPos", camPos.x, camPos.y, camPos.z);
 
 	const Cast::Ref<API::Core::Shader> lightingShader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
@@ -416,7 +416,7 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 
 	const Cast::Ref<API::Core::Shader> gridShader = Cast::ShaderCacheRegistryInstance.GetHandle("tile_grid");
 	gridShader->Bind();
-	gridShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera->GetViewProjectionMat());
+	gridShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera.value()->GetViewProjectionMat());
 	gridShader->SetUniform3f("u_CameraWorldPos", camPos.x, camPos.y, camPos.z);
 }
 
@@ -443,10 +443,10 @@ bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 #endif
 
 			offset *= conf.MOUSE_SENSITIVITY;
-			float yaw = EditorContext.ActiveCamera->GetYaw() + offset.x;
-			float pitch = glm::clamp(EditorContext.ActiveCamera->GetPitch() - offset.y, -89.99f, 89.99f);
-			EditorContext.ActiveCamera->SetRotation({
-				pitch, yaw, EditorContext.ActiveCamera->GetRoll()
+			float yaw = EditorContext.ActiveCamera.value()->GetYaw() + offset.x;
+			float pitch = glm::clamp(EditorContext.ActiveCamera.value()->GetPitch() - offset.y, -89.99f, 89.99f);
+			EditorContext.ActiveCamera.value()->SetRotation({
+				pitch, yaw, EditorContext.ActiveCamera.value()->GetRoll()
 			});
 		}
 		lastMousePos = {e.GetX(), e.GetY()};

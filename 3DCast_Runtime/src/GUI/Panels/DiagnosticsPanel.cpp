@@ -55,17 +55,20 @@ void Runtime::GUI::DiagnosticsPanel::OnImGuiRender(const float dt)
     ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
     ImGui::Text("%.2f", dt * 1000.f);
 
-    ImGui::Text("Camera Position");
-    ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
-    ImGui::Text("%f, %f, %f", Runtime::EditorContext.ActiveCamera->GetPosition().x,
-                Runtime::EditorContext.ActiveCamera->GetPosition().y,
-                Runtime::EditorContext.ActiveCamera->GetPosition().z);
+    if (Cast::Shared.ActiveScene)
+    {
+        ImGui::Text("Camera Position");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%f, %f, %f", Runtime::EditorContext.ActiveCamera.value()->GetPosition().x,
+                    Runtime::EditorContext.ActiveCamera.value()->GetPosition().y,
+                    Runtime::EditorContext.ActiveCamera.value()->GetPosition().z);
 
-    ImGui::Text("Camera Rotation");
-    ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
-    ImGui::Text("%f, %f, %f", Runtime::EditorContext.ActiveCamera->GetRotation().x,
-                Runtime::EditorContext.ActiveCamera->GetRotation().y,
-                Runtime::EditorContext.ActiveCamera->GetRotation().z);
+        ImGui::Text("Camera Rotation");
+        ImGui::SameLine(SAMELINE_WIDGET_OFFSET_HALF);
+        ImGui::Text("%f, %f, %f", Runtime::EditorContext.ActiveCamera.value()->GetRotation().x,
+                    Runtime::EditorContext.ActiveCamera.value()->GetRotation().y,
+                    Runtime::EditorContext.ActiveCamera.value()->GetRotation().z);
+    }
 
     if (ImGui::CollapsingHeader("Shader Registry"))
     {

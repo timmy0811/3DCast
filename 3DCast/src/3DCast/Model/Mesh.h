@@ -10,6 +10,13 @@
 
 namespace Cast
 {
+	enum class MeshNodeType
+	{
+		Root,
+		Intermediate,
+		Leaf
+	};
+
 	class Mesh final : public IVertexEntity
 	{
 	public:

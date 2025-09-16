@@ -15,8 +15,7 @@ public:
 		                                     Runtime::conf.WIN_HEIGHT))
 	{
 		PushLayer(new EditorLayer());
-		Runtime::SetupSceneGeometrySeed();
-		Runtime::SetupSeedData();
+		Runtime::SetupApplicationSeed();
 	}
 
 	~Application_Runtime() = default;

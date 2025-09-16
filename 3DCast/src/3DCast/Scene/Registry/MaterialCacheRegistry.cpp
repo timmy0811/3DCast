@@ -9,6 +9,13 @@ namespace Cast
 
 Cast::MaterialCacheRegistry::MaterialCacheRegistry()
 {
+    Material defaultMaterial{};
+    defaultMaterial.isSystemMaterial = true;
+    Materials[defaultMaterial.id] = defaultMaterial;
+
+    DefaultMaterialId = defaultMaterial.id;
+
+    AddProxy(defaultMaterial.id, "Default");
 }
 
 void Cast::MaterialCacheRegistry::Clear()
@@ -20,12 +27,12 @@ void Cast::MaterialCacheRegistry::Clear()
 
 Cast::UID Cast::MaterialCacheRegistry::Create()
 {
-    const Material defaultMaterial{};
-    Materials[defaultMaterial.id] = defaultMaterial;
+    Material blankMaterial{};
+    Materials[blankMaterial.id] = blankMaterial;
 
-    LOG_CORE_INFO("Created new material with ID {}", defaultMaterial.id);
+    LOG_CORE_INFO("Created new material with ID {}", blankMaterial.id);
 
-    return defaultMaterial.id;
+    return blankMaterial.id;
 }
 
 Cast::UID Cast::MaterialCacheRegistry::Add(const Material& material)
@@ -106,8 +113,8 @@ Cast::Material& Cast::MaterialCacheRegistry::GetHandle(const std::string& proxy)
     if (!HasMaterial(proxy))
     {
         LOG_CORE_ERROR("Attempted to get handle for non-existent material '{}'", proxy);
-        static Material defaultMaterial{};
-        return defaultMaterial;
+        static Material staticMaterial{};
+        return staticMaterial;
     }
 
     return Materials.at(ProxyIds.at(proxy));
@@ -118,8 +125,8 @@ Cast::Material& Cast::MaterialCacheRegistry::GetHandle(const UID id)
     if (!HasMaterial(id))
     {
         LOG_CORE_ERROR("Attempted to get handle for non-existent material with ID {}", id.GetID());
-        static Material defaultMaterial{};
-        return defaultMaterial;
+        static Material staticMaterial{};
+        return staticMaterial;
     }
 
     return Materials.at(id);

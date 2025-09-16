@@ -18,8 +18,7 @@ namespace Cast::Component
 		std::string header;
 
 		Ref<Model> RootModel; // Complex intermediate and leafs do not need a model instance
-		bool IsRootNode = false;
-		bool IsMeshLeaf = false;
+		MeshNodeType TypeNode;
 
 		int _load = false;
 		int _loadC = 0;
@@ -35,32 +34,35 @@ namespace Cast::Component
 		{
 		};
 
-		explicit MeshComponent(const bool isRootNode = true)
+		explicit MeshComponent(const MeshNodeType nodeType = MeshNodeType::Root)
+			:TypeNode(nodeType)
 		{
-			if (isRootNode)
+			switch (nodeType)
 			{
+				case MeshNodeType::Root:
 				RootModel = Ref<Model>();
-				IsRootNode = true;
 				header = "Model Root Node";
-			}
-			else
-			{
-				IsMeshLeaf = true;
-				header = "Mesh Leaf Node";
+					break;
+				case MeshNodeType::Intermediate:
+					header = "Model Intermediate Node";
+					break;
+				case MeshNodeType::Leaf:
+					header = "Mesh Leaf Node";
+					break;
+				default:
+					break;
 			}
 		}
 
 		explicit MeshComponent(Cast::Mesh* mesh)
-			: MeshInstance(mesh)
+			: MeshInstance(mesh), TypeNode(MeshNodeType::Leaf)
 		{
-			IsMeshLeaf = true;
 			header = "Mesh Leaf Node";
 		}
 
 		explicit MeshComponent(const std::string& path)
-			: Path(path)
+			: Path(path), TypeNode(MeshNodeType::Root)
 		{
-			IsRootNode = true;
 			RootModel = CreateRef<Model>();
 			RootModel->Load(path, EntityNode);
 			header = "Model Root Node";
@@ -69,8 +71,7 @@ namespace Cast::Component
 		MeshComponent(MeshComponent&& other) noexcept
 			: Path(std::move(other.Path)), Filename(std::move(other.Filename)),
 			  header(std::move(other.header)), RootModel(std::move(other.RootModel)),
-			  IsRootNode(other.IsRootNode), IsMeshLeaf(other.IsMeshLeaf),
-			  _load(other._load), _loadC(other._loadC),
+			  TypeNode(other.TypeNode), _load(other._load), _loadC(other._loadC),
 			  MeshInstance(other.MeshInstance)
 		{
 			other.MeshInstance = nullptr;
@@ -90,8 +91,7 @@ namespace Cast::Component
 				Filename = std::move(other.Filename);
 				header = std::move(other.header);
 				RootModel = std::move(other.RootModel);
-				IsRootNode = other.IsRootNode;
-				IsMeshLeaf = other.IsMeshLeaf;
+				TypeNode = other.TypeNode;
 				_load = other._load;
 				_loadC = other._loadC;
 				MeshInstance = other.MeshInstance;
@@ -115,8 +115,10 @@ namespace Cast::Component
 		void SetMeshAsChildNode(Cast::Mesh* mesh)
 		{
 			MeshInstance = mesh;
-			IsMeshLeaf = true;
+			TypeNode = MeshNodeType::Leaf;
 		}
+
+		[[nodiscard]] inline MeshNodeType GetNodeType() const { return TypeNode; }
 
 		static std::string OpenFileDialogue()
 		{
@@ -158,7 +160,7 @@ namespace Cast::Component
 
 		void OnAfterEntitySetBehaviour() override
 		{
-			if (IsMeshLeaf)
+			if (TypeNode == MeshNodeType::Leaf)
 				Shared.ActiveScene->RegisterTransformComponent(EntityNode);
 		}
 
@@ -197,7 +199,7 @@ namespace Cast::Component
 
 			if (isOpen)
 			{
-				if (IsRootNode)
+				if (TypeNode == MeshNodeType::Root)
 				{
 					// Is the model root node
 					if (RootModel && RootModel->IsModelLoaded())
@@ -246,7 +248,7 @@ namespace Cast::Component
 				}
 				else
 				{
-					if (IsMeshLeaf)
+					if (TypeNode == MeshNodeType::Leaf)
 					{
 						// Is a leaf node representing a single mesh without children
 						ImGui::Text("Vertex Count");

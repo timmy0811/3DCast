@@ -45,8 +45,8 @@ namespace Runtime::GUI
 
 	private:
 		void DrawTemplateSelector(float width);
-		void DrawEntityNode(Cast::Ref<Cast::Entity> entity);
-		void DrawComponents(Cast::Ref<Cast::Entity> entity) const;
+		void DrawEntityNode(const Cast::Ref<Cast::Entity>& entity);
+		static void DrawComponents(const Cast::Ref<Cast::Entity>& entity);
 		void DispatchComponent(int id) const;
 		void RemoveEntity();
 

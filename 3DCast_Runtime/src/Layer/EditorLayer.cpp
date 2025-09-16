@@ -32,16 +32,22 @@ void EditorLayer::OnAttach()
 	Cast::Shared.ActiveScene.emplace();
 	const Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
 
-	Runtime::EditorContext.ActiveCamera = std::make_shared<Cast::Renderer::PerspectiveCamera>(
-		glm::radians(90.f), 1.5f, 0.1f, 100.f);
-	Runtime::EditorContext.ActiveCamera->SetPosition(glm::vec3(4.0f, 3.0f, 4.0f));
-	Runtime::EditorContext.ActiveCamera->SetRotation(glm::vec3(-20.0f, -135.0f, 0.0f));
-	cameraEntity->AddComponents<Cast::Component::CameraComponent>(*Runtime::EditorContext.ActiveCamera);
+	auto& cameraComponent = cameraEntity->AddComponents<Cast::Component::CameraComponent>();
+	cameraComponent.Camera = new Cast::Renderer::PerspectiveCamera(glm::radians(90.f), 1.5f, 0.1f, 100.f);
+	cameraComponent.ownsCamera = true;
+
+	Cast::Renderer::Camera* cam = cameraEntity->GetComponent<Cast::Component::CameraComponent>().Camera;
+	cam->SetPosition(glm::vec3(4.0f, 3.0f, 4.0f));
+	cam->SetRotation(glm::vec3(-20.0f, -135.0f, 0.0f));
+	Runtime::EditorContext.ActiveCamera.emplace(cam);
 
 	ViewportPbr.Init();
 	ViewportRasterization.Init();
 
 	Cast::DeferredSamplerStoreInstance.InitAfterDriverSetup();
+
+	Runtime::SetupSceneSeed();
+	Runtime::SetupPreviewSceneSeed();
 
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
 
@@ -58,16 +64,16 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 	if (Cast::Shared.ActiveScene)
 	{
 		const float CameraSpeedCorrected = CameraSpeed * ts;
-		glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera->GetPosition();
+		glm::vec3 cameraPosition = Runtime::EditorContext.ActiveCamera.value()->GetPosition();
 		if (ViewportRasterization.IsViewportFocused())
 		{
 			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_L))
 			{
-				cameraPosition -= Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+				cameraPosition -= Runtime::EditorContext.ActiveCamera.value()->GetRight() * CameraSpeedCorrected;
 			}
 			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_R))
 			{
-				cameraPosition += Runtime::EditorContext.ActiveCamera->GetRight() * CameraSpeedCorrected;
+				cameraPosition += Runtime::EditorContext.ActiveCamera.value()->GetRight() * CameraSpeedCorrected;
 			}
 			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_UP))
 			{
@@ -79,14 +85,14 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 			}
 			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_FW))
 			{
-				cameraPosition += Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+				cameraPosition += Runtime::EditorContext.ActiveCamera.value()->GetForward() * CameraSpeedCorrected;
 			}
 			if (Runtime::Application::Keymap::IsActionActive(Runtime::Application::KEY_ACTION::CAMERA_BW))
 			{
-				cameraPosition -= Runtime::EditorContext.ActiveCamera->GetForward() * CameraSpeedCorrected;
+				cameraPosition -= Runtime::EditorContext.ActiveCamera.value()->GetForward() * CameraSpeedCorrected;
 			}
 
-			Runtime::EditorContext.ActiveCamera->SetPosition(cameraPosition);
+			Runtime::EditorContext.ActiveCamera.value()->SetPosition(cameraPosition);
 		}
 
 		ViewportPbr.OnUpdate(ts);
@@ -154,6 +160,7 @@ void EditorLayer::OnImGuiRender()
 					CloseScene();
 
 				Cast::Shared.ActiveScene.emplace();
+				Runtime::SetupSceneSeed();
 				if (Serializer.Deserialize(std::string(DATA_DIR) + "scene/testscene.yaml"))
 				{
 					SkyboxPanel.UpdateEnvironmentLight();
@@ -163,7 +170,7 @@ void EditorLayer::OnImGuiRender()
 			ImGui::BeginDisabled(!Cast::Shared.ActiveScene);
 			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene", "Ctrl+S"))
 			{
-				Serializer.SetActiveCameraCallback(Runtime::EditorContext.ActiveCamera.get());
+				Serializer.SetActiveCameraCallback(&Runtime::EditorContext.ActiveCamera);
 				Serializer.SetEnvironmentLightEntityCallback(SkyboxPanel.GetEnvironmentLightEntityRef());
 				Serializer.AddDataUseEnvironmentLighting(SkyboxPanel.IsUsingEnvironmentMapping());
 				Serializer.Serialize(std::string(DATA_DIR) + "scene/testscene.yaml");
@@ -353,7 +360,7 @@ bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
 		!ViewportRasterization.IsGizmoScaleU() &&
 		!Runtime::RasterizationViewport::IsHoveringGizmo())
 	{
-		const Cast::Ref<Cast::Renderer::Camera> camera = Runtime::EditorContext.ActiveCamera;
+		const Cast::Renderer::Camera* camera = Runtime::EditorContext.ActiveCamera.value();
 
 		const glm::vec3 rayDir = Math::MousePositionToRayDirection(
 			ImGui::GetMousePos(),
@@ -378,8 +385,6 @@ void EditorLayer::CloseScene()
 	Cast::ResetSceneContext();
 	Cast::Shared.ActiveScene->Shutdown();
 	Cast::Shared.ActiveScene.reset();
-
-	Runtime::SetupSeedData();
 }
 
 void EditorLayer::Render()

@@ -29,7 +29,18 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 {
 	Material = material;
 
-	if (Material != nullptr) {
+	if (Material != nullptr && !Textures.empty()) {
+		Material->isCustomMaterial = true;
+
+		if (!Material->isPrivateMaterialCreated)
+		{
+			Material->privateMaterial = MaterialCacheRegistryInstance.Get(MaterialCacheRegistryInstance.Create());
+			DeferredSamplerStoreInstance.AddCustomMaterial(Material->privateMaterial);
+			Material->isPrivateMaterialCreated = true;
+		}
+
+		Material->currentMaterial = Material->privateMaterial;
+
 		for (const Ref<API::Texture::Texture> tex : Textures) {
 			switch (tex->GetType()) {
 			case API::Texture::TextureType::DIFFUSE:
@@ -48,6 +59,12 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 				LOG_CORE_WARN("Texture %s type not supported", API::Texture::Texture::TextureTypeToString(tex->GetType()));
 			}
 		}
+
+		Material->currentMaterialInfo = DeferredSamplerStoreInstance.GetCustomMaterialStoreId(Material->currentMaterial.id);
+		Material->UpdateSamplerMapping();
+
+		MaterialCacheRegistryInstance.Edit(Material->privateMaterial.id, Material->privateMaterial);
+		DeferredSamplerStoreInstance.EditCustomMaterial(Material->currentMaterialInfo, Material->privateMaterial);
 	}
 }
 

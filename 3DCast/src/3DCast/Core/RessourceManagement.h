@@ -10,11 +10,11 @@ namespace Cast
 {
     inline void ResetSceneContext()
     {
-        DeferredSamplerStoreInstance = DeferredSamplerStore();
-        Cast::DeferredSamplerStoreInstance.InitAfterDriverSetup();
-
         MaterialCacheRegistryInstance = MaterialCacheRegistry();
         TextureCacheRegistryInstance = TextureCacheRegistry();
+
+        DeferredSamplerStoreInstance = DeferredSamplerStore();
+        Cast::DeferredSamplerStoreInstance.InitAfterDriverSetup();
 
         Memory::BatchMemoryHandler = Memory::BatchManager();
         Memory::BatchMemoryHandler.Init(sizeof(Cast::Memory::BatchVertexShaderObject) * MAX_BATCH_VERTICES, MAX_BATCH_INDICES);

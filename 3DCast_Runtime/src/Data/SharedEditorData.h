@@ -10,7 +10,7 @@ namespace Runtime {
 
 	struct SharedEditorData
 	{
-		Cast::Ref<Cast::Renderer::Camera> ActiveCamera;
+		Cast::Optional<Cast::Renderer::Camera*> ActiveCamera;
 		Cast::Renderer::Skybox Skybox{};
 
 		View ViewSettings;
