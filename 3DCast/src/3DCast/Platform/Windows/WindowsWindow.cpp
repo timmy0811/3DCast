@@ -54,6 +54,16 @@ void Cast::WindowsWindow::SetInputModeNormal() const
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
+void Cast::WindowsWindow::SetTitle(const char* title) const
+{
+	glfwSetWindowTitle(window, title);
+}
+
+void Cast::WindowsWindow::ResetToDefaultTitle() const
+{
+	glfwSetWindowTitle(window, "3DCast Rendering Engine");
+}
+
 void Cast::WindowsWindow::SetCursorPosition(const double xpos, const double ypos)
 {
 	glfwSetCursorPos(window, xpos, ypos);

@@ -7,7 +7,7 @@
 
 #include <imgui.h>
 
-#include "3DCast/Misc/Helper.h"
+#include "../../Util/Helper.h"
 
 namespace Cast::Component
 {

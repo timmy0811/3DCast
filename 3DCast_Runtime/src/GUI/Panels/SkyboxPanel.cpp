@@ -105,7 +105,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                 {
                     Skybox->CalculateEnvironmentLightForCurrentCubemap();
 
-                    if (EnvironmentLightEntity)
+                    if (!EnvironmentLightEntity)
                     {
                         EnvironmentLightEntity = Cast::Shared.ActiveScene->CreateEntity("Environment Light", true).get();
 

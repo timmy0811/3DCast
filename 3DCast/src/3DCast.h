@@ -8,6 +8,7 @@
 #include "3DCast/Core.h"
 #include "3DCast/Data/GlobalShared.h"
 #include "3DCast/Core/RessourceManagement.h"
+#include "3DCast/Util/Filesystem.h"
 
 #include "3DCast/Scene/Registry/DeferredSamplerStore.h"
 #include "3DCast/Scene/Scene.h"

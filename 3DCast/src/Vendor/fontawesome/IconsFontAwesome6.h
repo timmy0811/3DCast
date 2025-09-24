@@ -12,6 +12,10 @@
 #define ICON_MAX_16_FA 0xf8ff
 #define ICON_MAX_FA 0xf8ff
 
+#define NO_ICON "NO_ICON"
+
+#define ICON_NAME std::string
+
 #define ICON_FA_0 "0"	// U+0030
 #define ICON_FA_1 "1"	// U+0031
 #define ICON_FA_2 "2"	// U+0032

@@ -9,6 +9,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Data/GlobalShared.h"
+
 #define BIND_EVENT_FUNC(x) std::bind(&Cast::Application::x, this, std::placeholders::_1)
 
 namespace Cast
@@ -22,6 +24,7 @@ Cast::Application::Application(const WindowProperties& properties)
     Instance = this;
 
     AppWindow = std::unique_ptr(Window::Create(properties));
+    Cast::Shared.AppWindow = AppWindow.get();
     AppWindow->SetEventCallback(BIND_EVENT_FUNC(OnEvent));
 
     Renderer::RendererContext::Init();
@@ -37,7 +40,6 @@ void Cast::Application::Run()
         const auto time = static_cast<float>(glfwGetTime());
         const Timestep timestep = time - LastFrameTime;
         LastFrameTime = time;
-
 
         API::Core::RenderCommand::Clear();
 

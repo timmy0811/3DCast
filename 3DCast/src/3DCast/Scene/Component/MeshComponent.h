@@ -8,6 +8,9 @@
 
 #include <imgui.h>
 
+#include "3DCast/ImGui/TempElements/TempGuiElementCollection.h"
+#include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
+
 namespace Cast::Component
 {
 	struct MeshComponent final : public Component
@@ -16,6 +19,8 @@ namespace Cast::Component
 		std::string Path;
 		std::string Filename;
 		std::string header;
+
+		UID popupID;
 
 		Ref<Model> RootModel; // Complex intermediate and leafs do not need a model instance
 		MeshNodeType TypeNode;
@@ -169,7 +174,7 @@ namespace Cast::Component
 			if (_load)
 			{
 				// ImGui needs to swap buffer once to make modal window show up
-				UI::ModalImportInProgress(Path);
+				//UI::ModalImportInProgress(Path);
 				_loadC++;
 			}
 
@@ -177,7 +182,9 @@ namespace Cast::Component
 			{
 				RootModel = CreateRef<Model>();
 				RootModel->Load(Path, EntityNode);
-				UI::ModalImportInProgress(Path, true);
+				//UI::ModalImportInProgress(Path, true);
+
+				GUI::TempGuiElementCollection::CloseElement(popupID);
 
 				_load = false;
 				_loadC = 0;
@@ -242,6 +249,7 @@ namespace Cast::Component
 						{
 							Path = OpenFileDialogue();
 							Filename = ExtractFilename(Path);
+							popupID = GUI::TempGuiElementCollection::AddElement(new Cast::GUI::NotificationModal("Loading Model", std::string("Model import running for: ") + Path , ICON_FA_HOURGLASS_HALF));
 							_load = true;
 						}
 					}

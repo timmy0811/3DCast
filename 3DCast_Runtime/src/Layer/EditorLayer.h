@@ -29,11 +29,13 @@ private:
 	bool OnMouseScrolled(const Cast::MouseScrolledEvent& e);
 	bool OnMousePressed(const Cast::MouseButtonPressedEvent& e);
 
-	void CloseScene();
+	void CloseScene() const;
 
 private:
 	float DeltaTime = 0.0f;
 	float CameraSpeed = 4.f;
+	std::string SceneSavePath;
+	std::string SceneFilename;
 
 	Runtime::PBRViewport ViewportPbr;
 	Runtime::RasterizationViewport ViewportRasterization;

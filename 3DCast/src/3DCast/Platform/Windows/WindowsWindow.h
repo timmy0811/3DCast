@@ -23,8 +23,8 @@ namespace Cast
 
 		void OnUpdate() override;
 
-		[[nodiscard]] inline unsigned int GetWidth() const override { return data.Width; };
-		[[nodiscard]] inline unsigned int GetHeight() const override { return data.Height; };
+		[[nodiscard]] inline unsigned int GetWidth() const override { return data.Width; }
+		[[nodiscard]] inline unsigned int GetHeight() const override { return data.Height; }
 
 		[[nodiscard]] inline glm::ivec2 GetPosition() const override;
 
@@ -35,6 +35,8 @@ namespace Cast
 		inline void SetRawMouseInput(bool enabled) const override;
 		void SetInputModeDisabled() const override;
 		void SetInputModeNormal() const override;
+		void SetTitle(const char* title) const override;
+		void ResetToDefaultTitle() const override;
 
 		void SetCursorPosition(double xpos, double ypos) override;
 

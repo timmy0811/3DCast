@@ -6,6 +6,7 @@
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Event/MouseEvent.h"
 #include "3DCast/Event/KeyEvent.h"
+#include "3DCast/ImGui/ImGuiLayer.h"
 
 Cast::LinuxWindow::LinuxWindow(const WindowProperties& props)
 {
@@ -63,6 +64,16 @@ void Cast::LinuxWindow::SetInputModeDisabled() const
 void Cast::LinuxWindow::SetInputModeNormal() const
 {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void Cast::LinuxWindow::SetTitle(const char* title) const
+{
+	glfwSetWindowTitle(window, std::string("3DCast Rendering Engine | " + std::string(title)).c_str());
+}
+
+void Cast::LinuxWindow::ResetToDefaultTitle() const
+{
+	glfwSetWindowTitle(window, "3DCast Rendering Engine");
 }
 
 void Cast::LinuxWindow::SetCursorPosition(const double xpos, const double ypos)

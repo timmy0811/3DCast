@@ -19,8 +19,11 @@ namespace Runtime::GUI
 
         void OnImGuiRender();
 
-        inline bool IsUsingEnvironmentMapping() const { return UseEnvironmentLighting; }
-        Cast::Entity* GetEnvironmentLightEntityRef() const { return EnvironmentLightEntity; }
+        [[nodiscard]] inline bool IsUsingEnvironmentMapping() const { return UseEnvironmentLighting; }
+        [[nodiscard]] inline bool* GetIsUsingEnvironmentMappingRef() { return &UseEnvironmentLighting; }
+        [[nodiscard]] inline int* GetRenderModeRef() { return &CurrentRenderMode; }
+        Cast::Entity** GetEnvironmentLightEntityRef() { return &EnvironmentLightEntity; }
+        Cast::Component::LightComponent** GetEnvironmentLightComponentRef() { return &EnvironmentLightComponent; }
 
     private:
         static std::string OpenCubemapDirectoryDialogue();
@@ -29,7 +32,7 @@ namespace Runtime::GUI
         bool IsOpen = true;
         Cast::Renderer::Skybox* Skybox = nullptr;
 
-        Cast::Entity* EnvironmentLightEntity;
+        Cast::Entity* EnvironmentLightEntity = nullptr;
         Cast::Component::LightComponent* EnvironmentLightComponent = nullptr;
 
         // Render mode state

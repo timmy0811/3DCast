@@ -6,6 +6,7 @@
 
 #include "3DCast/Renderer/Skybox.h"
 #include "3DCast/Renderer/Camera/Camera.h"
+#include "3DCast/Scene/Component/LightComponent.h"
 
 namespace Cast::Serialization
 {
@@ -27,31 +28,40 @@ namespace Cast::Serialization
         // Callback data
         inline void SetSkyboxCallback(Renderer::Skybox* skybox) { CallbackData.Skybox = skybox; }
         inline void SetActiveCameraCallback(Optional<Renderer::Camera*>* camera) { CallbackData.ActiveCamera = camera; }
-        inline void SetEnvironmentLightEntityCallback(Entity* entity) { CallbackData.EnvironmentLightEntity = entity; }
+        inline void SetEnvironmentLightEntityCallback(Entity** entity) { CallbackData.EnvironmentLightEntity = entity; }
+        inline void SetEnvironmentLightComponentCallback(Component::LightComponent** component) { CallbackData.EnvironmentLightComponent = component; }
+        inline void SetUseEnvironmentLightingCallback(bool* useEnvironmentLighting) { CallbackData.UseEnvironmentLighting = useEnvironmentLighting; }
+        inline void SetRenderModeCallback(int* renderMode) { CallbackData.RenderMode = renderMode; }
 
         // Additional data
-        inline void AddDataUseEnvironmentLighting(const bool useEnvironmentLighting) { SerializableData.UseEnvironmentLighting = useEnvironmentLighting; }
 
     private:
         void SerializeEntity(YAML::Emitter& out, const Ref<Entity>& entity);
         void DeserializeEntityRecursive(const YAML::Node& entityNode, const Ref<Entity>& entity);
+        void PrepareNewSerialization();
 
     private:
         struct CallbackObjectsData
         {
-            Optional<Renderer::Camera*>* ActiveCamera;
-            Entity* EnvironmentLightEntity = nullptr;
+            Optional<Renderer::Camera*>* ActiveCamera = nullptr;
+
+            // Skybox
             Renderer::Skybox* Skybox = nullptr;
+            Entity** EnvironmentLightEntity = nullptr;
+            Component::LightComponent** EnvironmentLightComponent = nullptr;
+            bool* UseEnvironmentLighting = nullptr;
+            int* RenderMode = nullptr;
         } CallbackData{};
 
         struct AdditionalSerializableData
         {
-            bool UseEnvironmentLighting;
+            // Data here
         } SerializableData{};
 
-        Entity* DeserializedEnvironmentLightEntity ;
+        Entity* DeserializedEnvironmentLightEntity = nullptr;
         Scene* CurrentScene = nullptr;
 
         bool NewActiveCameraSet = false;
+        UID PopupID = UID::None();
     };
 }

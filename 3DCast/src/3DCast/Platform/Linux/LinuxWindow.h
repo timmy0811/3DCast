@@ -36,6 +36,8 @@ namespace Cast
 		inline void SetRawMouseInput(bool enabled) const override;
 		void SetInputModeDisabled() const override;
 		void SetInputModeNormal() const override;
+		void SetTitle(const char* title) const override;
+		void ResetToDefaultTitle() const override;
 
 		void SetCursorPosition(double xpos, double ypos) override;
 

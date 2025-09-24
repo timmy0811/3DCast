@@ -13,6 +13,7 @@
 #include <imgui_internal.h>
 #include <memory>
 
+#include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
 #include "Data/SeedData.h"
 #include "GUI/Panels/DiagnosticsPanel.h"
 
@@ -53,6 +54,11 @@ void EditorLayer::OnAttach()
 
 	Serializer.SetScene(&Cast::Shared.ActiveScene.value());
 	Serializer.SetSkyboxCallback(&Runtime::EditorContext.Skybox);
+	Serializer.SetActiveCameraCallback(&Runtime::EditorContext.ActiveCamera);
+	Serializer.SetUseEnvironmentLightingCallback(SkyboxPanel.GetIsUsingEnvironmentMappingRef());
+	Serializer.SetEnvironmentLightEntityCallback(SkyboxPanel.GetEnvironmentLightEntityRef());
+	Serializer.SetEnvironmentLightComponentCallback(SkyboxPanel.GetEnvironmentLightComponentRef());
+	Serializer.SetRenderModeCallback(SkyboxPanel.GetRenderModeRef());
 }
 
 void EditorLayer::OnDetach()
@@ -99,8 +105,8 @@ void EditorLayer::OnUpdate(const Cast::Timestep ts)
 		ViewportRasterization.OnUpdate(ts);
 
 		Cast::Shared.ActiveScene->OnUpdate();
-		//Runtime::EditorContext.Skybox.SetActiveCubemapViewProjectionMatrix(Runtime::EditorContext.ActiveCamera->GetViewMat(),
-		//	Runtime::EditorContext.ActiveCamera->GetProjectionMat());
+		Runtime::EditorContext.Skybox.SetActiveCubemapViewProjectionMatrix(Runtime::EditorContext.ActiveCamera.value()->GetViewMat(),
+			Runtime::EditorContext.ActiveCamera.value()->GetProjectionMat());
 
 		Render();
 	}
@@ -156,33 +162,55 @@ void EditorLayer::OnImGuiRender()
 		{
 			if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN "  Open Scene", "Ctrl+O"))
 			{
-				if (Cast::Shared.ActiveScene)
-					CloseScene();
-
-				Cast::Shared.ActiveScene.emplace();
-				Runtime::SetupSceneSeed();
-				if (Serializer.Deserialize(std::string(DATA_DIR) + "scene/testscene.yaml"))
+				const std::string sceneFile = Cast::Util::OpenFileDialogue(SceneSavePath.empty() ? (std::string(DATA_DIR) + "scene/") : Cast::Util::ExtractDirectory(SceneSavePath),
+					"3DCast Scene", "3dc");
+				if (!sceneFile.empty())
 				{
-					SkyboxPanel.UpdateEnvironmentLight();
+					SceneSavePath = sceneFile;
+					SceneFilename = Cast::Util::ExtractFilename(sceneFile);
+
+					if (Cast::Shared.ActiveScene)
+						CloseScene();
+
+					Cast::Shared.ActiveScene.emplace();
+					Runtime::SetupSceneSeed();
+					Serializer.SetScene(&Cast::Shared.ActiveScene.value());
+					if (Serializer.Deserialize(SceneSavePath))
+					{
+						SkyboxPanel.UpdateEnvironmentLight();
+						ParentWindow->SetTitle(Cast::Util::ExtractFilename(SceneFilename, false).c_str());
+					}
 				}
 			}
 
-			ImGui::BeginDisabled(!Cast::Shared.ActiveScene);
+			ImGui::BeginDisabled(!Cast::Shared.ActiveScene || SceneSavePath.empty());
 			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene", "Ctrl+S"))
 			{
-				Serializer.SetActiveCameraCallback(&Runtime::EditorContext.ActiveCamera);
-				Serializer.SetEnvironmentLightEntityCallback(SkyboxPanel.GetEnvironmentLightEntityRef());
-				Serializer.AddDataUseEnvironmentLighting(SkyboxPanel.IsUsingEnvironmentMapping());
-				Serializer.Serialize(std::string(DATA_DIR) + "scene/testscene.yaml");
+				Serializer.Serialize(SceneSavePath);
 			}
+			ImGui::EndDisabled();
+
+			ImGui::BeginDisabled(!Cast::Shared.ActiveScene);
+			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK "  Save Scene As", "Ctrl+Shift+S"))
+			{
+				const std::string sceneFile = Cast::Util::SaveFileDialogue(SceneSavePath.empty() ? (std::string(DATA_DIR) + "scene/") : Cast::Util::ExtractDirectory(SceneSavePath),
+					SceneFilename.empty() ? "new_scene.3dc" : SceneFilename, "3DCast Scene", "3dc");
+				if (!sceneFile.empty())
+				{
+					SceneFilename = Cast::Util::ExtractFilename(sceneFile);
+					SceneSavePath = sceneFile;
+					Serializer.Serialize(sceneFile);
+					ParentWindow->SetTitle(Cast::Util::ExtractFilename(SceneFilename, false).c_str());
+				}
+			}
+
+			ImGui::Separator();
 
 			if (ImGui::MenuItem(ICON_FA_FOLDER_CLOSED "  Close Scene"))
 			{
 				CloseScene();
 			}
 			ImGui::EndDisabled();
-
-			ImGui::Separator();
 
 			if (ImGui::MenuItem(ICON_FA_XMARK "  Exit", "Ctrl+Esc"))
 				Cast::Application::Get().Close();
@@ -380,11 +408,13 @@ bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
 	return false;
 }
 
-void EditorLayer::CloseScene()
+void EditorLayer::CloseScene() const
 {
 	Cast::ResetSceneContext();
 	Cast::Shared.ActiveScene->Shutdown();
 	Cast::Shared.ActiveScene.reset();
+
+	ParentWindow->ResetToDefaultTitle();
 }
 
 void EditorLayer::Render()

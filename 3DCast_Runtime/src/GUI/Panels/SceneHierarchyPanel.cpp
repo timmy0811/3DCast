@@ -243,6 +243,7 @@ void EndButtonDropDown()
 	ImGui::PopStyleColor(3);
 	ImGui::EndPopup();
 }
+
 void Runtime::GUI::SceneHierarchyPanel::DrawComponents(const Cast::Ref<Cast::Entity>& entity)
 {
 	// Directly calling Components is faster than using CallBacks -> Append for new components

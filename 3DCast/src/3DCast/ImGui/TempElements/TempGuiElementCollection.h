@@ -2,20 +2,22 @@
 
 #include "3DCast/ImGui/TempElements/TempGuiElement.h"
 
-#include <vector>
+#include "3DCast/Misc/UID.h"
 
 namespace Cast::GUI {
 	class TempGuiElementCollection {
 	public:
 		TempGuiElementCollection() = delete;
 
-		static void AddElement(TempGuiElement* element);
+		static UID AddElement(TempGuiElement* element);
+		static void CloseElement(UID elementId);
+		static void SetTextAttrib(UID elementId, const char* text);
 
 		static void OnImGuiRender();
 		static void Clear();
 
 	private:
-		inline static std::vector<TempGuiElement*> Elements;
+		inline static std::unordered_map<UID, TempGuiElement*> Elements;
 	};
 
 	class TempGuiElementCollectionCleanup {

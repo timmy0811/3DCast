@@ -9,7 +9,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "3DCast/Misc/Helper.h"
+#include "../../Util/Helper.h"
 #include "entt/entt.hpp"
 
 namespace Cast::Serialization
@@ -24,6 +24,9 @@ namespace Cast::Serialization
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << "Untitled Scene";
+
+        // Todo: Fix prerender popup
+        // PopupID = GUI::TempGuiElementCollection::AddElement(new Cast::GUI::NotificationModal("Saving Scene", "Saving scene to file", ICON_FA_FLOPPY_DISK, false, false));
 
         // Skybox
         out << YAML::Key << "Skybox";
@@ -47,7 +50,7 @@ namespace Cast::Serialization
             break;
         }
 
-        out << YAML::Key << "UseEnvironmentLighting" << YAML::Value << SerializableData.UseEnvironmentLighting;
+        out << YAML::Key << "UseEnvironmentLighting" << YAML::Value << *CallbackData.UseEnvironmentLighting;
         out << YAML::EndMap; // Skybox
 
         // Material Registry
@@ -426,6 +429,8 @@ namespace Cast::Serialization
             return false;
         }
 
+        PrepareNewSerialization();
+
         // Deserialize Materials first so they can be referenced by entities
         if (auto materialRegistryNode = data["MaterialRegistry"])
         {
@@ -487,34 +492,43 @@ namespace Cast::Serialization
         if (!NewActiveCameraSet)
             LOG_CORE_ERROR("A valid scene must define an active scene camera.");
 
-        // // Parse Skybox
-        // if (auto skyboxNode = data["Skybox"])
-        // {
-        //     CallbackData.Skybox->Mode = (Renderer::Skybox::RenderMode)skyboxNode["Mode"].as<int>();
-        //
-        //     switch (CallbackData.Skybox->Mode)
-        //     {
-        //     case Renderer::Skybox::RenderMode::ClearColor:
-        //         {
-        //             CallbackData.Skybox->ClearColor = skyboxNode["ClearColor"].as<glm::vec4>();
-        //             break;
-        //         }
-        //     case Renderer::Skybox::RenderMode::Cubemap:
-        //         {
-        //             auto dirPath = skyboxNode["ActiveCubemapDirPath"].as<std::string>();
-        //             auto fileFormat = skyboxNode["ActiveCubemapFileFormat"].as<std::string>();
-        //
-        //             *CallbackData.EnvironmentLightEntity = *DeserializedEnvironmentLightEntity;
-        //             CallbackData.Skybox->AddCubemap(dirPath, fileFormat);
-        //             CallbackData.Skybox->SetActiveCubemap(skyboxNode["ActiveCubemapName"].as<std::string>());
-        //             break;
-        //         }
-        //     default:
-        //         break;
-        //     }
-        //
-        //     SerializableData.UseEnvironmentLighting = skyboxNode["UseEnvironmentLighting"].as<bool>();
-        // }
+        // Parse Skybox
+        if (auto skyboxNode = data["Skybox"])
+        {
+            CallbackData.Skybox->Mode = (Renderer::Skybox::RenderMode)skyboxNode["Mode"].as<int>();
+
+            switch (CallbackData.Skybox->Mode)
+            {
+            case Renderer::Skybox::RenderMode::ClearColor:
+                {
+                    CallbackData.Skybox->ClearColor = skyboxNode["ClearColor"].as<glm::vec4>();
+                    break;
+                }
+            case Renderer::Skybox::RenderMode::Cubemap:
+                {
+                    auto name = skyboxNode["ActiveCubemapName"].as<std::string>();
+                    auto dirPath = skyboxNode["ActiveCubemapDirPath"].as<std::string>();
+                    auto fileFormat = skyboxNode["ActiveCubemapFileFormat"].as<std::string>();
+
+                    if (DeserializedEnvironmentLightEntity)
+                    {
+                        auto& comp = DeserializedEnvironmentLightEntity->GetComponent<Component::LightComponent>();
+                        comp.IsEnvironmentLight = true;
+                        *CallbackData.EnvironmentLightComponent = &comp;
+                        *CallbackData.EnvironmentLightEntity = DeserializedEnvironmentLightEntity;
+                    }
+
+                    *CallbackData.RenderMode = skyboxNode["Mode"].as<int>();
+                    CallbackData.Skybox->AddCubemap(name, dirPath, fileFormat);
+                    CallbackData.Skybox->SetActiveCubemap(skyboxNode["ActiveCubemapName"].as<std::string>());
+                    break;
+                }
+            default:
+                break;
+            }
+
+            *CallbackData.UseEnvironmentLighting = skyboxNode["UseEnvironmentLighting"].as<bool>();
+        }
 
         LOG_CORE_INFO("Scene deserialized from '{0}'", filepath);
         return true;
@@ -766,6 +780,12 @@ namespace Cast::Serialization
         //         entity->AddChild(child);
         //     }
         // }
+    }
+
+    void SceneSerializer::PrepareNewSerialization()
+    {
+        DeserializedEnvironmentLightEntity = nullptr;
+        NewActiveCameraSet = false;
     }
 
     bool SceneSerializer::DeserializeRuntime(const std::string& filepath)

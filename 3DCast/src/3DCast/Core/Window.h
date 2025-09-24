@@ -39,6 +39,8 @@ namespace Cast
 		virtual void SetRawMouseInput(bool enabled) const = 0;
 		virtual void SetInputModeDisabled() const = 0;
 		virtual void SetInputModeNormal() const = 0;
+		virtual void SetTitle(const char* title) const = 0;
+		virtual void ResetToDefaultTitle() const = 0;
 
 		virtual void SetCursorPosition(double xpos, double ypos) = 0;
 

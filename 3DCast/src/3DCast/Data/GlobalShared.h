@@ -7,6 +7,8 @@
 
 #include <vendor/glm/glm.hpp>
 
+#include "3DCast/Core/Window.h"
+
 namespace Cast
 {
 	struct SharedClass
@@ -17,6 +19,7 @@ namespace Cast
 #pragma endregion
 
 #pragma region WINDOW
+		Window* AppWindow{ nullptr };
 		glm::vec2 WindowCenter{};
 #pragma endregion
 	};

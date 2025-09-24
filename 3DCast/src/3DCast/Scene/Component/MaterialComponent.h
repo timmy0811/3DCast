@@ -128,6 +128,7 @@ namespace Cast::Component
 
 		explicit MaterialComponent(const std::string& defaultMat = "Default")
 		{
+			selectedItem = defaultMat;
 			currentMaterial = MaterialCacheRegistryInstance.Get(defaultMat);
 			currentMaterialInfo = DeferredSamplerStoreInstance.AddCustomMaterial(currentMaterial);
 			SetupSamplerMapping();
