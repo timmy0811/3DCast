@@ -1,5 +1,6 @@
 #include "castpch.h"
 #include "Mesh.h"
+#include "3DCast/Math/Vertex.h"
 
 #include "3DCast/Data/GlobalShared.h"
 
@@ -41,7 +42,7 @@ void Cast::Mesh::SetMaterial(Component::MaterialComponent* material)
 
 		Material->currentMaterial = Material->privateMaterial;
 
-		for (const Ref<API::Texture::Texture> tex : Textures) {
+		for (const Ref<API::Texture::Texture>& tex : Textures) {
 			switch (tex->GetType()) {
 			case API::Texture::TextureType::DIFFUSE:
 				Material->LoadDiffuseTexture(tex);
@@ -82,4 +83,35 @@ void Cast::Mesh::RetransferToBatchMemory()
 		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size());
 	else
 		Cast::Memory::BatchMemoryHandler.OnBatchEmptyRetransfer(BatchId, Vertices.data(), sizeof(Memory::BatchVertexShaderObject) * Vertices.size(), Indices.data(), (int)Indices.size());
+}
+
+void Cast::Mesh::CalculateTangentSpace()
+{
+	if (Indices.empty() || Vertices.empty()) {
+		return;
+	}
+
+	std::vector<glm::vec3> positions;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> texCoords;
+
+	positions.reserve(Vertices.size());
+	normals.reserve(Vertices.size());
+	texCoords.reserve(Vertices.size());
+
+	for (const auto& vertex : Vertices) {
+		positions.push_back(vertex.Position);
+		normals.push_back(vertex.Normal);
+		texCoords.push_back(vertex.TexCoords);
+	}
+
+	const std::vector<Math::TangentSpace> tangentSpaces = Math::CalculateTangentSpaces(
+		positions, texCoords, normals, Indices);
+
+	for (size_t i = 0; i < Vertices.size(); i++) {
+		Vertices[i].Tangent = tangentSpaces[i].tangent;
+		Vertices[i].Bitangent = tangentSpaces[i].bitangent;
+	}
+
+	RetransferToBatchMemory();
 }

@@ -26,6 +26,7 @@ namespace Cast
 		void SetTextures(const std::vector<Ref<API::Texture::Texture>>& textures);
 		void SetupVertexData();
 		void SetMaterial(Component::MaterialComponent* material);
+		void CalculateTangentSpace();
 
 		[[nodiscard]] int GetVertexCount() const { return (int)Vertices.size(); }
 		[[nodiscard]] bool HasIndices() const { return !Indices.empty(); }

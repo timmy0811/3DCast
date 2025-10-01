@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <string>
 
 #include "nfd.h"
@@ -85,5 +86,40 @@ namespace Cast::Util
         if (found != std::string::npos)
             return path.substr(0, found + 1);
         return "";
+    }
+
+    static std::string FindTexturePath(const std::string& basePath, const std::string& textureName) {
+        std::string filename = textureName;
+        const size_t lastSeparator = textureName.find_last_of("/\\");
+        if (lastSeparator != std::string::npos) {
+            filename = textureName.substr(lastSeparator + 1);
+        }
+
+        // Check if file exists as-is
+        std::string fullPath = basePath + "/" + filename;
+        if (std::filesystem::exists(fullPath)) {
+            return fullPath;
+        }
+
+        // If no extension, try common texture extensions
+        if (filename.find('.') == std::string::npos) {
+            const std::vector<std::string> extensions = {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds"};
+            for (const auto& ext : extensions) {
+                std::string pathWithExt = basePath + "/" + filename + ext;
+                if (std::filesystem::exists(pathWithExt)) {
+                    return pathWithExt;
+                }
+            }
+        }
+
+        // Try case-insensitive search
+        for (const auto& entry : std::filesystem::directory_iterator(basePath)) {
+            std::string entryName = entry.path().filename().string();
+            if (strcasecmp(entryName.c_str(), filename.c_str()) == 0) {
+                return entry.path().string();
+            }
+        }
+
+        return fullPath;
     }
 }

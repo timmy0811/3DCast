@@ -57,7 +57,7 @@ namespace Cast
 		std::vector<Mesh*> Meshes;
 
 		std::string DirPath;
-		Assimp::Importer m_Importer;
+		Assimp::Importer Importer;
 
 		glm::vec3 ModelSize;
 		glm::vec3 ModelOffset;
