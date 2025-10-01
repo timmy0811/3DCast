@@ -521,6 +521,7 @@ namespace Cast::Serialization
                     *CallbackData.RenderMode = skyboxNode["Mode"].as<int>();
                     CallbackData.Skybox->AddCubemap(name, dirPath, fileFormat);
                     CallbackData.Skybox->SetActiveCubemap(skyboxNode["ActiveCubemapName"].as<std::string>());
+                    CallbackData.Skybox->CalculateEnvironmentLightForCurrentCubemap();
                     break;
                 }
             default:

@@ -1,0 +1,91 @@
+Scene: Untitled Scene
+Skybox:
+  Mode: 1
+  ActiveCubemapName: cartoon_clear
+  ActiveCubemapDirPath: /mnt/SSD1TB/Git/3DCast/3DCast/resources/img/cubemap/cartoon_clear
+  ActiveCubemapFileFormat: .png
+  UseEnvironmentLighting: true
+MaterialRegistry:
+  Entries:
+    - Material: 308
+      Properties:
+        DiffuseColor: [1, 0.39112902, 0.39112902]
+        SpecularColor: [0.5, 0.5, 0.5]
+        EmissiveColor: [0, 0, 0]
+        Metallic: 0
+        Roughness: 0.5
+        Shininess: 32
+        Reflectance: 0.5
+      Proxies:
+        []
+    - Material: 302
+      Properties:
+        DiffuseColor: [0.9919355, 0.9919355, 0.9919355]
+        SpecularColor: [0.5, 0.5, 0.5]
+        EmissiveColor: [0, 0, 0]
+        Metallic: 0
+        Roughness: 0.5
+        Shininess: 32
+        Reflectance: 0.5
+      Proxies:
+        []
+Entities:
+  - Entity: 1048577
+    TagComponent:
+      Tag: Environment Light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: true
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    LightComponent:
+      IsEnvironmentLight: true
+      Type: 0
+      Direction: [-0.7331663, -0.57278615, -0.36658314]
+      Ambient: [0.39265102, 0.40584415, 0.42229688]
+      Diffuse: [0.57737267, 0.6003562, 0.63100743]
+      Specular: [0.7064859, 0.67801416, 0.63775235]
+  - Entity: 1048578
+    TagComponent:
+      Tag: Model
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    MeshComponent:
+      ModelPath: /mnt/SSD1TB/Git/3DCast/3DCast/resources/model/market/Medieval Market.fbx
+      Filename: Medieval Market.fbx
+    Children:
+      []
+  - Entity: 0
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    CameraComponent:
+      Camera:
+        IsScenePrimary: true
+        Projection: 0
+        ProjectionMatrix: [0.56564987, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.002002, -1, 0, 0, -0.2002002, 0]
+        Position: [-0.45627055, 0.89110327, 3.0681324]
+        Rotation: [-17.49999, -74.89997, 0]
+        WorldUp: [0, 1, 0]

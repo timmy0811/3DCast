@@ -1,0 +1,102 @@
+Scene: Untitled Scene
+Skybox:
+  Mode: 1
+  ActiveCubemapName: cartoon_clear
+  ActiveCubemapDirPath: /mnt/SSD1TB/Git/3DCast/3DCast/resources/img/cubemap/cartoon_clear
+  ActiveCubemapFileFormat: .png
+  UseEnvironmentLighting: false
+MaterialRegistry:
+  Entries:
+    - Material: 322
+      Properties:
+        DiffuseColor: [0.85, 0.85, 0.85]
+        SpecularColor: [0.5, 0.5, 0.5]
+        EmissiveColor: [0, 0, 0]
+        Metallic: 0
+        Roughness: 0.5
+        Shininess: 32
+        Reflectance: 0.5
+      Proxies:
+        []
+    - Material: 309
+      Properties:
+        DiffuseColor: [0.85, 0.85, 0.85]
+        SpecularColor: [0.5, 0.5, 0.5]
+        EmissiveColor: [0, 0, 0]
+        Metallic: 0
+        Roughness: 0.5
+        Shininess: 32
+        Reflectance: 0.5
+      Proxies:
+        []
+    - Material: 315
+      Properties:
+        DiffuseColor: [0.85, 0.85, 0.85]
+        SpecularColor: [0.5, 0.5, 0.5]
+        EmissiveColor: [0, 0, 0]
+        Metallic: 0
+        Roughness: 0.5
+        Shininess: 32
+        Reflectance: 0.5
+      Proxies:
+        []
+Entities:
+  - Entity: 1048579
+    TagComponent:
+      Tag: Model
+    TransformComponent:
+      Translation: [0, 0, -0.4]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    MeshComponent:
+      ModelPath: /mnt/SSD1TB/Git/3DCast/3DCast/resources/model/tree/source/Tree3.fbx
+      Filename: Tree3.fbx
+    Children:
+      []
+  - Entity: 1
+    TagComponent:
+      Tag: Light
+    TransformComponent:
+      Translation: [0, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 3, 0]
+        Radius: 0.5
+        Min: [-0.5, 2.5, -0.5]
+        Max: [0.5, 3.5, 0.5]
+    LightComponent:
+      IsEnvironmentLight: false
+      Type: 0
+      Direction: [-0.2, -1, -0.3]
+      Ambient: [0.3, 0.3, 0.3]
+      Diffuse: [0.6, 0.6, 0.6]
+      Specular: [1, 1, 1]
+  - Entity: 0
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      IsRegistered: false
+      BBox:
+        Center: [0, 0, 0]
+        Radius: 0.5
+        Min: [-0.5, -0.5, -0.5]
+        Max: [0.5, 0.5, 0.5]
+    CameraComponent:
+      Camera:
+        IsScenePrimary: true
+        Projection: 0
+        ProjectionMatrix: [0.6360225, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.002002, -1, 0, 0, -0.2002002, 0]
+        Position: [-2.5554194, 2.2569468, 1.6001441]
+        Rotation: [-31.900085, -33.200165, 0]
+        WorldUp: [0, 1, 0]
