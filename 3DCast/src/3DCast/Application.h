@@ -5,7 +5,7 @@
 #include "3DCast/Event/Event.h"
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Layer/LayerStack.h"
-#include "3DCast/ImGui/ImGuiLayer.h"
+#include "3DCast/Gui/ImGuiLayer.h"
 
 namespace Cast
 {

@@ -4,12 +4,12 @@
 #include "3DCast/Model/Model.h"
 #include "3DCast/Data/GlobalShared.h"
 
-#include "3DCast/ImGui/UIComponents.h"
+#include "3DCast/Gui/UIComponents.h"
 
 #include <imgui.h>
 
-#include "3DCast/ImGui/TempElements/TempGuiElementCollection.h"
-#include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
+#include "3DCast/Gui/TempElements/TempGuiElementCollection.h"
+#include "3DCast/Gui/TempElements/Elements/NotificationModal.h"
 
 namespace Cast::Component
 {

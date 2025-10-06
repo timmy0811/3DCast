@@ -7,13 +7,13 @@
 #include "GUI/Modal/KeymapModal.h"
 #include "Application/KeymapLayout.h"
 
-#include <3DCast/ImGui/TempElements/TempGuiElementCollection.h>
+#include <3DCast/Gui/TempElements/TempGuiElementCollection.h>
 #include <3DCast/Math/Collision.h>
 
 #include <imgui_internal.h>
 #include <memory>
 
-#include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
+#include "3DCast/Gui/TempElements/Elements/NotificationModal.h"
 #include "Data/SeedData.h"
 #include "GUI/Panels/DiagnosticsPanel.h"
 

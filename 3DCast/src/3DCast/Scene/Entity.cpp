@@ -2,8 +2,8 @@
 #include "Entity.h"
 
 #include "3DCast/Scene/Component/Component.h"
-#include "3DCast/ImGui/TempElements/TempGuiElementCollection.h"
-#include "3DCast/ImGui/TempElements/Elements/NotificationModal.h"
+#include "3DCast/Gui/TempElements/TempGuiElementCollection.h"
+#include "3DCast/Gui/TempElements/Elements/NotificationModal.h"
 
 Cast::Entity::Entity(const entt::entity handle, Scene* scene)
 	: EntityHandle(handle), Scene_(scene)

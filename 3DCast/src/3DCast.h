@@ -17,7 +17,7 @@
 #include "3DCast/Scene/ObjectCreator.h"
 #include "3DCast/Scene/Component/Component.h"
 #include "3DCast/Layer/Layer.h"
-#include "3DCast/ImGui/ImGuiLayer.h"
+#include "3DCast/Gui/ImGuiLayer.h"
 
 #include "3DCast/Input/Input.h"
 #include "3DCast/Input/MousebuttonCodes.h"

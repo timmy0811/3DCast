@@ -6,6 +6,7 @@
 #include "3DCast/Event/ApplicationEvent.h"
 #include "3DCast/Event/MouseEvent.h"
 #include "3DCast/Event/KeyEvent.h"
+#include "vendor/stb_image/stb_image.h"
 
 Cast::WindowsWindow::WindowsWindow(const WindowProperties& props)
 {
@@ -107,6 +108,19 @@ void Cast::WindowsWindow::Init(const WindowProperties& props)
 
 	glfwSetWindowUserPointer(window, &data);
 	SetVSync(false);
+
+	GLFWimage images[1];
+	int channel;
+	images[0].pixels = stbi_load(std::string(std::string(ASSET_DIR) + "img/icon/app.png").c_str(), &images[0].width, &images[0].height, &channel, 4); // RGBA channels
+	if (!images[0].pixels)
+	{
+		LOG_CORE_ERROR("Could not load app icon");
+	}
+	else
+	{
+		glfwSetWindowIcon(window, 1, images);
+	}
+	stbi_image_free(images[0].pixels);
 
 	// GLFW Callbacks
 	glfwSetWindowPosCallback(window, [](GLFWwindow* window, const int xPos, const int yPos)
