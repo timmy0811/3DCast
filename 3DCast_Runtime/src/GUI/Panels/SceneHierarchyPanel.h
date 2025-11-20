@@ -19,7 +19,7 @@ namespace Runtime::GUI
 		};
 
 	public:
-		SceneHierarchyPanel() = default;
+		SceneHierarchyPanel();
 
 		void SetSelectionContext(const Cast::Ref<Cast::Entity>& entity);
 

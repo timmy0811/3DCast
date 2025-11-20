@@ -11,7 +11,9 @@ namespace Runtime {
 	struct SharedEditorData
 	{
 		Cast::Optional<Cast::Renderer::Camera*> ActiveCamera;
+		Cast::Ref<Cast::Entity>* SelectedEntity = nullptr;
 		Cast::Renderer::Skybox Skybox{};
+		Cast::Entity* EnvironmentLightEntity = nullptr;
 
 		View ViewSettings;
 	};

@@ -11,6 +11,11 @@
 
 #include "imgui_internal.h"
 
+Runtime::GUI::SceneHierarchyPanel::SceneHierarchyPanel()
+{
+	EditorContext.SelectedEntity = &SelectionContext;
+}
+
 void Runtime::GUI::SceneHierarchyPanel::SetSelectionContext(const Cast::Ref<Cast::Entity>& entity)
 {
 	SelectionContext = entity;
@@ -395,6 +400,12 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 
 void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 {
+	if (EditorContext.EnvironmentLightEntity && *SelectionContext.get() == *EditorContext.EnvironmentLightEntity)
+	{
+		LOG_CORE_WARN("You cannot remove the Environment Light directly. Use the Skybox Panel to disable it.");
+		return;
+	}
+
 	Cast::Shared.ActiveScene->RemoveEntityBulkOptimized(SelectionContext);
 	if (SelectionContext->IsChild())
 		SelectionContext->GetParent()->RemoveChild(SelectionContext);

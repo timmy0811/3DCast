@@ -108,6 +108,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                     if (!EnvironmentLightEntity)
                     {
                         EnvironmentLightEntity = Cast::Shared.ActiveScene->CreateEntity("Environment Light", true).get();
+                        EditorContext.EnvironmentLightEntity = EnvironmentLightEntity;
 
                         EnvironmentLightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
                         EnvironmentLightComponent = &EnvironmentLightEntity->GetComponent<Cast::Component::LightComponent>();
@@ -118,7 +119,18 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
                 }
                 else
                 {
-                    Cast::Shared.ActiveScene->RemoveEntity(*EnvironmentLightEntity);
+                    if (*EditorContext.SelectedEntity && *EditorContext.SelectedEntity->get() == *EnvironmentLightEntity)
+                    {
+                        LOG_CORE_WARN("Deselect the Environment Light before disabling it.");
+                        UseEnvironmentLighting = true;
+                    }
+                    else
+                    {
+                        Cast::Shared.ActiveScene->RemoveEntity(*EnvironmentLightEntity);
+                        EnvironmentLightEntity = nullptr;
+                        EnvironmentLightComponent = nullptr;
+                        EditorContext.EnvironmentLightEntity = nullptr;
+                    }
                 }
             }
 
