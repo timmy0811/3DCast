@@ -12,6 +12,10 @@ uniform sampler2D gBuf_Shine_Reflectance;
 
 uniform sampler2D gBuf_Depth;
 
+// SSAO
+uniform sampler2D u_SSAO;
+uniform float u_SSAOAffectness;
+
 // Uniforms
 uniform vec2 u_Resolution;
 uniform vec3 u_ViewPosition;
@@ -69,5 +73,7 @@ void main()
         color += AffectSpotlight(spotLights[i], normal, fragPos, viewDirection, albedo, shine, specular);
     }
 
-    o_Color = vec4(color, 1.0);
+    float ssao = texture(u_SSAO, fragCoord).r;
+    float ssaoMix = mix(1.0, ssao, clamp(u_SSAOAffectness, 0.0, 1.0));
+    o_Color = vec4(color * ssaoMix, 1.0);
 }

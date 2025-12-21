@@ -7,6 +7,7 @@
     <mapping directory="$PROJECT_DIR$/Dependencies/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Dependencies/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Dependencies/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/imguizmo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Dependencies/nativefile" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Dependencies/nfd" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Dependencies/spdlog" vcs="Git" />

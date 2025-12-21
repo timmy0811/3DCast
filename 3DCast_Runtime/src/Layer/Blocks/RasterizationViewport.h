@@ -32,6 +32,8 @@ namespace Runtime
 
 	private:
 		void RenderGeometryPass() const;
+		void RenderSSAOPass() const;
+		void RenderSSAOBlurPass() const;
 		void RenderLightingPass() const;
 		void RenderForwardPass() const;
 

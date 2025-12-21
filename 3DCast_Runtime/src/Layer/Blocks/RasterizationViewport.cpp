@@ -46,11 +46,31 @@ void Runtime::RasterizationViewport::Init()
 	PipelineData.GBuffer->AddStencilTarget();
 	PipelineData.GBuffer->Validate();
 
+	// Create SSAO framebuffers (single channel float)
+	PipelineData.SSAOFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT), false));
+	PipelineData.SSAOFramebuffer->Bind();
+	PipelineData.SSAOFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
+	PipelineData.SSAOFramebuffer->Validate();
+	PipelineData.SSAOFramebuffer->Unbind();
+
+	PipelineData.SSAOBlurFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT), false));
+	PipelineData.SSAOBlurFramebuffer->Bind();
+	PipelineData.SSAOBlurFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
+	PipelineData.SSAOBlurFramebuffer->Validate();
+	PipelineData.SSAOBlurFramebuffer->Unbind();
+
+	// Bind GBuffer textures to known slots
 	PipelineData.GBuffer->BindDepthTexture(0);
 	PipelineData.GBuffer->BindTextures(1);
 
 	CompileShaders();
 
+	// Initialize SSAO processor
+	PipelineData.SSAOProcessor.reset(API::Advanced::SSAO::Create());
+	PipelineData.SSAOProcessor->GenerateSampleKernel(64);
+	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
+
+	// Setup shading pass samplers
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
@@ -59,7 +79,25 @@ void Runtime::RasterizationViewport::Init()
 	shader->SetUniform1i("gBuf_Specular", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
 	shader->SetUniform1i("gBuf_Shine_Reflectance",
 	                     (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
+	// SSAO blurred texture will be bound to slot 7
+	shader->SetUniform1i("u_SSAO", 7);
 	shader->Unbind();
+
+	// Setup SSAO shader samplers
+	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
+	ssaoShader->Bind();
+	ssaoShader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
+	ssaoShader->SetUniform1i("gBuf_Normal", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
+	ssaoShader->SetUniform1i("texNoise", 6);
+	ssaoShader->SetUniform1i("kernelSize", 64);
+	ssaoShader->SetUniform2f("screenSize", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	ssaoShader->Unbind();
+
+	// Setup SSAO blur shader sampler
+	const Cast::Ref<API::Core::Shader> ssaoBlurShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao_blur");
+	ssaoBlurShader->Bind();
+	ssaoBlurShader->SetUniform1i("ssaoInput", 0);
+	ssaoBlurShader->Unbind();
 
 	//EditorContext.Skybox.AddCubemap("cartoon_day", std::string(ASSET_DIR) + "img/cubemap/cartoon_day", ".png");
 	//EditorContext.Skybox.AddCubemap("cartoon_redsky", std::string(ASSET_DIR) + "img/cubemap/cartoon_redsky", ".png");
@@ -203,9 +241,11 @@ void Runtime::RasterizationViewport::OnRender()
 	Cast::Renderer::RendererContext::BeginScene(*EditorContext.ActiveCamera.value());
 
 	RenderGeometryPass();
-	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(),
-	                                            PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH,
-	                                            (int)conf.WIN_HEIGHT);
+
+	// SSAO passes
+	RenderSSAOPass();
+	RenderSSAOBlurPass();
+
 	RenderLightingPass();
 	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(),
 	                                          PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH,
@@ -241,11 +281,58 @@ void Runtime::RasterizationViewport::RenderGeometryPass() const
 	PipelineData.GBuffer->Unbind();
 }
 
+void Runtime::RasterizationViewport::RenderSSAOPass() const
+{
+	// Disable depth and stencil for full-screen pass
+	API::Core::RenderCommand::SetDepthTest(false);
+	API::Core::RenderCommand::SetStencilTest(false);
+
+	PipelineData.SSAOFramebuffer->BindAndClear();
+
+	// Bind GBuffer textures (already bound to slots 1..), noise texture to 6
+	PipelineData.SSAOProcessor->BindNoiseTex(6);
+
+	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
+	ssaoShader->Bind();
+	ssaoShader->SetUniformMat4f("projection", EditorContext.ActiveCamera.value()->GetProjectionMat());
+	ssaoShader->SetUniformMat4f("view", EditorContext.ActiveCamera.value()->GetViewMat());
+	ssaoShader->SetUniform2f("screenSize", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	ssaoShader->SetUniform3fv("ssaoSamples", 64, PipelineData.SSAOProcessor->getKernelAllocator());
+
+	PipelineData.GBufferScreenGeometry->Draw(ssaoShader.get());
+
+	PipelineData.SSAOFramebuffer->Unbind();
+}
+
+void Runtime::RasterizationViewport::RenderSSAOBlurPass() const
+{
+	API::Core::RenderCommand::SetDepthTest(false);
+	API::Core::RenderCommand::SetStencilTest(false);
+
+	PipelineData.SSAOBlurFramebuffer->BindAndClear();
+
+	// Bind SSAO texture to slot 0 for blur shader
+	PipelineData.SSAOFramebuffer->BindTexture(0, 0);
+
+	const Cast::Ref<API::Core::Shader> ssaoBlurShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao_blur");
+	ssaoBlurShader->Bind();
+	PipelineData.GBufferScreenGeometry->Draw(ssaoBlurShader.get());
+
+	PipelineData.SSAOBlurFramebuffer->Unbind();
+}
+
 void Runtime::RasterizationViewport::RenderLightingPass() const
 {
 	PipelineData.Framebuffer->BindAndClear();
 	PipelineData.GBuffer->BindDepthTexture(0);
 	PipelineData.GBuffer->BindTextures(1);
+
+	// Bind SSAO blurred texture to slot 7
+	PipelineData.SSAOBlurFramebuffer->BindTexture(0, 7);
+
+	// Copy stencil from GBuffer so shading only runs where geometry was drawn
+	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(),
+												   PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH, (int)conf.WIN_HEIGHT);
 
 	Cast::Shared.ActiveScene->BindSSBOForShadingPass();
 
@@ -253,7 +340,11 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	shader->SetUniform1f("u_SSAOAffectness", 0.6f);
 
+	// Enable stencil test to mask the fullscreen quad to actual geometry
+	API::Core::RenderCommand::SetStencilTest(true);
+	API::Core::RenderCommand::SetDefaultStencilTest();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
 	// Viewport Background Color
@@ -261,7 +352,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	API::Core::RenderCommand::Clear();
 
 	PipelineData.Framebuffer->Bind();
-	API::Core::RenderCommand::SetDefaultStencilTest();
 
 	PipelineData.GBufferScreenGeometry->Draw(shader.get());
 
@@ -273,12 +363,18 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 {
 	PipelineData.Framebuffer->Bind();
 
+	// Ensure depth testing is enabled for forward/overlay rendering
+	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
+
+	// Render any forward-rendered scene content (e.g., transparent)
 	Cast::Shared.ActiveScene->OnForwardRender();
 
+	// Render skybox behind geometry using LEQUAL (handled in skybox Render)
 	EditorContext.Skybox.BindCurrentCubemap(6);
 	EditorContext.Skybox.Render();
 
+	// Infinite grid should be depth-tested so it does not draw over geometry
 	if (!Cast::Shared.ActiveScene->GetInRenderView())
 	{
 		API::Core::RenderCommand::SetBlend(true);
@@ -375,14 +471,20 @@ void Runtime::RasterizationViewport::CompileShaders()
 	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/deferred/shading_pass.vert",
 	                                                     std::string(ASSET_DIR) + "shader/deferred/shading_pass.frag")), "shading_pass");
 
+	// SSAO passes
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/view/ssao.vert",
+	                                                     std::string(ASSET_DIR) + "shader/view/ssao.frag")), "ssao");
+	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/view/ssao_blur.vert",
+	                                                     std::string(ASSET_DIR) + "shader/view/ssao_blur.frag")), "ssao_blur");
+
 	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/sprite/icon.vert",
 	                                                     std::string(ASSET_DIR) + "shader/sprite/icon.frag")), "icon_billboard");
 
 	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/effect/tile_grid.vert",
-														 std::string(ASSET_DIR) + "shader/effect/tile_grid.frag")), "tile_grid");
+													 std::string(ASSET_DIR) + "shader/effect/tile_grid.frag")), "tile_grid");
 
 	Cast::ShaderCacheRegistryInstance.AddProxy(Cast::ShaderCacheRegistryInstance.Add(API::Core::Shader::Create(std::string(ASSET_DIR) + "shader/world/cubemap.vert",
-														 std::string(ASSET_DIR) + "shader/world/cubemap.frag")), "cubemap");
+													 std::string(ASSET_DIR) + "shader/world/cubemap.frag")), "cubemap");
 }
 
 bool Runtime::RasterizationViewport::IsUsingGizmo()
