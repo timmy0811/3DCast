@@ -24,6 +24,7 @@ void Runtime::RasterizationViewport::Init()
 {
 	Cast::Memory::BatchMemoryHandler.Init(sizeof(Cast::Memory::BatchVertexShaderObject) * MAX_BATCH_VERTICES, MAX_BATCH_INDICES);
 
+#pragma region GBUFFER
 	PipelineData.GBufferScreenGeometry.reset(
 		API::Advanced::GBufferScreenGeometry::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));
 	PipelineData.Framebuffer.reset(
@@ -46,7 +47,12 @@ void Runtime::RasterizationViewport::Init()
 	PipelineData.GBuffer->AddStencilTarget();
 	PipelineData.GBuffer->Validate();
 
-	// Create SSAO framebuffers (single channel float)
+	// Bind GBuffer textures
+	PipelineData.GBuffer->BindDepthTexture(0);
+	PipelineData.GBuffer->BindTextures(1);
+#pragma endregion
+
+#pragma region SSAO
 	PipelineData.SSAOFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT), false));
 	PipelineData.SSAOFramebuffer->Bind();
 	PipelineData.SSAOFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
@@ -59,16 +65,13 @@ void Runtime::RasterizationViewport::Init()
 	PipelineData.SSAOBlurFramebuffer->Validate();
 	PipelineData.SSAOBlurFramebuffer->Unbind();
 
-	// Bind GBuffer textures to known slots
-	PipelineData.GBuffer->BindDepthTexture(0);
-	PipelineData.GBuffer->BindTextures(1);
-
-	CompileShaders();
-
 	// Initialize SSAO processor
 	PipelineData.SSAOProcessor.reset(API::Advanced::SSAO::Create());
 	PipelineData.SSAOProcessor->GenerateSampleKernel(64);
 	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
+#pragma endregion
+
+	CompileShaders();
 
 	// Setup shading pass samplers
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
@@ -213,8 +216,8 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 	Size = {viewportSize.x, viewportSize.y};
 
 #ifdef CAST_DESKTOP_WAYLAND
-	auto viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-	glm::vec2 applicationAbsPos = ParentLayer->GetParentWindow()->GetPosition();
+	const auto viewportAbsPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+	const glm::vec2 applicationAbsPos = ParentLayer->GetParentWindow()->GetPosition();
 
 	Position = viewportAbsPos; // ImGui positions are already relative to the application window -> misleading signature
 #else
@@ -257,8 +260,7 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::RenderGeometryPass() const
 {
-	// Color for bleeding areas
-	API::Core::RenderCommand::SetClearColor({0.1f, 0.9f, 0.1f, 1.0f});
+	API::Core::RenderCommand::SetClearColor({0.0f, 0.0f, 0.0f, 1.0f});
 	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
@@ -289,7 +291,6 @@ void Runtime::RasterizationViewport::RenderSSAOPass() const
 
 	PipelineData.SSAOFramebuffer->BindAndClear();
 
-	// Bind GBuffer textures (already bound to slots 1..), noise texture to 6
 	PipelineData.SSAOProcessor->BindNoiseTex(6);
 
 	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
@@ -326,8 +327,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	PipelineData.Framebuffer->BindAndClear();
 	PipelineData.GBuffer->BindDepthTexture(0);
 	PipelineData.GBuffer->BindTextures(1);
-
-	// Bind SSAO blurred texture to slot 7
 	PipelineData.SSAOBlurFramebuffer->BindTexture(0, 7);
 
 	// Copy stencil from GBuffer so shading only runs where geometry was drawn
@@ -347,7 +346,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	API::Core::RenderCommand::SetDefaultStencilTest();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
-	// Viewport Background Color
 	API::Core::RenderCommand::SetClearColor(EditorContext.Skybox.GetClearColor());
 	API::Core::RenderCommand::Clear();
 
@@ -370,7 +368,7 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 	// Render any forward-rendered scene content (e.g., transparent)
 	Cast::Shared.ActiveScene->OnForwardRender();
 
-	// Render skybox behind geometry using LEQUAL (handled in skybox Render)
+	// Render skybox behind geometry using LEQUAL
 	EditorContext.Skybox.BindCurrentCubemap(6);
 	EditorContext.Skybox.Render();
 
