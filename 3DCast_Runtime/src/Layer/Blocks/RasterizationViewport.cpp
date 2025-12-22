@@ -246,8 +246,10 @@ void Runtime::RasterizationViewport::OnRender()
 	RenderGeometryPass();
 
 	// SSAO passes
-	RenderSSAOPass();
-	RenderSSAOBlurPass();
+	if (EditorContext.ViewSettings.SSAOEnabled) {
+		RenderSSAOPass();
+		RenderSSAOBlurPass();
+	}
 
 	RenderLightingPass();
 	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(),
@@ -339,7 +341,8 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
 	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
-	shader->SetUniform1f("u_SSAOAffectness", 0.6f);
+	const float aoAffect = EditorContext.ViewSettings.SSAOEnabled ? EditorContext.ViewSettings.SSAOAffectness : 0.0f;
+	shader->SetUniform1f("u_SSAOAffectness", aoAffect);
 
 	// Enable stencil test to mask the fullscreen quad to actual geometry
 	API::Core::RenderCommand::SetStencilTest(true);
@@ -434,8 +437,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 				glm::value_ptr(Runtime::EditorContext.ActiveCamera.value()->GetProjectionMat()),
 				operation, ImGuizmo::LOCAL, transform, nullptr,
 				Application::Keymap::IsActionActive(Application::KEY_ACTION::OBJ_SNAP) ? snap : nullptr);
-
-
+			
 			if (changed)
 			{
 				comp.DecomposeTransformOnComponents();

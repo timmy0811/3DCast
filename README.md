@@ -17,6 +17,7 @@ A 3D Rendering Engine supporting both rasterization and raytracing.
 - Skyboxes with environment light calculation
 - Different Light types
 - PBR Materials
+- SSAO
 - Loading and Transforming of Models
 - Cross-platform support (Windows, Linux)
 - Editor themes

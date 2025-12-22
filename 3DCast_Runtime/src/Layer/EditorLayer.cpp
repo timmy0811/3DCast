@@ -15,6 +15,7 @@
 
 #include "3DCast/Gui/TempElements/Elements/NotificationModal.h"
 #include "Data/SeedData.h"
+#include "GUI/Modal/Menus.h"
 #include "GUI/Panels/DiagnosticsPanel.h"
 
 EditorLayer::EditorLayer()
@@ -155,7 +156,7 @@ void EditorLayer::OnImGuiRender()
 #pragma endregion
 
 #pragma region MENU_BAR
-	static bool showRasterSettings = false;
+	bool showRasterSettings = false;
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -315,28 +316,6 @@ void EditorLayer::OnImGuiRender()
 
 		ImGui::EndMenuBar();
 	}
-#pragma endregion
-
-#pragma region WINDOW_SETTINGS_VIEW
-	if (showRasterSettings)
-	{
-		ImGui::OpenPopup(ICON_FA_GEARS " Raster Settings");
-		showRasterSettings = false;
-	}
-
-	if (ImGui::BeginPopupModal(ICON_FA_GEARS " Raster Settings"))
-	{
-		ImGui::Text("Parallax Scale");
-		ImGui::SameLine();
-		ImGui::DragFloat("Parallax Scale", &Runtime::EditorContext.ViewSettings.ParallaxScale, 0.002f, 0.0f, 1.5f);
-
-		if (ImGui::Button("Close"))
-		{
-			ImGui::CloseCurrentPopup();
-		}
-
-		ImGui::EndPopup();
-	}
 
 	ImGui::End();
 #pragma endregion
@@ -354,6 +333,7 @@ void EditorLayer::OnImGuiRender()
 	Runtime::GUI::DiagnosticsPanel::OnImGuiRender(DeltaTime);
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Runtime::GUI::Keymap::OnImGuiRender();
+	Runtime::GUI::PopupRasterSettings(showRasterSettings);
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }
 

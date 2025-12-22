@@ -6,6 +6,8 @@ namespace Runtime {
 	struct View
 	{
 		float ParallaxScale = 0.02f;
+		bool SSAOEnabled = true;
+		float SSAOAffectness = 0.6f;
 	};
 
 	struct SharedEditorData

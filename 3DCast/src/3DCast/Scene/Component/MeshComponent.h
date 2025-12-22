@@ -128,7 +128,7 @@ namespace Cast::Component
 		static std::string OpenFileDialogue()
 		{
 			nfdu8char_t* outPath;
-			constexpr nfdu8filteritem_t filters[1] = {{"Model", "3d,3ds,ac,amf,ase,b3d,blend,bvh,cob,csm,dae,dxf,fbx,gltf,glb,ifc,irr,lwo,lws,m3d,md2,md3,md5,mdc,mdl,mesh,ms3d,ndo,nff,obj,off,ogex,ply,pmx,q3d,q3bsp,raw,sib,smd,stl,ter,x,x3d,xgl,zgl,3mf"}};
+			constexpr nfdu8filteritem_t filters[1] = {{"Model", "3d,3ds,ac,amf,zip,ase,b3d,blend,bvh,cob,csm,dae,dxf,fbx,gltf,glb,ifc,irr,lwo,lws,m3d,md2,md3,md5,mdc,mdl,mesh,ms3d,ndo,nff,obj,off,ogex,ply,pmx,q3d,q3bsp,raw,sib,smd,stl,ter,x,x3d,xgl,zgl,3mf"}};
 			nfdopendialogu8args_t args = {nullptr};
 			args.filterList = filters;
 			args.filterCount = 1;
