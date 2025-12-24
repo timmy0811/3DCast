@@ -60,6 +60,7 @@ namespace Cast
 	
 		inline TransformRegistry* GetTransformRegistry() { return &TransRegistry; }
 		inline entt::registry& GetRegistry() { return Registry; }
+		inline const entt::registry& GetRegistry() const { return Registry; }
 		inline const std::vector<ComponentHandler>& GetComponentImGuiCallbacks() { return ComponentHandlers; }
 	
 		inline bool& GetInRenderView() { return InRenderView; }

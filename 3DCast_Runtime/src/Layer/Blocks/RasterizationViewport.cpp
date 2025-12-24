@@ -34,7 +34,8 @@ void Runtime::RasterizationViewport::Init()
 			glm::ivec2(1024, 1024),
 			glm::ivec2(512, 512)
 		};
-		PipelineData.CascadedShadowMap.reset(API::Advanced::CascadedShadowMap::Create(csmSizes));
+		PipelineData.ShadowProcessor = Cast::CreateRef<Cast::Renderer::CSMProcessor>();
+		PipelineData.ShadowProcessor->Init(csmSizes);
 	}
 #pragma endregion SHADOWMAP
 
@@ -282,128 +283,10 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::RenderShadowPassCSM() const
 {
-	if (!PipelineData.CascadedShadowMap)
+	if (!PipelineData.ShadowProcessor)
 		return;
 
-	// Find castable light
-	auto* scene = &Cast::Shared.ActiveScene.value();
-	entt::entity caster = scene->GetActiveShadowDirectionalLight();
-	if (caster == entt::null)
-	{
-		// No active caster: just clear cascades and return
-		for (int c = 0; c < PipelineData.CascadedShadowMap->GetCascadeCount(); ++c)
-			PipelineData.CascadedShadowMap->BindAndClear(c);
-		HasShadowMapData = false;
-		return;
-	}
-
-	auto& lightComp = scene->GetRegistry().get<Cast::Component::LightComponent>(caster);
-	auto* dir = reinterpret_cast<Cast::DirectionalLightShaderObject*>(lightComp.Light);
-	glm::vec3 lightDir = glm::normalize(dir->direction);
-	if (glm::dot(lightDir, lightDir) < 1e-6f) lightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
-	ShadowLightDir = lightDir;
-	HasShadowMapData = true;
-
-	// Camera data
-	auto cam = Runtime::EditorContext.ActiveCamera.value();
-	const glm::mat4 V = cam->GetViewMat();
-	const glm::mat4 Vinv = glm::inverse(V);
-	const glm::mat4 P = cam->GetProjectionMat();
-
-	// Extract camera params
-	const float m00 = P[0][0];
-	const float m11 = P[1][1];
-	const float A = P[2][2];       // -(f+n)/(f-n)
-	const float B = P[3][2];       // -(2fn)/(f-n)
-	const float tanHalfFov = 1.0f / m11;
-	const float aspect = m11 / m00;
-
-	// Recover near/far
-	const float nearPlane = B / (A - 1.0f);
-	const float farPlane  = B / (A + 1.0f);
-
-	// Compute cascade splits (practical split)
-	constexpr int N = API::Advanced::CascadedShadowMap::CascadeCount;
-	float splits[N + 1];
-	splits[0] = nearPlane;
-	splits[N] = farPlane;
-
-	for (int i = 1; i < N; ++i)
-	{
-		constexpr float lambda = 0.8f;
-		float p = (float)i / (float)N;
-		float logi = nearPlane * std::pow(farPlane / nearPlane, p);
-		float lini = nearPlane + (farPlane - nearPlane) * p;
-		splits[i] = lini * (1.0f - lambda) + logi * lambda;
-	}
-
-	// Update shader
-	auto shadowShader = Cast::ShaderCacheRegistryInstance.GetHandle("geometry_pass");
-	shadowShader->Bind();
-
-	// Depth-only rendering of geometry into each cascade FBO
-	API::Core::RenderCommand::SetDepthTest(true);
-	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
-	API::Core::RenderCommand::SetStencilTest(false);
-	API::Core::RenderCommand::CullFace(API::Core::Face::Back);
-
-	for (int c = 0; c < N; ++c)
-	{
-		const float zn = splits[c];
-		const float zf = splits[c + 1];
-		CascadeSplits[c] = zf;
-
-		// Frustum corners in view space for this slice
-		const float xn_n = tanHalfFov * zn * aspect;
-		const float yn_n = tanHalfFov * zn;
-		const float xn_f = tanHalfFov * zf * aspect;
-		const float yn_f = tanHalfFov * zf;
-
-		glm::vec3 frustumVS[8] = {
-			{-xn_n, -yn_n, -zn}, { xn_n, -yn_n, -zn}, { xn_n,  yn_n, -zn}, { -xn_n,  yn_n, -zn},
-			{-xn_f, -yn_f, -zf}, { xn_f, -yn_f, -zf}, { xn_f,  yn_f, -zf}, { -xn_f,  yn_f, -zf}
-		};
-
-		glm::vec3 frustumWS[8];
-		glm::vec3 center(0.0f);
-		for (int i = 0; i < 8; ++i)
-		{
-			glm::vec4 w = Vinv * glm::vec4(frustumVS[i], 1.0f);
-			frustumWS[i] = glm::vec3(w);
-			center += frustumWS[i];
-		}
-
-		center *= 1.0f / 8.0f;
-
-		// Build light view matrix
-		const float boundsRadius = glm::length(frustumWS[6] - frustumWS[0]);
-		glm::vec3 eye = center - lightDir * boundsRadius;
-		glm::mat4 lightView = glm::lookAt(eye, center, glm::vec3(0, 1, 0));
-
-		// Fit ortho bounds in light space
-		glm::vec3 minLS(FLT_MAX), maxLS(-FLT_MAX);
-		for (auto i : frustumWS)
-		{
-			glm::vec4 ls = lightView * glm::vec4(i, 1.0f);
-			minLS = glm::min(minLS, glm::vec3(ls));
-			maxLS = glm::max(maxLS, glm::vec3(ls));
-		}
-
-		// Padding to z range
-		constexpr float zPad = 10.0f;
-		minLS.z -= zPad;
-		maxLS.z += zPad;
-
-		glm::mat4 lightProj = glm::ortho(minLS.x, maxLS.x, minLS.y, maxLS.y, -maxLS.z, -minLS.z);
-
-		PipelineData.CascadedShadowMap->BindAndClear(c);
-		shadowShader->SetUniformMat4f("u_View", lightView);
-		shadowShader->SetUniformMat4f("u_Projection", lightProj);
-		CascadeLightVP[c] = lightProj * lightView; // store for lighting pass
-
-		// Render geometry
-		Cast::Shared.ActiveScene->OnDeferredRender();
-	}
+	PipelineData.ShadowProcessor->OnRender(*Cast::Shared.ActiveScene, *Runtime::EditorContext.ActiveCamera.value());
 }
 
 void Runtime::RasterizationViewport::RenderGeometryPass() const
@@ -479,11 +362,11 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	PipelineData.SSAOBlurFramebuffer->BindTexture(0, 7);
 
 	// CSMs
-	if (PipelineData.CascadedShadowMap)
+	if (PipelineData.ShadowProcessor)
 	{
-		for (int c = 0; c < 3; ++c)
+		for (int c = 0; c < API::Advanced::CascadedShadowMap::CascadeCount; ++c)
 		{
-			PipelineData.CascadedShadowMap->BindDepthTexture(c, 10 + c);
+			PipelineData.ShadowProcessor->GetShadowMap()->BindDepthTexture(c, 10 + c);
 		}
 	}
 
@@ -501,14 +384,19 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	shader->SetUniform1f("u_SSAOAffectness", aoAffect);
 
 	// Shadow uniforms (CSM)
-	shader->SetUniform1i("u_HasShadowMap", (int)HasShadowMapData);
-	shader->SetUniform3f("u_ShadowLightDir", ShadowLightDir.x, ShadowLightDir.y, ShadowLightDir.z);
-	for (int c = 0; c < CSMCascades; ++c)
+	const bool hasShadows = PipelineData.ShadowProcessor && PipelineData.ShadowProcessor->HasShadowMapData();
+	shader->SetUniform1i("u_HasShadowMap", (int)hasShadows);
+	if (hasShadows)
 	{
-		shader->SetUniformMat4f("u_LightViewProj[" + std::to_string(c) + "]", CascadeLightVP[c]);
+		const auto& lightDir = PipelineData.ShadowProcessor->GetShadowLightDir();
+		shader->SetUniform3f("u_ShadowLightDir", lightDir.x, lightDir.y, lightDir.z);
+		for (int c = 0; c < API::Advanced::CascadedShadowMap::CascadeCount; ++c)
+		{
+			shader->SetUniformMat4f("u_LightViewProj[" + std::to_string(c) + "]", PipelineData.ShadowProcessor->GetCascadeLightVP()[c]);
+		}
+		shader->SetUniform1fv("u_CascadeSplits", API::Advanced::CascadedShadowMap::CascadeCount, PipelineData.ShadowProcessor->GetCascadeSplits());
+		shader->SetUniform1fv("u_ShadowBiasFactors", API::Advanced::CascadedShadowMap::CascadeCount, EditorContext.ViewSettings.ShadowBiasFactors);
 	}
-	shader->SetUniform1fv("u_CascadeSplits", CSMCascades, CascadeSplits);
-	shader->SetUniform1fv("u_ShadowBiasFactors", CSMCascades, EditorContext.ViewSettings.ShadowBiasFactors);
 	shader->SetUniformMat4f("u_View", EditorContext.ActiveCamera.value()->GetViewMat());
 
 	// Enable stencil test to mask the fullscreen quad to actual geometry
