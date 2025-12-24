@@ -118,7 +118,9 @@ namespace Runtime
     {
 #pragma region Entity
         const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
-        lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+        auto& lightComp = lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+        lightComp.CastShadows = true;
+        Cast::Shared.ActiveScene->SetActiveShadowDirectionalLight(lightEntity->GetEntityHandle());
         auto& transformComp = lightEntity->GetComponent<Cast::Component::TransformComponent>();
         transformComp.translation.y = 3.f;
         transformComp.UpdateTransformMatrix();

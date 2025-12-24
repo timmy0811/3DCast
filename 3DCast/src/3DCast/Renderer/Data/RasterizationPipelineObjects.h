@@ -6,6 +6,7 @@
 #include <API/advanced/GBufferScreenGeometry.h>
 #include <API/core/Framebuffer.h>
 #include <API/advanced/SSAO.h>
+#include <API/advanced/CascadedShadowMap.h>
 
 namespace Cast::Renderer {
 	struct RasterizationPipelineObjects
@@ -18,5 +19,8 @@ namespace Cast::Renderer {
 		Ref<API::Core::Framebuffer> SSAOFramebuffer;
 		Ref<API::Core::Framebuffer> SSAOBlurFramebuffer;
 		Ref<API::Advanced::SSAO> SSAOProcessor;
+
+		// Cascaded Shadow Map
+		Ref<API::Advanced::CascadedShadowMap> CascadedShadowMap;
 	};
 }

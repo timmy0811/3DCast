@@ -8,6 +8,7 @@ namespace Runtime {
 		float ParallaxScale = 0.02f;
 		bool SSAOEnabled = true;
 		float SSAOAffectness = 0.6f;
+		float ShadowBiasFactors[3] = { 1.0f, 2.0f, 10.0f };
 	};
 
 	struct SharedEditorData

@@ -36,6 +36,7 @@ namespace Runtime
 		void RenderSSAOBlurPass() const;
 		void RenderLightingPass() const;
 		void RenderForwardPass() const;
+		void RenderShadowPassCSM() const;
 
 		void RenderGizmos();
 
@@ -53,5 +54,12 @@ namespace Runtime
 		bool IsCameraRotating = false;
 		bool IsGizmoScaleURendered = false;
 		glm::vec2 RelativeMousePosition = {0.0f, 0.f};
+
+		// Shadow mapping state (CSM)
+		static constexpr int CSMCascades = 3;
+		mutable glm::mat4 CascadeLightVP[CSMCascades]{};
+		mutable float CascadeSplits[CSMCascades]{}; // far distances per cascade in view space
+		mutable glm::vec3 ShadowLightDir{0.0f, -1.0f, 0.0f};
+		mutable bool HasShadowMapData = false;
 	};
 }

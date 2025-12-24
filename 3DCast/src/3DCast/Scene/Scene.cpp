@@ -4,12 +4,14 @@
 #include "3DCast/Core/Log.h"
 #include "3DCast/Scene/Entity.h"
 #include "3DCast/Scene/Component/Component.h"
+#include "3DCast/Scene/Component/LightComponent.h"
 
 #include "Registry/ShaderCacheRegistry.h"
 #include "3DCast/Memory/Batching/BatchManager.h"
 #include "3DCast/Math/Collision.h"
 
 #include <vendor/glm/glm.hpp>
+#include <vendor/glm/gtc/matrix_transform.hpp>
 
 Cast::Scene::Scene()
 	: IconRenderer_(IconRenderer(std::string(ASSET_DIR) + "configuration/icon.yml",
@@ -225,6 +227,34 @@ void Cast::Scene::ReallocateLights(const int type)
 void Cast::Scene::BindSSBOForShadingPass() const
 {
 	BindLightSSBOs();
+}
+
+void Cast::Scene::SetActiveShadowDirectionalLight(const entt::entity e)
+{
+	ActiveShadowDirLight = e;
+	const auto view = Registry.view<Component::LightComponent>();
+	for (const auto entity : view)
+	{
+		auto &light = view.get<Component::LightComponent>(entity);
+		if (light.LightType == Component::LightComponent::Type::Directional)
+		{
+			light.CastShadows = (entity == e);
+		}
+	}
+}
+
+void Cast::Scene::ClearActiveShadowDirectionalLight()
+{
+	ActiveShadowDirLight = entt::null;
+	const auto view = Registry.view<Component::LightComponent>();
+	for (const auto entity : view)
+	{
+		auto &light = view.get<Component::LightComponent>(entity);
+		if (light.LightType == Component::LightComponent::Type::Directional)
+		{
+			light.CastShadows = false;
+		}
+	}
 }
 
 Cast::Ref<Cast::Entity> Cast::Scene::GetEntityReferenceByHandle(const entt::entity ent)

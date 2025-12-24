@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
+#include "3DCast/Scene/Entity.h"
 #include "3DCast/Data/ShaderDataObjects/Light.h"
 
 #include <imgui.h>
@@ -28,6 +29,7 @@ namespace Cast::Component
 		size_t BufferPos = 0;
 		unsigned int BufferIndex = 0;
 		bool IsEnvironmentLight = false;
+		bool CastShadows = false;
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -259,11 +261,24 @@ namespace Cast::Component
 					ImGui::Text("Specular");
 					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
 					changed |= ImGui::ColorEdit3("##Specular", &dirLight->specular.x);
-
+					
 					if (changed)
 					{
 						SceneInstance->GetDirLightsBuffer()->
 						               AddData(dirLight, sizeof(DirectionalLightShaderObject), (int)BufferPos);
+					}
+
+					{
+						bool cast = CastShadows;
+						ImGui::Checkbox("Cast Shadows", &cast);
+						if (cast != CastShadows)
+						{
+							if (cast)
+								SceneInstance->SetActiveShadowDirectionalLight(EntityNode->GetEntityHandle());
+							else if (SceneInstance->GetActiveShadowDirectionalLight() == EntityNode->GetEntityHandle())
+								SceneInstance->ClearActiveShadowDirectionalLight();
+							CastShadows = cast;
+						}
 					}
 
 					break;

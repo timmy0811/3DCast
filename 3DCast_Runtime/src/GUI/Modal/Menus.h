@@ -11,24 +11,39 @@ namespace Runtime::GUI
         if (open)
         {
             ImGui::OpenPopup(ICON_FA_GEARS " Raster Settings");
-            ImGui::SetNextWindowSizeConstraints(ImVec2(360.0f, 0.0f), ImVec2(560.0f, FLT_MAX));
+            ImGui::SetNextWindowSizeConstraints(ImVec2(750.0f, 0.0f), ImVec2(1100.0f, FLT_MAX));
             open = false;
         }
 
         if (ImGui::BeginPopupModal(ICON_FA_GEARS " Raster Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            if (ImGui::BeginTable("RasterSettingsTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable))
+            constexpr float labelWidth = 350.0f;
+
+            // Parallax Scale
+            ImGui::SeparatorText("Texture");
+            if (ImGui::BeginTable("TextureSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
             {
-                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
                 ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
 
                 // Parallax Scale
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
+
                 ImGui::TextUnformatted("Parallax Scale");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::SetNextItemWidth(-1);
+                ImGui::SetNextItemWidth(200.f);
                 ImGui::DragFloat("##ParallaxScale", &Runtime::EditorContext.ViewSettings.ParallaxScale, 0.002f, 0.0f, 1.5f);
+
+                ImGui::EndTable();
+            }
+
+            // SSAO
+            ImGui::SeparatorText("Ambient Occlusion");
+            if (ImGui::BeginTable("AOSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
+            {
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
 
                 // Enable SSAO
                 ImGui::TableNextRow();
@@ -42,14 +57,35 @@ namespace Runtime::GUI
                 ImGui::TableSetColumnIndex(0);
                 ImGui::TextUnformatted("SSAO Strength");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::SetNextItemWidth(-1);
+                ImGui::SetNextItemWidth(200.f);
                 ImGui::SliderFloat("##SSAOAffectness", &Runtime::EditorContext.ViewSettings.SSAOAffectness, 0.0f, 1.0f, "%.2f");
 
                 ImGui::EndTable();
             }
 
+            // Shadow Mapping
+            ImGui::SeparatorText("Shadow Mapping");
+            if (ImGui::BeginTable("ShadowSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
+            {
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
+
+                // Shadow Bias Factors
+                for (int i = 0; i < 3; ++i)
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("Shadow Bias Cascade %d", i);
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::SetNextItemWidth(200.f);
+                    std::string id = "##ShadowBiasFactor" + std::to_string(i);
+                    ImGui::DragFloat(id.c_str(), &Runtime::EditorContext.ViewSettings.ShadowBiasFactors[i], 0.1f, 0.0f, 100.0f, "%.1f");
+                }
+
+                ImGui::EndTable();
+            }
+
             ImGui::Separator();
-            // Right-align the Close button
             {
                 const ImGuiStyle& style = ImGui::GetStyle();
                 const float btnWidth = ImGui::CalcTextSize("Close").x + style.FramePadding.x * 2.0f;

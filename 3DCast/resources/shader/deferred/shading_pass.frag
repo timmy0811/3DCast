@@ -29,6 +29,8 @@ uniform int BufferCountSpotLight;
 #include <components/light/point_shade.frag>
 #include <components/light/spot_shade.frag>
 
+#include <components/shadow.frag>
+
 // dynamic buffers
 layout(std430, binding = 1) buffer DirectionalLightBuffer {
     DirectionalLight directionalLights[]; 
@@ -58,9 +60,37 @@ void main()
     vec3 albedo = texture(gBuf_Albedo, fragCoord).rgb;
     vec3 specular = texture(gBuf_Specular, fragCoord).rgb * reflectance;
 
-    // Directional Light
-    for(int i = 0; i < BufferCountDirectionalLight; i++){
-        color += AffectDirectionallight(directionalLights[i], normal, viewDirection, shine, albedo, specular);
+    // Directional Lights (apply shadow only to the active caster)
+    int casterIndex = -1;
+    if (u_HasShadowMap)
+    {
+        float bestDot = -1.0;
+        for (int i = 0; i < BufferCountDirectionalLight; ++i)
+        {
+            // Match light by direction (same value as on CPU)
+            float d = dot(normalize(directionalLights[i].direction), normalize(u_ShadowLightDir));
+            if (d > bestDot)
+            {
+                bestDot = d;
+                casterIndex = i;
+            }
+        }
+    }
+
+    for (int i = 0; i < BufferCountDirectionalLight; i++)
+    {
+        vec3 unshadowed = AffectDirectionallight(directionalLights[i], normal, viewDirection, shine, albedo, specular);
+        if (u_HasShadowMap && i == casterIndex)
+        {
+            vec3 ambientOnly = directionalLights[i].ambient * albedo;
+            float vis = ComputeShadowCSM(fragPos, normal);
+            // Preserve ambient, shadow diffuse+specular
+            color += ambientOnly + vis * (unshadowed - ambientOnly);
+        }
+        else
+        {
+            color += unshadowed;
+        }
     }
 
     // Point Lights
