@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/status-under%20development-yellow)
 
-![Main Preview](https://github.com/timmy0811/3DCast/blob/Projects/img/prev4.jpg)
+![Main Preview](https://github.com/timmy0811/3DCast/blob/Projects/img/prev5.png)
 
 
 A 3D Rendering Engine supporting both rasterization and raytracing.
@@ -33,6 +33,14 @@ A 3D Rendering Engine supporting both rasterization and raytracing.
 - Massively scalable Memory manager
 - Fused deferred and forward shading
 
+## Insights
+Switch the mood with one click and automatically calculate the environment lighting based on provided skyboxes.
+![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/mood.png)
+
+See the difference when applying effects like ambient occlusion and cascaded shadow mapping.
+![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/effects.png)
+
+Submenus providing customizability.
 ![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/feature1.jpg)
 
 ## Building the Project
