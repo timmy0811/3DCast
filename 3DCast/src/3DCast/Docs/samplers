@@ -8,13 +8,13 @@ SLOT_2: GBuf_Depth_Normal
 SLOT_3: GBuf_Depth_Albedo
 SLOT_4: GBuf_Depth_Specular
 SLOT_5: GBuf_Depth_Shine_Reflectance
-SLOT_6:
-SLOT_7:
+SLOT_6: SSAO_Noise_Texture
+SLOT_7: SSAO_Blurred_Texture
 SLOT_8:
 SLOT_9:
-SLOT_10:
-SLOT_11:
-SLOT_12:
+SLOT_10: ShadowMap_Cascade_0
+SLOT_11: ShadowMap_Cascade_1
+SLOT_12: ShadowMap_Cascade_2
 SLOT_13:
 SLOT_14:
 SLOT_15:
