@@ -18,6 +18,7 @@ A 3D Rendering Engine supporting both rasterization and raytracing.
 - Different Light types
 - PBR Materials
 - SSAO
+- Cascading Shadow Map
 - Loading and Transforming of Models
 - Cross-platform support (Windows, Linux)
 - Editor themes
@@ -116,4 +117,5 @@ After building, the executable will be located in:
 - Linux: `build/bin/Release/3DCast`
 
 Asset Files are copied automatically when using the install scripts. Alternatively copy the folder `3DCast/resources` and `3DCast_Runtime/imgui.ini` into the executables folder. 
+
 
