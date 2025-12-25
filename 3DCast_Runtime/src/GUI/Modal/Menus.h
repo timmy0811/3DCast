@@ -24,7 +24,7 @@ namespace Runtime::GUI
             if (ImGui::BeginTable("TextureSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
             {
                 ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
-                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthFixed, 210.f);
 
                 // Parallax Scale
                 ImGui::TableNextRow();
@@ -43,7 +43,7 @@ namespace Runtime::GUI
             if (ImGui::BeginTable("AOSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
             {
                 ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
-                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthFixed, 210.f);
 
                 // Enable SSAO
                 ImGui::TableNextRow();
@@ -68,7 +68,7 @@ namespace Runtime::GUI
             if (ImGui::BeginTable("ShadowSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
             {
                 ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
-                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthFixed, 210.f);
 
                 // Shadow Bias Factors
                 for (int i = 0; i < 3; ++i)
@@ -92,6 +92,73 @@ namespace Runtime::GUI
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - btnWidth);
                 if (ImGui::Button("Close"))
                 {
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    inline void PopupViewportSettings(bool open)
+    {
+        if (open)
+        {
+            ImGui::OpenPopup(ICON_FA_GEARS " Viewport Resolution");
+            open = false;
+        }
+
+        if (ImGui::BeginPopupModal(ICON_FA_GEARS " Viewport Resolution", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            if (ImGui::BeginTable("ViewportSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
+            {
+                constexpr float labelWidth = 250.0f;
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);
+
+                // Adjust to window size
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Adjust to window size");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Checkbox("##AdjustToWindowSize", &Runtime::EditorContext.ViewSettings.AdjustToWindowSize);
+
+                // Width
+                ImGui::BeginDisabled(Runtime::EditorContext.ViewSettings.AdjustToWindowSize);
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Width");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+                ImGui::InputInt("##ViewportWidth", &Runtime::EditorContext.ViewSettings.ViewportWidth);
+
+                // Height
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Height");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+                ImGui::InputInt("##ViewportHeight", &Runtime::EditorContext.ViewSettings.ViewportHeight);
+                ImGui::EndDisabled();
+
+                ImGui::EndTable();
+            }
+
+            ImGui::Separator();
+            {
+                if (ImGui::Button("Close"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+                const ImGuiStyle& style = ImGui::GetStyle();
+                const float btnWidth = ImGui::CalcTextSize("Apply").x + style.FramePadding.x * 2.0f;
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - btnWidth);
+
+                if (ImGui::Button("Apply"))
+                {
+                    Runtime::EditorContext.ViewSettings.NeedsResize = true;
                     ImGui::CloseCurrentPopup();
                 }
             }

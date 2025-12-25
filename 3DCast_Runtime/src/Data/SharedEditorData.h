@@ -9,6 +9,10 @@ namespace Runtime {
 		bool SSAOEnabled = true;
 		float SSAOAffectness = 0.6f;
 		float ShadowBiasFactors[3] = { 1.0f, 2.0f, 10.0f };
+		int ViewportWidth = 1920;
+		int ViewportHeight = 1080;
+		bool AdjustToWindowSize = true;
+		bool NeedsResize = false;
 	};
 
 	struct SharedEditorData

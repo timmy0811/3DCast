@@ -157,6 +157,7 @@ void EditorLayer::OnImGuiRender()
 
 #pragma region MENU_BAR
 	bool showRasterSettings = false;
+	bool showViewportSettings = false;
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -234,6 +235,11 @@ void EditorLayer::OnImGuiRender()
 			if (ImGui::MenuItem("Rasterizer Settings"))
 			{
 				showRasterSettings = true;
+			}
+
+			if (ImGui::MenuItem("Viewport Resolution"))
+			{
+				showViewportSettings = true;
 			}
 
 			ImGui::EndMenu();
@@ -334,6 +340,7 @@ void EditorLayer::OnImGuiRender()
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Runtime::GUI::Keymap::OnImGuiRender();
 	Runtime::GUI::PopupRasterSettings(showRasterSettings);
+	Runtime::GUI::PopupViewportSettings(showViewportSettings);
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }
 
