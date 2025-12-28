@@ -17,6 +17,7 @@ namespace Runtime
 
 		inline void FindWindow() { SetPositionOnNextDraw = true; }
 		[[nodiscard]] std::array<ImVec2, 2> GetViewportBounds() const;
+		[[nodiscard]] std::array<ImVec2, 2> GetImageDisplayBounds() const { return { ImageDisplayMin, ImageDisplayMax }; }
 
 		void OnUpdate(Cast::Timestep ts, bool hasCameraChanged = false) override;
 		void OnRender() override;
@@ -61,5 +62,9 @@ namespace Runtime
 		bool IsCameraRotating = false;
 		bool IsGizmoScaleURendered = false;
 		glm::vec2 RelativeMousePosition = {0.0f, 0.f};
+
+		float CachedAspectRatio = 1.0f;
+		ImVec2 ImageDisplayMin = {0.0f, 0.0f};
+		ImVec2 ImageDisplayMax = {0.0f, 0.0f};
 	};
 }

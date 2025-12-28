@@ -130,39 +130,67 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 	constexpr char windowName[] = ICON_FA_IMAGE " Raster-Viewport";
 
+	auto aspectRatioConstraint = [](ImGuiSizeCallbackData* data) {
+		const float aspect = *static_cast<float*>(data->UserData);
+		const float titleBarHeight = ImGui::GetFrameHeight();
+		const float paddingY = ImGui::GetStyle().WindowPadding.y * 2.0f;
+		const float paddingX = ImGui::GetStyle().WindowPadding.x * 2.0f;
+
+		const float contentHeight = data->DesiredSize.y - titleBarHeight - paddingY;
+		const float contentWidth = contentHeight * aspect;
+		data->DesiredSize.x = contentWidth + paddingX;
+	};
+
+	float aspectCopy = CachedAspectRatio;
+	ImGui::SetNextWindowSizeConstraints(
+		ImVec2(100, 100),
+		ImVec2(FLT_MAX, FLT_MAX),
+		aspectRatioConstraint,
+		&aspectCopy
+	);
+
 	if (IsMainComponentHovered)
 		ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_NoMove);
 	else
 		ImGui::Begin(windowName, nullptr);
 
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+
+	float displayWidth = viewportSize.y * CachedAspectRatio;
+	float displayHeight = viewportSize.y;
+
+	if (displayWidth > viewportSize.x)
+	{
+		displayWidth = viewportSize.x;
+		displayHeight = displayWidth / CachedAspectRatio;
+	}
+
+	const ImVec2 displaySize(displayWidth, displayHeight);
+
+	const ImVec2 contentMin = ImGui::GetCursorScreenPos();
+	ImageDisplayMin = contentMin;
+	ImageDisplayMax = ImVec2(contentMin.x + displayWidth, contentMin.y + displayHeight);
+
 	static auto lastViewportSize = ImVec2(0, 0);
 
 	if (viewportSize.x != lastViewportSize.x || viewportSize.y != lastViewportSize.y)
 	{
 		lastViewportSize = viewportSize;
 
-		// if (EditorContext.ViewSettings.AdjustToWindowSize)
-		// {
-		// 	EditorContext.ViewSettings.AdjustToWindowSize = false;
-		// 	DestroyViewport();
-		// 	BuildViewportOnInitOrResize({static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y)});
-		// }
-
 		switch (EditorContext.ActiveCamera.value()->GetType())
 		{
 		case Cast::Renderer::Camera::Type::Orthographic:
 			dynamic_cast<Cast::Renderer::OrthographicCamera*>(EditorContext.ActiveCamera.value())->SetFrustumOnResized(
-				lastViewportSize.x, lastViewportSize.y);
+				displayWidth, displayHeight);
 			break;
 		case Cast::Renderer::Camera::Type::Perspective:
 			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
-				lastViewportSize.x / lastViewportSize.y);
+				displayWidth / displayHeight);
 		}
 	}
 
 	const uint32_t textureID = PipelineData.Framebuffer->GetColorAttachmentTextureID(0);
-	ImGui::Image(textureID, lastViewportSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
+	ImGui::Image(textureID, displaySize, ImVec2(0, 1), ImVec2(1, 0)); // Flip vertically
 	const bool isCurrentlyHovered = ImGui::IsItemHovered() &&
 						 ImGui::GetCurrentWindow()->Name == std::string(windowName);
 
@@ -234,6 +262,7 @@ void Runtime::RasterizationViewport::OnRender()
 void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
 {
 	RenderedSize = size;
+	CachedAspectRatio = size.x / size.y;
 
 	// Resize all framebuffers in-place
 	PipelineData.Framebuffer->Resize(size);
@@ -439,10 +468,13 @@ void Runtime::RasterizationViewport::RenderGizmos()
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetDrawlist();
 
-	const float windowWidth = ImGui::GetWindowWidth();
-	const float windowHeight = ImGui::GetWindowHeight();
+	// Use the actual displayed image bounds for gizmo rendering
+	const float gizmoX = ImageDisplayMin.x;
+	const float gizmoY = ImageDisplayMin.y;
+	const float gizmoWidth = ImageDisplayMax.x - ImageDisplayMin.x;
+	const float gizmoHeight = ImageDisplayMax.y - ImageDisplayMin.y;
 
-	ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+	ImGuizmo::SetRect(gizmoX, gizmoY, gizmoWidth, gizmoHeight);
 
 	float* cameraView = Runtime::EditorContext.ActiveCamera.value()->GetViewMatValuePtr();
 
@@ -494,7 +526,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 	constexpr float widgetWidth = 100.0f;
 	ImGuizmo::ViewManipulate(
 		cameraView, cameraDistance,
-		ImVec2(ImGui::GetWindowPos().x + windowWidth - widgetWidth - 15, ImGui::GetWindowPos().y + 38),
+		ImVec2(ImageDisplayMax.x - widgetWidth - 15, ImageDisplayMin.y + 5),
 		ImVec2(widgetWidth, widgetWidth),
 		0x10101010
 	);
@@ -508,6 +540,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 void Runtime::RasterizationViewport::BuildViewport(const glm::ivec2& viewportSize)
 {
 	RenderedSize = viewportSize;
+	CachedAspectRatio = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
 
 	// GBuffer
 	PipelineData.GBufferScreenGeometry.reset(
