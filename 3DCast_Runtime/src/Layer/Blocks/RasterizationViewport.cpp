@@ -261,6 +261,8 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
 {
+	if (size.x <= 0 || size.y <= 0) return;
+
 	RenderedSize = size;
 	CachedAspectRatio = size.x / size.y;
 
@@ -293,8 +295,13 @@ void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
 				static_cast<float>(size.x), static_cast<float>(size.y));
 			break;
 		case Cast::Renderer::Camera::Type::Perspective:
-			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
-				static_cast<float>(size.x) / static_cast<float>(size.y));
+			{
+				auto* perspCam = dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value());
+				if (perspCam) {
+					const float newAspect = static_cast<float>(size.x) / static_cast<float>(size.y);
+					perspCam->SetAspectRatio(newAspect);
+				}
+			}
 			break;
 		}
 	}

@@ -28,6 +28,7 @@ namespace Cast
 
 			virtual void LookAt(const glm::vec3& target, const glm::vec3& up = {0.f, 1.f, 0.f});
 
+			void MarkAsChanged();
 			virtual void MakeConsistentViewMatBase();
 
 			virtual inline void SetPosition(const glm::vec3& position)
@@ -101,6 +102,11 @@ namespace Cast
 			void UpdateViewMat();
 		protected:
 			void UpdateDirections();
+
+			inline void UpdateViewProjectionMat()
+			{
+				ViewProjectionMat = ProjectionMat * ViewMat;
+			}
 
 		protected:
 			UID ID = UID::Create();

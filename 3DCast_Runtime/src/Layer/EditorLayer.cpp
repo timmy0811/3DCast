@@ -35,8 +35,9 @@ void EditorLayer::OnAttach()
 	const Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
 
 	auto& cameraComponent = cameraEntity->AddComponents<Cast::Component::CameraComponent>();
-	cameraComponent.Camera = new Cast::Renderer::PerspectiveCamera(glm::radians(90.f), 1.5f, 0.1f, 100.f);
+	cameraComponent.Camera = new Cast::Renderer::PerspectiveCamera(glm::radians(85.f), 1.5f, 0.1f, 100.f);
 	cameraComponent.ownsCamera = true;
+	dynamic_cast<Cast::Renderer::PerspectiveCamera*>(cameraComponent.Camera)->SetFOV(85.0f);
 
 	Cast::Renderer::Camera* cam = cameraEntity->GetComponent<Cast::Component::CameraComponent>().Camera;
 	cam->SetPosition(glm::vec3(4.0f, 3.0f, 4.0f));
@@ -379,10 +380,11 @@ bool EditorLayer::OnMousePressed(const Cast::MouseButtonPressedEvent& e)
 	{
 		const Cast::Renderer::Camera* camera = Runtime::EditorContext.ActiveCamera.value();
 
+		const auto imageBounds = ViewportRasterization.GetImageDisplayBounds();
 		const glm::vec3 rayDir = Math::MousePositionToRayDirection(
 			ImGui::GetMousePos(),
-			ViewportRasterization.GetViewportBounds()[0],
-			ViewportRasterization.GetViewportBounds()[1],
+			imageBounds[0],
+			imageBounds[1],
 			camera->GetProjectionMat(),
 			camera->GetViewMat()
 		);

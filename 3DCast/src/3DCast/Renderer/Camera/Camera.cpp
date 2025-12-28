@@ -17,6 +17,11 @@ auto Cast::Renderer::Camera::LookAt(const glm::vec3& target, const glm::vec3& up
 	UpdateViewMat();
 }
 
+void Cast::Renderer::Camera::MarkAsChanged()
+{
+	memset(HasChangedField, true, sizeof(HasChangedField));
+}
+
 void Cast::Renderer::Camera::MakeConsistentViewMatBase()
 {
 	glm::vec3 rotation;

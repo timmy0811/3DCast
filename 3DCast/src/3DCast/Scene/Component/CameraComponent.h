@@ -1,7 +1,6 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
-#include "3DCast/Renderer/Renderer.h"
 
 #include <imgui.h>
 
@@ -89,6 +88,17 @@ namespace Cast::Component {
 
 				Camera->SetPosition(position);
 				Camera->SetRotation(rotation);
+
+				if (Camera->GetType() == Renderer::Camera::Type::Perspective) {
+					if (auto* perspectiveCam = dynamic_cast<Renderer::PerspectiveCamera*>(Camera)) {
+						float fov = perspectiveCam->GetFOV();
+						ImGui::Text("FOV");
+						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						if (ImGui::DragFloat("##FOV", &fov, 1.0f, 5.0f, 175.0f, "%.1f°")) {
+							perspectiveCam->SetFOV(fov);
+						}
+					}
+				}
 			}
 
 			return {};
