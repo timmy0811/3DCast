@@ -21,6 +21,8 @@ namespace Runtime
 		void OnUpdate(Cast::Timestep ts, bool hasCameraChanged = false) override;
 		void OnRender() override;
 
+		void Resize(const glm::vec2& size) override;
+
 		void OnImGuiRender() override;
 
 		void OnEvent(Cast::Event& e) override;
@@ -28,7 +30,15 @@ namespace Runtime
 		static void UpdateCameraUniforms();
 		static bool IsUsingGizmo();
 		static bool IsHoveringGizmo();
-		inline bool IsGizmoScaleU() const { return IsGizmoScaleURendered; }
+		[[nodiscard]] bool IsGizmoScaleU() const { return IsGizmoScaleURendered; }
+
+	public:
+		void OnResizeCallback();
+
+		static void CompileShaders();
+
+		// Event Handlers
+		bool OnMouseMoved(Cast::MouseMovedEvent& e);
 
 	private:
 		void RenderGeometryPass() const;
@@ -40,10 +50,8 @@ namespace Runtime
 
 		void RenderGizmos();
 
-		static void CompileShaders();
-
-		// Event Handlers
-		bool OnMouseMoved(Cast::MouseMovedEvent& e);
+		void BuildViewportOnInitOrResize(const glm::ivec2& viewportSize);
+		void DestroyViewport();
 
 	private:
 		Cast::Renderer::RasterizationPipelineObjects PipelineData;

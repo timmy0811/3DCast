@@ -4,6 +4,8 @@
 
 #include "Data/SharedEditorData.h"
 
+#include <functional>
+
 namespace Runtime::GUI
 {
     inline void PopupRasterSettings(bool open)
@@ -100,7 +102,7 @@ namespace Runtime::GUI
         }
     }
 
-    inline void PopupViewportSettings(bool open)
+    inline void PopupViewportSettings(bool open, const std::function<void()>& onResizeCallback)
     {
         if (open)
         {
@@ -141,6 +143,20 @@ namespace Runtime::GUI
                 ImGui::InputInt("##ViewportHeight", &Runtime::EditorContext.ViewSettings.ViewportHeight);
                 ImGui::EndDisabled();
 
+                // Filter Mode
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Texture Filter");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+
+                const char* filterModes[] = { "Nearest (Pixelated)", "Linear (Smooth)" };
+                int currentFilter = static_cast<int>(Runtime::EditorContext.ViewSettings.FilterMode);
+                if (ImGui::Combo("##FilterMode", &currentFilter, filterModes, IM_ARRAYSIZE(filterModes)))
+                {
+                    Runtime::EditorContext.ViewSettings.FilterMode = static_cast<Runtime::ViewportFilterMode>(currentFilter);
+                }
+
                 ImGui::EndTable();
             }
 
@@ -158,7 +174,10 @@ namespace Runtime::GUI
 
                 if (ImGui::Button("Apply"))
                 {
-                    Runtime::EditorContext.ViewSettings.NeedsResize = true;
+                    if (onResizeCallback)
+                    {
+                        onResizeCallback();
+                    }
                     ImGui::CloseCurrentPopup();
                 }
             }

@@ -13,6 +13,8 @@ namespace Runtime {
 		void Init() override;
 		void Destroy() override;
 
+		void Resize(const glm::vec2& size) override;
+
 		void OnUpdate(Cast::Timestep ts, bool hasCameraChanged = false) override;
 		void OnRender() override;
 

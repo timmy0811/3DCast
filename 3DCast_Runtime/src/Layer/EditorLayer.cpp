@@ -340,7 +340,9 @@ void EditorLayer::OnImGuiRender()
 	Runtime::GUI::EventConsole::OnImGuiRender();
 	Runtime::GUI::Keymap::OnImGuiRender();
 	Runtime::GUI::PopupRasterSettings(showRasterSettings);
-	Runtime::GUI::PopupViewportSettings(showViewportSettings);
+	Runtime::GUI::PopupViewportSettings(showViewportSettings, [this]() {
+		ViewportRasterization.OnResizeCallback();
+	});
 	Cast::GUI::TempGuiElementCollection::OnImGuiRender();
 }
 

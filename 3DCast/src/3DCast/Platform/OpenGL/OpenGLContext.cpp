@@ -49,6 +49,8 @@ void Cast::OpenGLContext::Init()
 		LOG_CORE_WARN(
 			"Your GPU kernel does not support bindless textures. This may cause the application to not work properly.");
 	}
+
+	glEnable(GL_MULTISAMPLE);
 }
 
 void Cast::OpenGLContext::SwapBuffer()

@@ -50,6 +50,10 @@ void Cast::IconRenderer::RenderAll() const
 	shader->SetUniform1i("u_Pallete", Pallete->GetBoundPort());
 
 	API::Core::RenderCommand::DrawInstanced(Va, 6, IconsToBeRendered);
+
+	// Unbind palette and shader to prevent interference with subsequent rendering
+	Pallete->Unbind();
+	shader->Unbind();
 }
 
 void Cast::IconRenderer::ParsePalleteConfig(const std::string& palletePath)

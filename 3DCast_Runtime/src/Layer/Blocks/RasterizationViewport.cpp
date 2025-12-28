@@ -10,13 +10,10 @@
 #include <3DCast/Event/MouseEvent.h>
 
 #include <vendor/glm/gtc/type_ptr.hpp>
-#include <vendor/glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <entt/entt.hpp>
-#include <cfloat>
-
 
 Runtime::RasterizationViewport::RasterizationViewport(Cast::Layer* parent)
 	: Viewport(parent)
@@ -27,96 +24,27 @@ void Runtime::RasterizationViewport::Init()
 {
 	Cast::Memory::BatchMemoryHandler.Init(sizeof(Cast::Memory::BatchVertexShaderObject) * MAX_BATCH_VERTICES, MAX_BATCH_INDICES);
 
-#pragma region SHADOWMAP
-	{
-		constexpr std::array<glm::ivec2, API::Advanced::CascadedShadowMap::CascadeCount> csmSizes = {
-			glm::ivec2(2048, 2048),
-			glm::ivec2(1024, 1024),
-			glm::ivec2(512, 512)
-		};
-		PipelineData.ShadowProcessor = Cast::CreateRef<Cast::Renderer::CSMProcessor>();
-		PipelineData.ShadowProcessor->Init(csmSizes);
-	}
-#pragma endregion SHADOWMAP
-
-#pragma region GBUFFER
-	PipelineData.GBufferScreenGeometry.reset(
-		API::Advanced::GBufferScreenGeometry::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));
-	PipelineData.Framebuffer.reset(
-		API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT)));
-	PipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(conf.WIN_WIDTH, conf.WIN_HEIGHT));
-
-	PipelineData.GBuffer->Bind();
-	PipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT,
-	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT,
-	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT,
-	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT,
-	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
-	PipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16,
-	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
-
-	PipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
-	PipelineData.GBuffer->AddStencilTarget();
-	PipelineData.GBuffer->Validate();
-
-	// Bind GBuffer textures
-	PipelineData.GBuffer->BindDepthTexture(0);
-	PipelineData.GBuffer->BindTextures(1);
-#pragma endregion
-
-#pragma region SSAO
-	PipelineData.SSAOFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT), false));
-	PipelineData.SSAOFramebuffer->Bind();
-	PipelineData.SSAOFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
-	std::ignore = PipelineData.SSAOFramebuffer->Validate();
-	PipelineData.SSAOFramebuffer->Unbind();
-
-	PipelineData.SSAOBlurFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(conf.WIN_WIDTH, conf.WIN_HEIGHT), false));
-	PipelineData.SSAOBlurFramebuffer->Bind();
-	PipelineData.SSAOBlurFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
-	std::ignore = PipelineData.SSAOBlurFramebuffer->Validate();
-	PipelineData.SSAOBlurFramebuffer->Unbind();
-
-	// Initialize SSAO processor
-	PipelineData.SSAOProcessor.reset(API::Advanced::SSAO::Create());
-	PipelineData.SSAOProcessor->GenerateSampleKernel(64);
-	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
-#pragma endregion
-
 	CompileShaders();
+	BuildViewportOnInitOrResize({conf.WIN_WIDTH, conf.WIN_HEIGHT});
 
-	// Setup shading pass samplers
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
-	shader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	shader->SetUniform1i("gBuf_Normal", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	shader->SetUniform1i("gBuf_Albedo", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo"));
-	shader->SetUniform1i("gBuf_Specular", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular"));
-	shader->SetUniform1i("gBuf_Shine_Reflectance",
-	                     (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance"));
-	// SSAO blurred texture will be bound to slot 7
-	shader->SetUniform1i("u_SSAO", 7);
 
 	// Cascaded shadow maps
+	constexpr std::array<glm::ivec2, API::Advanced::CascadedShadowMap::CascadeCount> csmSizes = {
+		glm::ivec2(2048, 2048),
+		glm::ivec2(1024, 1024),
+		glm::ivec2(512, 512)
+	};
+	PipelineData.ShadowProcessor = Cast::CreateRef<Cast::Renderer::CSMProcessor>();
+	PipelineData.ShadowProcessor->Init(csmSizes);
+
 	shader->SetUniform1i("u_ShadowMap[0]", 10);
 	shader->SetUniform1i("u_ShadowMap[1]", 11);
 	shader->SetUniform1i("u_ShadowMap[2]", 12);
 	shader->Unbind();
 
-	// Setup SSAO shader samplers
-	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
-	ssaoShader->Bind();
-	ssaoShader->SetUniform1i("gBuf_Position", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Position"));
-	ssaoShader->SetUniform1i("gBuf_Normal", (int)PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal"));
-	ssaoShader->SetUniform1i("texNoise", 6);
-	ssaoShader->SetUniform1i("kernelSize", 64);
-	ssaoShader->SetUniform2f("screenSize", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
-	ssaoShader->Unbind();
-
-	// Setup SSAO blur shader sampler
+	// SSAO
 	const Cast::Ref<API::Core::Shader> ssaoBlurShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao_blur");
 	ssaoBlurShader->Bind();
 	ssaoBlurShader->SetUniform1i("ssaoInput", 0);
@@ -193,20 +121,26 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 
 	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 	static auto lastViewportSize = ImVec2(0, 0);
+
 	if (viewportSize.x != lastViewportSize.x || viewportSize.y != lastViewportSize.y)
 	{
 		lastViewportSize = viewportSize;
 
-		//Framebuffer->Resize({ static_cast<uint32_t>(viewportSize.x), static_cast<uint32_t>(viewportSize.y) });
+		// if (EditorContext.ViewSettings.AdjustToWindowSize)
+		// {
+		// 	EditorContext.ViewSettings.AdjustToWindowSize = false;
+		// 	DestroyViewport();
+		// 	BuildViewportOnInitOrResize({static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y)});
+		// }
 
 		switch (EditorContext.ActiveCamera.value()->GetType())
 		{
 		case Cast::Renderer::Camera::Type::Orthographic:
-			((Cast::Renderer::OrthographicCamera*)EditorContext.ActiveCamera.value())->SetFrustumOnResized(
+			dynamic_cast<Cast::Renderer::OrthographicCamera*>(EditorContext.ActiveCamera.value())->SetFrustumOnResized(
 				lastViewportSize.x, lastViewportSize.y);
 			break;
 		case Cast::Renderer::Camera::Type::Perspective:
-			((Cast::Renderer::PerspectiveCamera*)EditorContext.ActiveCamera.value())->SetAspectRatio(
+			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
 				lastViewportSize.x / lastViewportSize.y);
 		}
 	}
@@ -248,8 +182,8 @@ void Runtime::RasterizationViewport::OnImGuiRender()
 #endif
 
 	Cast::Shared.WindowCenter = {
-		applicationAbsPos.x + (float)ParentLayer->GetParentWindow()->GetWidth() * 0.5f,
-		applicationAbsPos.y + (float)ParentLayer->GetParentWindow()->GetHeight() * 0.5f
+		applicationAbsPos.x + static_cast<float>(ParentLayer->GetParentWindow()->GetWidth()) * 0.5f,
+		applicationAbsPos.y + static_cast<float>(ParentLayer->GetParentWindow()->GetHeight()) * 0.5f
 	};
 
 	RelativeMousePosition = {ImGui::GetMousePos().x - viewportAbsPos.x, ImGui::GetMousePos().y - viewportAbsPos.y};
@@ -274,11 +208,15 @@ void Runtime::RasterizationViewport::OnRender()
 
 	RenderLightingPass();
 	API::Core::RenderCommand::CopyDepthBuffer(PipelineData.GBuffer->GetInternalId(),
-	                                          PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH,
-	                                          (int)conf.WIN_HEIGHT);
+	                                          PipelineData.Framebuffer->GetInternalId(), RenderedSize.x,
+	                                          RenderedSize.y);
 	RenderForwardPass();
 
 	Cast::Renderer::RendererContext::EndScene();
+}
+
+void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
+{
 }
 
 void Runtime::RasterizationViewport::RenderShadowPassCSM() const
@@ -329,7 +267,7 @@ void Runtime::RasterizationViewport::RenderSSAOPass() const
 	ssaoShader->Bind();
 	ssaoShader->SetUniformMat4f("projection", EditorContext.ActiveCamera.value()->GetProjectionMat());
 	ssaoShader->SetUniformMat4f("view", EditorContext.ActiveCamera.value()->GetViewMat());
-	ssaoShader->SetUniform2f("screenSize", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	ssaoShader->SetUniform2f("screenSize", static_cast<float>(RenderedSize.x), static_cast<float>(RenderedSize.y));
 	ssaoShader->SetUniform3fv("ssaoSamples", 64, PipelineData.SSAOProcessor->getKernelAllocator());
 
 	PipelineData.GBufferScreenGeometry->Draw(ssaoShader.get());
@@ -344,7 +282,6 @@ void Runtime::RasterizationViewport::RenderSSAOBlurPass() const
 
 	PipelineData.SSAOBlurFramebuffer->BindAndClear();
 
-	// Bind SSAO texture to slot 0 for blur shader
 	PipelineData.SSAOFramebuffer->BindTexture(0, 0);
 
 	const Cast::Ref<API::Core::Shader> ssaoBlurShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao_blur");
@@ -372,18 +309,17 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 
 	// Copy stencil from GBuffer so shading only runs where geometry was drawn
 	API::Core::RenderCommand::CopyStencilBuffer(PipelineData.GBuffer->GetInternalId(),
-												   PipelineData.Framebuffer->GetInternalId(), (int)conf.WIN_WIDTH, (int)conf.WIN_HEIGHT);
+												   PipelineData.Framebuffer->GetInternalId(), RenderedSize.x, RenderedSize.y);
 
 	Cast::Shared.ActiveScene->BindSSBOForShadingPass();
 
 	// Lighting Pass Uniforms
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
-	shader->SetUniform2f("u_Resolution", (float)conf.WIN_WIDTH, (float)conf.WIN_HEIGHT);
+	shader->SetUniform2f("u_Resolution", static_cast<float>(RenderedSize.x), static_cast<float>(RenderedSize.y));
 	const float aoAffect = EditorContext.ViewSettings.SSAOEnabled ? EditorContext.ViewSettings.SSAOAffectness : 0.0f;
 	shader->SetUniform1f("u_SSAOAffectness", aoAffect);
 
-	// Shadow uniforms (CSM)
 	const bool hasShadows = PipelineData.ShadowProcessor && PipelineData.ShadowProcessor->HasShadowMapData();
 	shader->SetUniform1i("u_HasShadowMap", (int)hasShadows);
 	if (hasShadows)
@@ -399,7 +335,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	}
 	shader->SetUniformMat4f("u_View", EditorContext.ActiveCamera.value()->GetViewMat());
 
-	// Enable stencil test to mask the fullscreen quad to actual geometry
 	API::Core::RenderCommand::SetStencilTest(true);
 	API::Core::RenderCommand::SetDefaultStencilTest();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
@@ -419,18 +354,18 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 {
 	PipelineData.Framebuffer->Bind();
 
-	// Ensure depth testing is enabled for forward/overlay rendering
+	// EnaLE depth testing for forward/overlay rendering
 	API::Core::RenderCommand::SetDepthTest(true);
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
-	// Render any forward-rendered scene content (e.g., transparent)
+	// Render any forward-rendered scene content
 	Cast::Shared.ActiveScene->OnForwardRender();
 
 	// Render skybox behind geometry using LEQUAL
 	EditorContext.Skybox.BindCurrentCubemap(6);
 	EditorContext.Skybox.Render();
 
-	// Infinite grid should be depth-tested so it does not draw over geometry
+	// Depth test grid
 	if (!Cast::Shared.ActiveScene->GetInRenderView())
 	{
 		API::Core::RenderCommand::SetBlend(true);
@@ -515,6 +450,166 @@ void Runtime::RasterizationViewport::RenderGizmos()
 	if (ImGuizmo::IsUsingViewManipulate())
 	{
 		Runtime::EditorContext.ActiveCamera.value()->MakeConsistentViewMatBase();
+	}
+}
+
+void Runtime::RasterizationViewport::BuildViewportOnInitOrResize(const glm::ivec2& viewportSize)
+{
+	RenderedSize = viewportSize;
+
+	// GBuffer
+	PipelineData.GBufferScreenGeometry.reset(
+		API::Advanced::GBufferScreenGeometry::Create(viewportSize.x, viewportSize.y));
+	PipelineData.Framebuffer.reset(
+		API::Core::Framebuffer::Create(glm::ivec2(viewportSize.x, viewportSize.y)));
+	PipelineData.GBuffer.reset(API::Advanced::GBuffer::Create(viewportSize.x, viewportSize.y));
+
+	PipelineData.GBuffer->Bind();
+	PipelineData.GBuffer->AddRenderTarget("Position", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Normal", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Albedo", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Specular", 3, API::Core::BufferDataType::_FLOAT,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+	PipelineData.GBuffer->AddRenderTarget("Shine_Reflectance", 2, API::Core::BufferDataType::_FLOAT16,
+	                                      API::Core::WrapMethod::CLAMP_TO_EDGE);
+
+	PipelineData.GBuffer->AddDepthTarget(API::Core::DepthBufferType::WRITE_ONLY);
+	PipelineData.GBuffer->AddStencilTarget();
+	PipelineData.GBuffer->Validate();
+
+	// Bind GBuffer textures
+	PipelineData.GBuffer->BindDepthTexture(0);
+	PipelineData.GBuffer->BindTextures(1);
+
+	// GBuffer uniforms
+	const Cast::Ref<API::Core::Shader> shader_shading = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
+	shader_shading->Bind();
+	shader_shading->SetUniform1i("gBuf_Position", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Position")));
+	shader_shading->SetUniform1i("gBuf_Normal", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal")));
+	shader_shading->SetUniform1i("gBuf_Albedo", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Albedo")));
+	shader_shading->SetUniform1i("gBuf_Specular", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Specular")));
+	shader_shading->SetUniform1i("gBuf_Shine_Reflectance",
+						 static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Shine_Reflectance")));
+
+	// SSAO
+	PipelineData.SSAOFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(viewportSize.x, viewportSize.y), false));
+	PipelineData.SSAOFramebuffer->Bind();
+	PipelineData.SSAOFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
+	std::ignore = PipelineData.SSAOFramebuffer->Validate();
+	PipelineData.SSAOFramebuffer->Unbind();
+
+	PipelineData.SSAOBlurFramebuffer.reset(API::Core::Framebuffer::Create(glm::ivec2(viewportSize.x, viewportSize.y), false));
+	PipelineData.SSAOBlurFramebuffer->Bind();
+	PipelineData.SSAOBlurFramebuffer->PushColorAttribute(1, API::Core::BufferDataType::_FLOAT, nullptr);
+	std::ignore = PipelineData.SSAOBlurFramebuffer->Validate();
+	PipelineData.SSAOBlurFramebuffer->Unbind();
+
+	// Initialize SSAO processor
+	PipelineData.SSAOProcessor.reset(API::Advanced::SSAO::Create());
+	PipelineData.SSAOProcessor->GenerateSampleKernel(64);
+	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
+
+	// SSAO uniforms
+	shader_shading->SetUniform1i("u_SSAO", 7);
+	shader_shading->Unbind();
+
+	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
+	ssaoShader->Bind();
+	ssaoShader->SetUniform1i("gBuf_Position", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Position")));
+	ssaoShader->SetUniform1i("gBuf_Normal", static_cast<int>(PipelineData.GBuffer->GetTargetBoundTextureSlot("Normal")));
+	ssaoShader->SetUniform1i("texNoise", 6);
+	ssaoShader->SetUniform1i("kernelSize", 64);
+	ssaoShader->SetUniform2f("screenSize", static_cast<float>(viewportSize.x), static_cast<float>(viewportSize.y));
+	ssaoShader->Unbind();
+}
+
+void Runtime::RasterizationViewport::DestroyViewport()
+{
+	// Unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	// Unbind shader
+	glUseProgram(0);
+
+	// Clear bound textures to prevent dangling references
+	for (int i = 0; i < 32; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+
+	// Unbind renderbuffer
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// Destroy SSAO resources
+	PipelineData.SSAOProcessor.reset();
+	PipelineData.SSAOBlurFramebuffer.reset();
+	PipelineData.SSAOFramebuffer.reset();
+
+	// Destroy GBuffer resources
+	PipelineData.GBuffer.reset();
+	PipelineData.GBufferScreenGeometry.reset();
+	PipelineData.Framebuffer.reset();
+
+	// Force synchronisation
+	glFinish();
+}
+
+void Runtime::RasterizationViewport::OnResizeCallback()
+{
+	glm::ivec2 newSize;
+	if (EditorContext.ViewSettings.AdjustToWindowSize)
+	{
+		newSize = {static_cast<int>(Size.x), static_cast<int>(Size.y)};
+	}
+	else
+	{
+		newSize = {EditorContext.ViewSettings.ViewportWidth, EditorContext.ViewSettings.ViewportHeight};
+	}
+
+	RenderedSize = newSize;
+
+	// Resize all framebuffers in-place
+	PipelineData.Framebuffer->Resize(newSize);
+	PipelineData.GBuffer->Resize(static_cast<unsigned int>(newSize.x), static_cast<unsigned int>(newSize.y));
+	PipelineData.SSAOFramebuffer->Resize(newSize);
+	PipelineData.SSAOBlurFramebuffer->Resize(newSize);
+
+	// Apply texture filter mode to the main viewport framebuffer
+	const unsigned int glFilter = (EditorContext.ViewSettings.FilterMode == ViewportFilterMode::Nearest)
+		? GL_NEAREST : GL_LINEAR;
+	PipelineData.Framebuffer->SetColorAttachmentFilter(0, glFilter);
+
+	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
+
+	// Update SSAO shader uniforms with new screen size
+	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
+	ssaoShader->Bind();
+	ssaoShader->SetUniform2f("screenSize", static_cast<float>(newSize.x), static_cast<float>(newSize.y));
+	ssaoShader->Unbind();
+
+	// Update camera aspect ratio
+	if (EditorContext.ActiveCamera.has_value())
+	{
+		switch (EditorContext.ActiveCamera.value()->GetType())
+		{
+		case Cast::Renderer::Camera::Type::Orthographic:
+			dynamic_cast<Cast::Renderer::OrthographicCamera*>(EditorContext.ActiveCamera.value())->SetFrustumOnResized(
+				static_cast<float>(newSize.x), static_cast<float>(newSize.y));
+			break;
+		case Cast::Renderer::Camera::Type::Perspective:
+			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
+				static_cast<float>(newSize.x) / static_cast<float>(newSize.y));
+			break;
+		}
 	}
 }
 

@@ -13,6 +13,10 @@ void Runtime::PBRViewport::Destroy()
 {
 }
 
+void Runtime::PBRViewport::Resize(const glm::vec2& size)
+{
+}
+
 void Runtime::PBRViewport::OnUpdate(Cast::Timestep ts, bool hasCameraChanged)
 {
 }

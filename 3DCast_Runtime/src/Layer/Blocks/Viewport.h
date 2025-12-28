@@ -29,7 +29,7 @@ namespace Runtime
 		inline void SetHovered(const bool hovered) { IsHovered = hovered; }
 		inline void SetMainComponentHovered(const bool hovered) { IsMainComponentHovered = hovered; }
 
-		inline void SetSize(const glm::vec2& size) { Size = size; }
+		virtual void Resize(const glm::vec2& size) = 0;
 		[[nodiscard]] inline const glm::vec2& GetSize() const { return Size; }
 
 		[[nodiscard]] inline bool IsViewportFocused() const { return IsFocused; }
@@ -41,7 +41,10 @@ namespace Runtime
 		bool IsFocused = false;
 		bool IsHovered = false;
 		bool IsMainComponentHovered = false;
-		glm::vec2 Size = {0.0f, 0.0f};
+
 		glm::vec2 Position = {0.0f, 0.0f}; // Position relative to the parent window
+
+		glm::ivec2 Size = {0.0f, 0.0f};
+		glm::ivec2 RenderedSize = Size;
 	};
 }
