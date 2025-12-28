@@ -261,6 +261,7 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
 {
+	LOG_TRACE("Resizing RasterizationViewport to {}x{}", size.x, size.y);
 	if (size.x <= 0 || size.y <= 0) return;
 
 	RenderedSize = size;
@@ -546,6 +547,8 @@ void Runtime::RasterizationViewport::RenderGizmos()
 
 void Runtime::RasterizationViewport::BuildViewport(const glm::ivec2& viewportSize)
 {
+	LOG_TRACE("Building RasterizationViewport with size {}x{}", viewportSize.x, viewportSize.y);
+
 	RenderedSize = viewportSize;
 	CachedAspectRatio = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
 
@@ -630,6 +633,7 @@ void Runtime::RasterizationViewport::OnResizeCallback()
 		newSize = {EditorContext.ViewSettings.ViewportWidth, EditorContext.ViewSettings.ViewportHeight};
 	}
 
+	LOG_TRACE("RasterizationViewport resolution change requested to {}x{}", newSize.x, newSize.y);
 	Resize(newSize);
 }
 
