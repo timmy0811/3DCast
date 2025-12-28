@@ -30,7 +30,8 @@ namespace Runtime
 		inline void SetMainComponentHovered(const bool hovered) { IsMainComponentHovered = hovered; }
 
 		virtual void Resize(const glm::vec2& size) = 0;
-		[[nodiscard]] inline const glm::vec2& GetSize() const { return Size; }
+		[[nodiscard]] inline glm::vec2 GetWindowSize() const { return Size; }
+		[[nodiscard]] inline glm::vec2 GetRenderedSize() const { return RenderedSize; }
 
 		[[nodiscard]] inline bool IsViewportFocused() const { return IsFocused; }
 		[[nodiscard]] inline bool IsViewportHovered() const { return IsHovered; }

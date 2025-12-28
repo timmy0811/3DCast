@@ -50,8 +50,7 @@ namespace Runtime
 
 		void RenderGizmos();
 
-		void BuildViewportOnInitOrResize(const glm::ivec2& viewportSize);
-		void DestroyViewport();
+		void BuildViewport(const glm::ivec2& viewportSize);
 
 	private:
 		Cast::Renderer::RasterizationPipelineObjects PipelineData;

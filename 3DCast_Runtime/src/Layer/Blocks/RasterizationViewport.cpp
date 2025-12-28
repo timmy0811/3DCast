@@ -25,7 +25,7 @@ void Runtime::RasterizationViewport::Init()
 	Cast::Memory::BatchMemoryHandler.Init(sizeof(Cast::Memory::BatchVertexShaderObject) * MAX_BATCH_VERTICES, MAX_BATCH_INDICES);
 
 	CompileShaders();
-	BuildViewportOnInitOrResize({conf.WIN_WIDTH, conf.WIN_HEIGHT});
+	BuildViewport({conf.WIN_WIDTH, conf.WIN_HEIGHT});
 
 	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
 	shader->Bind();
@@ -62,6 +62,22 @@ void Runtime::RasterizationViewport::Init()
 
 void Runtime::RasterizationViewport::Destroy()
 {
+	API::Core::RenderCommand::UnbindAllFramebuffers();
+	API::Core::RenderCommand::UnbindShaderProgram();
+	API::Core::RenderCommand::UnbindAllTextures(32);
+	API::Core::RenderCommand::UnbindRenderbuffer();
+
+	// Destroy SSAO resources
+	PipelineData.SSAOProcessor.reset();
+	PipelineData.SSAOBlurFramebuffer.reset();
+	PipelineData.SSAOFramebuffer.reset();
+
+	// Destroy GBuffer resources
+	PipelineData.GBuffer.reset();
+	PipelineData.GBufferScreenGeometry.reset();
+	PipelineData.Framebuffer.reset();
+
+	API::Core::RenderCommand::ForceSync();
 }
 
 std::array<ImVec2, 2> Runtime::RasterizationViewport::GetViewportBounds() const
@@ -217,6 +233,42 @@ void Runtime::RasterizationViewport::OnRender()
 
 void Runtime::RasterizationViewport::Resize(const glm::vec2& size)
 {
+	RenderedSize = size;
+
+	// Resize all framebuffers in-place
+	PipelineData.Framebuffer->Resize(size);
+	PipelineData.GBuffer->Resize(static_cast<unsigned int>(size.x), static_cast<unsigned int>(size.y));
+	PipelineData.SSAOFramebuffer->Resize(size);
+	PipelineData.SSAOBlurFramebuffer->Resize(size);
+
+	// Apply texture filter mode to the main viewport framebuffer
+	const unsigned int glFilter = (EditorContext.ViewSettings.FilterMode == ViewportFilterMode::Nearest)
+		? GL_NEAREST : GL_LINEAR;
+	PipelineData.Framebuffer->SetColorAttachmentFilter(0, glFilter);
+
+	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
+
+	// Update SSAO shader uniforms with new screen size
+	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
+	ssaoShader->Bind();
+	ssaoShader->SetUniform2f("screenSize", static_cast<float>(size.x), static_cast<float>(size.y));
+	ssaoShader->Unbind();
+
+	// Update camera aspect ratio
+	if (EditorContext.ActiveCamera.has_value())
+	{
+		switch (EditorContext.ActiveCamera.value()->GetType())
+		{
+		case Cast::Renderer::Camera::Type::Orthographic:
+			dynamic_cast<Cast::Renderer::OrthographicCamera*>(EditorContext.ActiveCamera.value())->SetFrustumOnResized(
+				static_cast<float>(size.x), static_cast<float>(size.y));
+			break;
+		case Cast::Renderer::Camera::Type::Perspective:
+			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
+				static_cast<float>(size.x) / static_cast<float>(size.y));
+			break;
+		}
+	}
 }
 
 void Runtime::RasterizationViewport::RenderShadowPassCSM() const
@@ -453,7 +505,7 @@ void Runtime::RasterizationViewport::RenderGizmos()
 	}
 }
 
-void Runtime::RasterizationViewport::BuildViewportOnInitOrResize(const glm::ivec2& viewportSize)
+void Runtime::RasterizationViewport::BuildViewport(const glm::ivec2& viewportSize)
 {
 	RenderedSize = viewportSize;
 
@@ -526,43 +578,6 @@ void Runtime::RasterizationViewport::BuildViewportOnInitOrResize(const glm::ivec
 	ssaoShader->Unbind();
 }
 
-void Runtime::RasterizationViewport::DestroyViewport()
-{
-	// Unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-	// Unbind shader
-	glUseProgram(0);
-
-	// Clear bound textures to prevent dangling references
-	for (int i = 0; i < 32; ++i)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	}
-
-	glActiveTexture(GL_TEXTURE0);
-
-	// Unbind renderbuffer
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// Destroy SSAO resources
-	PipelineData.SSAOProcessor.reset();
-	PipelineData.SSAOBlurFramebuffer.reset();
-	PipelineData.SSAOFramebuffer.reset();
-
-	// Destroy GBuffer resources
-	PipelineData.GBuffer.reset();
-	PipelineData.GBufferScreenGeometry.reset();
-	PipelineData.Framebuffer.reset();
-
-	// Force synchronisation
-	glFinish();
-}
-
 void Runtime::RasterizationViewport::OnResizeCallback()
 {
 	glm::ivec2 newSize;
@@ -575,42 +590,7 @@ void Runtime::RasterizationViewport::OnResizeCallback()
 		newSize = {EditorContext.ViewSettings.ViewportWidth, EditorContext.ViewSettings.ViewportHeight};
 	}
 
-	RenderedSize = newSize;
-
-	// Resize all framebuffers in-place
-	PipelineData.Framebuffer->Resize(newSize);
-	PipelineData.GBuffer->Resize(static_cast<unsigned int>(newSize.x), static_cast<unsigned int>(newSize.y));
-	PipelineData.SSAOFramebuffer->Resize(newSize);
-	PipelineData.SSAOBlurFramebuffer->Resize(newSize);
-
-	// Apply texture filter mode to the main viewport framebuffer
-	const unsigned int glFilter = (EditorContext.ViewSettings.FilterMode == ViewportFilterMode::Nearest)
-		? GL_NEAREST : GL_LINEAR;
-	PipelineData.Framebuffer->SetColorAttachmentFilter(0, glFilter);
-
-	PipelineData.SSAOProcessor->GenerateSSAONoiseMap();
-
-	// Update SSAO shader uniforms with new screen size
-	const Cast::Ref<API::Core::Shader> ssaoShader = Cast::ShaderCacheRegistryInstance.GetHandle("ssao");
-	ssaoShader->Bind();
-	ssaoShader->SetUniform2f("screenSize", static_cast<float>(newSize.x), static_cast<float>(newSize.y));
-	ssaoShader->Unbind();
-
-	// Update camera aspect ratio
-	if (EditorContext.ActiveCamera.has_value())
-	{
-		switch (EditorContext.ActiveCamera.value()->GetType())
-		{
-		case Cast::Renderer::Camera::Type::Orthographic:
-			dynamic_cast<Cast::Renderer::OrthographicCamera*>(EditorContext.ActiveCamera.value())->SetFrustumOnResized(
-				static_cast<float>(newSize.x), static_cast<float>(newSize.y));
-			break;
-		case Cast::Renderer::Camera::Type::Perspective:
-			dynamic_cast<Cast::Renderer::PerspectiveCamera*>(EditorContext.ActiveCamera.value())->SetAspectRatio(
-				static_cast<float>(newSize.x) / static_cast<float>(newSize.y));
-			break;
-		}
-	}
+	Resize(newSize);
 }
 
 void Runtime::RasterizationViewport::CompileShaders()
