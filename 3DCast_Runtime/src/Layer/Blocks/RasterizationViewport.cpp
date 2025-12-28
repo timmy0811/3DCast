@@ -382,6 +382,15 @@ void Runtime::RasterizationViewport::RenderSSAOBlurPass() const
 
 void Runtime::RasterizationViewport::RenderLightingPass() const
 {
+	// Disable stencil test before clearing to ensure entire framebuffer is cleared
+	API::Core::RenderCommand::SetStencilTest(false);
+
+	// Set clear color before BindAndClear so background is properly colored
+	if (EditorContext.Skybox.GetRenderMode() == Cast::Renderer::Skybox::RenderMode::ClearColor)
+	{
+		API::Core::RenderCommand::SetClearColor(EditorContext.Skybox.GetClearColor());
+	}
+
 	PipelineData.Framebuffer->BindAndClear();
 	PipelineData.GBuffer->BindDepthTexture(0);
 	PipelineData.GBuffer->BindTextures(1);
@@ -428,9 +437,6 @@ void Runtime::RasterizationViewport::RenderLightingPass() const
 	API::Core::RenderCommand::SetDefaultStencilTest();
 	API::Core::RenderCommand::SetDepthTestFunc(API::Core::DepthFunction::Less);
 
-	API::Core::RenderCommand::SetClearColor(EditorContext.Skybox.GetClearColor());
-	API::Core::RenderCommand::Clear();
-
 	PipelineData.Framebuffer->Bind();
 
 	PipelineData.GBufferScreenGeometry->Draw(shader.get());
@@ -450,9 +456,12 @@ void Runtime::RasterizationViewport::RenderForwardPass() const
 	// Render any forward-rendered scene content
 	Cast::Shared.ActiveScene->OnForwardRender();
 
-	// Render skybox behind geometry using LEQUAL
-	EditorContext.Skybox.BindCurrentCubemap(6);
-	EditorContext.Skybox.Render();
+	// Render skybox behind geometry (only for Cubemap mode)
+	if (EditorContext.Skybox.GetRenderMode() == Cast::Renderer::Skybox::RenderMode::Cubemap)
+	{
+		EditorContext.Skybox.BindCurrentCubemap(6);
+		EditorContext.Skybox.Render();
+	}
 
 	// Depth test grid
 	if (!Cast::Shared.ActiveScene->GetInRenderView())
