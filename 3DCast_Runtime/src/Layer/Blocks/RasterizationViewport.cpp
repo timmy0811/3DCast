@@ -60,6 +60,7 @@ void Runtime::RasterizationViewport::Init()
 	EditorContext.Skybox.SetCubemapShaderCache(Cast::ShaderCacheRegistryInstance.GetHandle("cubemap"));
 
 	UpdateDitheringUniforms();
+	UpdateRetroUniforms();
 }
 
 void Runtime::RasterizationViewport::Destroy()
@@ -716,6 +717,17 @@ void Runtime::RasterizationViewport::UpdateDitheringUniforms()
 	shader->SetUniform1f("u_DitheringStrength", EditorContext.ViewSettings.DitheringStrength);
 	shader->SetUniform1i("u_ColorDepth", EditorContext.ViewSettings.DitheringColorDepth);
 	shader->SetUniform1f("u_DitheringScale", EditorContext.ViewSettings.DitheringScale);
+	shader->Unbind();
+}
+
+void Runtime::RasterizationViewport::UpdateRetroUniforms()
+{
+	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("geometry_pass");
+	shader->Bind();
+	shader->SetUniform1i("u_VertexSnappingEnabled", EditorContext.ViewSettings.VertexSnappingEnabled ? 1 : 0);
+	shader->SetUniform1f("u_VertexSnappingResolution", EditorContext.ViewSettings.VertexSnappingResolution);
+	shader->SetUniform1i("u_AffineTextureMappingEnabled", EditorContext.ViewSettings.AffineTextureMappingEnabled ? 1 : 0);
+	shader->SetUniform1f("u_AffineTextureStrength", EditorContext.ViewSettings.AffineTextureStrength);
 	shader->Unbind();
 }
 

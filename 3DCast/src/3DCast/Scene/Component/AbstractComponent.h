@@ -2,20 +2,9 @@
 
 #include "3DCast/Core.h"
 #include "3DCast/Scene/Component/Typedefinition.h"
-#include "3DCast/Misc/Icon.h"
+#include "3DCast/Gui/UIComponents.h"
 
 #include <string>
-
-#define GUIWIN_WSIXTH (ImGui::GetWindowWidth() * 0.16667f)
-#define GUIWIN_WQUARTER (ImGui::GetWindowWidth() * 0.25f)
-#define GUIWIN_WTHIRD (ImGui::GetWindowWidth() * 0.33333f)
-#define GUIWIN_WHalf (ImGui::GetWindowWidth() * 0.5f)
-
-#define TWOTHIRD_INPUT ImGui::SetNextItemWidth(GUIWIN_WTHIRD * 2.f - GUIWIN_ENDELEMENT_PADDING);
-
-#define GUIWIN_ELEMENT_PADDING 15.f
-#define GUIWIN_ENDELEMENT_PADDING 25.f
-#define DUMMYSPACE_AFTER_COMPONENT 8.f
 
 namespace Cast
 {

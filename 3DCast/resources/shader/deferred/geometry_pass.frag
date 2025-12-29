@@ -18,6 +18,9 @@ flat in vec3 v_T;
 flat in vec3 v_B;
 in vec3 v_N;
 
+noperspective in vec2 v_AffineUV;
+noperspective in float v_AffineW;
+
 // Bindless texture samplers
 layout(std430, binding = 1) buffer DiffuseSamplers {
     sampler2D diffuseSamplers[]; // diffuseSamplers[0] is neutral Element
@@ -67,6 +70,8 @@ layout(std430, binding = 6) buffer SamplerMap {
 // Uniforms
 uniform vec3 u_ViewPos;
 uniform float u_ParallaxScale;
+uniform bool u_AffineTextureMappingEnabled;
+uniform float u_AffineTextureStrength;  // 0.0 = perspective-correct, 1.0 = fully affine
 
 #include <components/texture/parallax_displace.frag>
 
@@ -77,13 +82,22 @@ void main()
 
     g_Position = v_FragPos;
 
+    // Affine texture mapping:
+    // v_AffineUV and v_AffineW are interpolated linearly (noperspective)
+    vec2 affineUV = v_AffineUV / v_AffineW;
+
+    // Blend between perspective-correct and affine UVs based on strength
+    vec2 baseUV = u_AffineTextureMappingEnabled
+        ? mix(v_UV, affineUV, u_AffineTextureStrength)
+        : v_UV;
+
     mat3 TBNInterpolated = mat3(v_T, v_B, v_N);
     mat3 TBN = transpose(TBNInterpolated);
     vec3 tangentViewDir = normalize(TBN * u_ViewPos - TBN * v_FragPos);
-    vec2 uv_displaced = parallaxMap(v_UV, tangentViewDir, mapping.parallaxIndex);
+    vec2 uv_displaced = parallaxMap(baseUV, tangentViewDir, mapping.parallaxIndex);
 
     float useDisplaced = step(0.5, float(mapping.parallaxIndex)); 
-    vec2 sampler_uv = useDisplaced * uv_displaced + (1.0 - useDisplaced) * v_UV;
+    vec2 sampler_uv = useDisplaced * uv_displaced + (1.0 - useDisplaced) * baseUV;
 
     if(sampler_uv.x > 1.0 || sampler_uv.y > 1.0 || sampler_uv.x < 0.0 || sampler_uv.y < 0.0)
         discard;

@@ -30,6 +30,8 @@ namespace Runtime
 
 		static void UpdateCameraUniforms();
 		static void UpdateDitheringUniforms();
+		static void UpdateRetroUniforms();
+
 		static bool IsUsingGizmo();
 		static bool IsHoveringGizmo();
 		[[nodiscard]] bool IsGizmoScaleU() const { return IsGizmoScaleURendered; }

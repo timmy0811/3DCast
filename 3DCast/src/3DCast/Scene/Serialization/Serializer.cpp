@@ -156,8 +156,9 @@ namespace Cast::Serialization
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap; // TagComponent
 
-            const auto& tag = entity->GetComponent<Component::TagComponent>().Tag;
-            out << YAML::Key << "Tag" << YAML::Value << tag;
+            const auto& tagComp = entity->GetComponent<Component::TagComponent>();
+            out << YAML::Key << "Tag" << YAML::Value << tagComp.Tag;
+            out << YAML::Key << "Icon" << YAML::Value << tagComp.Icon;
 
             out << YAML::EndMap; // TagComponent
         }
@@ -537,6 +538,14 @@ namespace Cast::Serialization
 
     void SceneSerializer::DeserializeEntityRecursive(const YAML::Node& entityNode, const Ref<Entity>& entity)
     {
+        // Deserialize TagComponent Icon
+        if (auto tagComponent = entityNode["TagComponent"])
+        {
+            auto& tc = entity->GetComponent<Component::TagComponent>();
+            if (tagComponent["Icon"])
+                tc.Icon = tagComponent["Icon"].as<std::string>();
+        }
+
         // Deserialize TransformComponent
         if (auto transformComponent = entityNode["TransformComponent"])
         {
