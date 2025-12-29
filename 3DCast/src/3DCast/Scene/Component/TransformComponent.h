@@ -209,6 +209,7 @@ namespace Cast::Component
 				bool edited = false;
 				ImGui::Text("Translation");
 				ImGui::SameLine(GUIWIN_WTHIRD);
+				TWOTHIRD_INPUT
 				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
 				{
 					UpdateTransformMatrix();
@@ -217,6 +218,7 @@ namespace Cast::Component
 
 				ImGui::Text("Scale");
 				ImGui::SameLine(GUIWIN_WTHIRD);
+				TWOTHIRD_INPUT
 				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
 				{
 					UpdateTransformMatrix();
@@ -225,6 +227,7 @@ namespace Cast::Component
 
 				ImGui::Text("Rotation");
 				ImGui::SameLine(GUIWIN_WTHIRD);
+				TWOTHIRD_INPUT
 				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
 				{
 					UpdateTransformMatrix();

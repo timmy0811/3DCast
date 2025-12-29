@@ -220,6 +220,7 @@ namespace Cast::Component
 			{
 				ImGui::Text("Type:");
 				ImGui::SameLine(GUIWIN_WTHIRD);
+				TWOTHIRD_INPUT
 
 				ImGui::BeginDisabled(IsEnvironmentLight);
 				const Type oldType = LightType;
@@ -249,20 +250,24 @@ namespace Cast::Component
 
 					ImGui::Text("Direction");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					changed |= ImGui::DragFloat3("##Direction", &dirLight->direction.x, 0.1f);
 
 					ImGui::Separator();
 
 					ImGui::Text("Ambient");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					changed |= ImGui::ColorEdit3("##Ambient", &dirLight->ambient.r);
 
 					ImGui::Text("Diffuse");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					changed |= ImGui::ColorEdit3("##Diffuse", &dirLight->diffuse.x);
 
 					ImGui::Text("Specular");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					changed |= ImGui::ColorEdit3("##Specular", &dirLight->specular.x);
 					
 					if (changed)

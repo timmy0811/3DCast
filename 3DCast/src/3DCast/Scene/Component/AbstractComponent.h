@@ -11,6 +11,8 @@
 #define GUIWIN_WTHIRD (ImGui::GetWindowWidth() * 0.33333f)
 #define GUIWIN_WHalf (ImGui::GetWindowWidth() * 0.5f)
 
+#define TWOTHIRD_INPUT ImGui::SetNextItemWidth(GUIWIN_WTHIRD * 2.f - GUIWIN_ENDELEMENT_PADDING);
+
 #define GUIWIN_ELEMENT_PADDING 15.f
 #define GUIWIN_ENDELEMENT_PADDING 25.f
 #define DUMMYSPACE_AFTER_COMPONENT 8.f

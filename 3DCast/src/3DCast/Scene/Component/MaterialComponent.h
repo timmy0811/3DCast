@@ -525,6 +525,7 @@ namespace Cast::Component
 				ImGui::BeginDisabled(isCustomMaterial);
 				ImGui::Text("Template Material");
 				ImGui::SameLine(GUIWIN_WTHIRD);
+				TWOTHIRD_INPUT
 				if (ImGui::BeginCombo("##Material", selectedItem.c_str())) {
 					for (const auto& [key, _] : MaterialCacheRegistryInstance.GetMaterialNames()) {
 						const bool isSelected = (selectedItem == key);
@@ -575,31 +576,38 @@ namespace Cast::Component
 
 					ImGui::Text("Diffuse Color");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::ColorEdit3("##Diffuse", &currentMaterial.shaderObject.diffuseColor.x);
 
 					ImGui::Text("Specular Color");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::ColorEdit3("##Specular", &currentMaterial.shaderObject.specularColor.x);
 
 					ImGui::Text("Emissive Color");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::ColorEdit3("##Emissive", &currentMaterial.shaderObject.emissiveColor.x);
 
 					ImGui::SeparatorText("Surface");
 					ImGui::Text("Metallic");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::DragFloat("##Metallic", &currentMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
 
 					ImGui::Text("Roughness");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::DragFloat("##Roughness", &currentMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
 
 					ImGui::Text("Shininess");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::DragFloat("##Shininess", &currentMaterial.shaderObject.shininess, 2.f, 0.0f, 64.0f);
 
 					ImGui::Text("Reflectance");
 					ImGui::SameLine(GUIWIN_WTHIRD);
+					TWOTHIRD_INPUT
 					ImGui::DragFloat("##Reflectance", &currentMaterial.shaderObject.reflectance, 0.01f, 0.0f, 1.0f);
 					ImGui::EndDisabled();
 				}
