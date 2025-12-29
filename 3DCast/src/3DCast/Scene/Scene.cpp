@@ -69,7 +69,7 @@ void Cast::Scene::Shutdown()
 	}
 }
 
-Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const bool registerTransform)
+Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const std::string& icon , const bool registerTransform)
 {
 	entt::entity handle = Registry.create();
 	auto entity = CreateRef<Entity>(handle, this);
@@ -81,7 +81,7 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const
 			LOG_CORE_ERROR("Could not register transform component in registry.");
 	}
 
-	entity->AddComponents<Component::TagComponent>(name);
+	entity->AddComponents<Component::TagComponent>(name, icon);
 	EntityDescriptorPool.insert({handle, entity});
 
 	return entity;

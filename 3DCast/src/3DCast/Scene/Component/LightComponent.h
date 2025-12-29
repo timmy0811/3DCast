@@ -149,6 +149,9 @@ namespace Cast::Component
 
 		void SafeCleanup()
 		{
+			if (CastShadows && SceneInstance)
+				SceneInstance->ClearActiveShadowDirectionalLight();
+
 			if (Light && SceneInstance)
 			{
 				switch (LightType)
@@ -216,7 +219,7 @@ namespace Cast::Component
 			if (isOpen)
 			{
 				ImGui::Text("Type:");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 
 				ImGui::BeginDisabled(IsEnvironmentLight);
 				const Type oldType = LightType;
@@ -245,21 +248,21 @@ namespace Cast::Component
 					changed = false;
 
 					ImGui::Text("Direction");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat3("##Direction", &dirLight->direction.x, 0.1f);
 
 					ImGui::Separator();
 
 					ImGui::Text("Ambient");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Ambient", &dirLight->ambient.r);
 
 					ImGui::Text("Diffuse");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Diffuse", &dirLight->diffuse.x);
 
 					ImGui::Text("Specular");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Specular", &dirLight->specular.x);
 					
 					if (changed)
@@ -295,29 +298,29 @@ namespace Cast::Component
 					changed = false;
 
 					ImGui::Text("Ambient");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Ambient", &pointLight->ambient.x);
 
 					ImGui::Text("Diffuse");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Diffuse", &pointLight->diffuse.x);
 
 					ImGui::Text("Specular");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Specular", &pointLight->specular.x);
 
 					ImGui::Separator();
 
 					ImGui::Text("Constant Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Constant", &pointLight->constant, 0.1f);
 
 					ImGui::Text("Linear Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Linear", &pointLight->linear, 0.01f);
 
 					ImGui::Text("Quadratic Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Quadratic", &pointLight->quadratic, 0.01f);
 
 					changed |= EntityPosition != LastEntityPosition;
@@ -343,46 +346,46 @@ namespace Cast::Component
 					changed = false;
 
 					ImGui::Text("Direction");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat3("##Direction", &spotLight->direction.x, 0.1f);
 
 					ImGui::Separator();
 
 					ImGui::Text("Ambient");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Ambient", &spotLight->ambient.x);
 
 					ImGui::Text("Diffuse");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Diffuse", &spotLight->diffuse.x);
 
 					ImGui::Text("Specular");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::ColorEdit3("##Specular", &spotLight->specular.x);
 
 					ImGui::Separator();
 
 					ImGui::Text("Constant Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Constant", &spotLight->constant, 0.002f);
 
 					ImGui::Text("Linear Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Linear", &spotLight->linear, 0.002f);
 
 					ImGui::Text("Quadratic Factor");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Quadratic", &spotLight->quadratic, 0.001f);
 
 					static float cutOff = glm::degrees(glm::acos(spotLight->cutOff));
 					ImGui::Text("Outer Cutoff");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Outer Cutoff", &cutOff, 0.2f);
 					spotLight->cutOff = glm::cos(glm::radians(cutOff));
 
 					static float outerCutOff = glm::degrees(glm::acos(spotLight->outerCutOff));
 					ImGui::Text("Cutoff");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					changed |= ImGui::DragFloat("##Cutoff Out", &outerCutOff, 0.2f);
 					spotLight->outerCutOff = glm::cos(glm::radians(outerCutOff));
 

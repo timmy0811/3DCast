@@ -107,7 +107,7 @@ void Runtime::GUI::SkyboxPanel::OnImGuiRender()
 
                     if (!EnvironmentLightEntity)
                     {
-                        EnvironmentLightEntity = Cast::Shared.ActiveScene->CreateEntity("Environment Light", true).get();
+                        EnvironmentLightEntity = Cast::Shared.ActiveScene->CreateEntity("Environment Light", ICON_FA_SUN,true).get();
                         EditorContext.EnvironmentLightEntity = EnvironmentLightEntity;
 
                         EnvironmentLightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());

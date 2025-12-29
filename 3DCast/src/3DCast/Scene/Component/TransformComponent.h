@@ -29,7 +29,6 @@ namespace Cast::Component
 
 		bool isRegistered = false;
 		int transformRegistryIndex = -1;
-
 #pragma endregion
 
 #pragma region CONSTRUCTOR
@@ -209,7 +208,7 @@ namespace Cast::Component
 			{
 				bool edited = false;
 				ImGui::Text("Translation");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
 				{
 					UpdateTransformMatrix();
@@ -217,7 +216,7 @@ namespace Cast::Component
 				}
 
 				ImGui::Text("Scale");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
 				{
 					UpdateTransformMatrix();
@@ -225,7 +224,7 @@ namespace Cast::Component
 				}
 
 				ImGui::Text("Rotation");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
 				{
 					UpdateTransformMatrix();

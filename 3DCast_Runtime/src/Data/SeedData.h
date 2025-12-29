@@ -117,7 +117,7 @@ namespace Runtime
     inline void SetupPreviewSceneSeed()
     {
 #pragma region Entity
-        const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light");
+        const Cast::Ref<Cast::Entity> lightEntity = Cast::Shared.ActiveScene->CreateEntity("Light", ICON_FA_SUN);
         auto& lightComp = lightEntity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
         lightComp.CastShadows = true;
         Cast::Shared.ActiveScene->SetActiveShadowDirectionalLight(lightEntity->GetEntityHandle());

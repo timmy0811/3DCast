@@ -32,7 +32,7 @@ void EditorLayer::OnAttach()
 	Runtime::GUI::Theme::ApplyTheme(Runtime::GUI::Theme::NewDark);
 
 	Cast::Shared.ActiveScene.emplace();
-	const Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera");
+	const Cast::Ref<Cast::Entity> cameraEntity = Cast::Shared.ActiveScene->CreateEntity("Camera", ICON_FA_VIDEO);
 
 	auto& cameraComponent = cameraEntity->AddComponents<Cast::Component::CameraComponent>();
 	cameraComponent.Camera = new Cast::Renderer::PerspectiveCamera(glm::radians(85.f), 1.5f, 0.1f, 100.f);

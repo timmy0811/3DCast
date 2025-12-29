@@ -338,7 +338,7 @@ namespace Cast::Component
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
-					ImGui::BeginChild("TextContainer", ImVec2(SAMELINE_WIDGET_OFFSET_1, 25.f), false);
+					ImGui::BeginChild("TextContainer", ImVec2(GUIWIN_WTHIRD, 25.f), false);
 					ImGui::BeginDisabled(true);
 					ImGui::SetCursorPosX(20.f);
 					ImGui::Text("No Texture loaded");
@@ -524,7 +524,7 @@ namespace Cast::Component
 
 				ImGui::BeginDisabled(isCustomMaterial);
 				ImGui::Text("Template Material");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				if (ImGui::BeginCombo("##Material", selectedItem.c_str())) {
 					for (const auto& [key, _] : MaterialCacheRegistryInstance.GetMaterialNames()) {
 						const bool isSelected = (selectedItem == key);
@@ -545,7 +545,7 @@ namespace Cast::Component
 				ImGui::EndDisabled();
 
 				ImGui::Text("Use Custom Material instead");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1 * 2.f);
+				ImGui::SameLine(GUIWIN_WTHIRD * 2.f);
 				if (ImGui::Checkbox("##CustomMaterial", &isCustomMaterial))
 				{
 					if (isCustomMaterial)
@@ -574,32 +574,32 @@ namespace Cast::Component
 					ImGui::SeparatorText("Color");
 
 					ImGui::Text("Diffuse Color");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::ColorEdit3("##Diffuse", &currentMaterial.shaderObject.diffuseColor.x);
 
 					ImGui::Text("Specular Color");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::ColorEdit3("##Specular", &currentMaterial.shaderObject.specularColor.x);
 
 					ImGui::Text("Emissive Color");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::ColorEdit3("##Emissive", &currentMaterial.shaderObject.emissiveColor.x);
 
 					ImGui::SeparatorText("Surface");
 					ImGui::Text("Metallic");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::DragFloat("##Metallic", &currentMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
 
 					ImGui::Text("Roughness");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::DragFloat("##Roughness", &currentMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
 
 					ImGui::Text("Shininess");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::DragFloat("##Shininess", &currentMaterial.shaderObject.shininess, 2.f, 0.0f, 64.0f);
 
 					ImGui::Text("Reflectance");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					ImGui::DragFloat("##Reflectance", &currentMaterial.shaderObject.reflectance, 0.01f, 0.0f, 1.0f);
 					ImGui::EndDisabled();
 				}
@@ -610,7 +610,7 @@ namespace Cast::Component
 
 					ImGui::BeginDisabled(diffuseLoaded);
 					ImGui::Text("Diffuse Color");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::ColorEdit3("##Diffuse", &privateMaterial.shaderObject.diffuseColor.x);
 					ImGui::EndDisabled();
 
@@ -622,7 +622,7 @@ namespace Cast::Component
 
 					ImGui::BeginDisabled(specularLoaded);
 					ImGui::Text("Specular Color");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::ColorEdit3("##Specular", &privateMaterial.shaderObject.specularColor.x);
 					ImGui::EndDisabled();
 
@@ -636,20 +636,20 @@ namespace Cast::Component
 
 					ImGui::BeginDisabled(true);
 					ImGui::Text("Metallic");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::DragFloat("##Metallic", &privateMaterial.shaderObject.metallic, 0.01f, 0.0f, 1.0f);
 
 					ImGui::Text("Roughness");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::DragFloat("##Roughness", &privateMaterial.shaderObject.roughness, 0.01f, 0.0f, 1.0f);
 					ImGui::EndDisabled();
 
 					ImGui::Text("Shininess");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::DragFloat("##Shininess", &privateMaterial.shaderObject.shininess, 1.f, 1.0f, 512.0f);
 
 					ImGui::Text("Reflectance");
-					ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+					ImGui::SameLine(GUIWIN_WTHIRD);
 					defaultMaterialAltered |= ImGui::DragFloat("##Reflectance", &privateMaterial.shaderObject.reflectance, 0.01f, 0.0f, 1.0f);
 
 					if (defaultMaterialAltered)

@@ -59,7 +59,7 @@ void Runtime::GUI::SceneHierarchyPanel::OnImGuiRender()
 
 		if (ImGui::Button("New Entity", {cellWidth * 3.f, 0.f}))
 		{
-			Cast::Shared.ActiveScene->CreateEntity("New Entity", false);
+			Cast::Shared.ActiveScene->CreateEntity("New Entity", ICON_FA_CUBE, false);
 		}
 
 		if (ImGui::IsItemHovered())
@@ -213,6 +213,7 @@ void Runtime::GUI::SceneHierarchyPanel::DrawTemplateSelector(float width)
 void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(const Cast::Ref<Cast::Entity>& entity)
 {
 	const std::string& tag = entity->GetComponent<Cast::Component::TagComponent>().Tag;
+	const std::string& icon = entity->GetComponent<Cast::Component::TagComponent>().Icon;
 
 	const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
 		((SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) |
@@ -222,7 +223,7 @@ void Runtime::GUI::SceneHierarchyPanel::DrawEntityNode(const Cast::Ref<Cast::Ent
 
 	ImGui::PushID((void*)(uint64_t)(uint32_t)*entity);
 
-	const bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s", tag.c_str());
+	const bool isOpen = ImGui::TreeNodeEx("##EntityNode", flags, "%s   %s", icon.c_str(), tag.c_str());
 
 	if (ImGui::IsItemClicked())
 	{
@@ -337,6 +338,8 @@ void Runtime::GUI::SceneHierarchyPanel::DrawComponents(const Cast::Ref<Cast::Ent
 
 void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 {
+	auto& tagComp = SelectionContext->GetComponent<Cast::Component::TagComponent>();
+
 	switch (id)
 	{
 	case 0:
@@ -344,18 +347,23 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		break;
 	case 1:
 		SelectionContext->AddComponents<Cast::Component::CameraComponent>();
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_VIDEO;
 		break;
 	case 2:
 		SelectionContext->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SUN;
 		break;
 	case 3:
 		SelectionContext->AddComponents<Cast::Component::MeshComponent>(Cast::MeshNodeType::Root);
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_DRAW_POLYGON;
 		break;
 	case 4:
 		SelectionContext->AddComponents<Cast::Component::CustomMeshComponent>();
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SHAPES;
 		break;
 	case 5:
 		SelectionContext->AddComponents<Cast::Component::MaterialComponent>();
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_CIRCLE_HALF_STROKE;
 		break;
 	case 6:
 		LOG_CORE_WARN("Script component not implemented yet");
@@ -383,6 +391,7 @@ void Runtime::GUI::SceneHierarchyPanel::DispatchComponent(const int id) const
 		break;
 	case 14:
 		SelectionContext->AddComponents<Cast::Component::ShaderComponent>();
+		if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_CODE;
 		break;
 	case 15:
 		SelectionContext->AddComponents<Cast::Component::PBRMaterialComponent>();
@@ -418,34 +427,44 @@ void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template 
 {
 	Cast::Ref<Cast::Entity> entity = nullptr;
 	if (templateName != Template::Cube && templateName != Template::Plane)
-		entity =Cast::Shared.ActiveScene->CreateEntity(TemplateToString(templateName), false);
+		entity = Cast::Shared.ActiveScene->CreateEntity(TemplateToString(templateName), ICON_FA_CUBE, false);
+
+	auto& tagComp = entity->GetComponent<Cast::Component::TagComponent>();
 
 	switch (templateName)
 	{
 		case Template::Cube:
 			Cast::Create::Cube("Cube", Cast::Shared.ActiveScene.value());
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SHAPES;
 			break;
 		case Template::Plane:
 			Cast::Create::Plane("Plane", Cast::Shared.ActiveScene.value());
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SHAPES;
 			break;
-	case Template::DirLight:
+		case Template::DirLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SUN;
 			break;
 		case Template::SpotLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLightShaderObject(), &Cast::Shared.ActiveScene.value());
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_BURST;
 			break;
 		case Template::PointLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLightShaderObject(), &Cast::Shared.ActiveScene.value());
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_LIGHTBULB;
 			break;
 		case Template::CustomMesh:
 			entity->AddComponents<Cast::Component::CustomMeshComponent>();
 			entity->AddComponents<Cast::Component::MaterialComponent>();
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_DRAW_POLYGON;
 			break;
 	case Template::Model:
 			entity->AddComponents<Cast::Component::MeshComponent>(Cast::MeshNodeType::Root);
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_DRAW_POLYGON;
 			break;
 		case Template::Camera:
 			entity->AddComponents<Cast::Component::CameraComponent>();
+			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_VIDEO;
 			break;
 		default: ;
 	}

@@ -79,11 +79,11 @@ namespace Cast::Component {
 				glm::vec3 rotation = Camera->GetRotation();
 
 				ImGui::Text("Position");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				ImGui::DragFloat3("##Position", &position.x, 0.1f);
 
 				ImGui::Text("Rotation");
-				ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+				ImGui::SameLine(GUIWIN_WTHIRD);
 				ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f);
 
 				Camera->SetPosition(position);
@@ -93,7 +93,7 @@ namespace Cast::Component {
 					if (auto* perspectiveCam = dynamic_cast<Renderer::PerspectiveCamera*>(Camera)) {
 						float fov = perspectiveCam->GetFOV();
 						ImGui::Text("FOV");
-						ImGui::SameLine(SAMELINE_WIDGET_OFFSET_1);
+						ImGui::SameLine(GUIWIN_WTHIRD);
 						if (ImGui::DragFloat("##FOV", &fov, 1.0f, 5.0f, 175.0f, "%.1f°")) {
 							perspectiveCam->SetFOV(fov);
 						}

@@ -12,6 +12,8 @@
 
 #include <API/core/Buffer.h>
 
+#include "fontawesome/IconsFontAwesome6.h"
+
 namespace Cast
 {
 	namespace Serialization
@@ -31,7 +33,7 @@ namespace Cast
 	
 		void Shutdown();
 	
-		Ref<Entity> CreateEntity(const std::string& name = "Untagged", bool registerTransform = false);
+		Ref<Entity> CreateEntity(const std::string& name = "Untagged", const std::string& icon = ICON_FA_CUBE, bool registerTransform = false);
 		void RemoveEntity(Entity& entity, bool recursive = true);
 		void RemoveEntity(Ref<Entity> entity, bool recursive = true);
 		void RemoveEntityBulkOptimized(Ref<Entity> entity);

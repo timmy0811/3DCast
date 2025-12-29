@@ -6,9 +6,13 @@
 
 #include <string>
 
-#define SAMELINE_WIDGET_OFFSET_1 (ImGui::GetWindowWidth() * 0.33333f - 15.f)
-#define SAMELINE_WIDGET_OFFSET_2 (ImGui::GetWindowWidth() * 0.66666f - 15.f)
-#define SAMELINE_WIDGET_OFFSET_HALF (ImGui::GetWindowWidth() * 0.5f - 15.f)
+#define GUIWIN_WSIXTH (ImGui::GetWindowWidth() * 0.16667f)
+#define GUIWIN_WQUARTER (ImGui::GetWindowWidth() * 0.25f)
+#define GUIWIN_WTHIRD (ImGui::GetWindowWidth() * 0.33333f)
+#define GUIWIN_WHalf (ImGui::GetWindowWidth() * 0.5f)
+
+#define GUIWIN_ELEMENT_PADDING 15.f
+#define GUIWIN_ENDELEMENT_PADDING 25.f
 #define DUMMYSPACE_AFTER_COMPONENT 8.f
 
 namespace Cast
