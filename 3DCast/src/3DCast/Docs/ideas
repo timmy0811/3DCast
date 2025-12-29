@@ -1,0 +1,9 @@
+
+PS1-Graphix:
+- Resolution of viewport
+- Baked shading (vertex lighting, not dynamic)
+- Dens fog after some distance (render distance)
+- Dithering
+- Reduction to limited color palette (e.g., 256 colors)
+- Simple texture mapping (no filtering)
+- Low polygon count models

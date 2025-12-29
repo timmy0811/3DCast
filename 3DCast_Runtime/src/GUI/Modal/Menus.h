@@ -3,6 +3,7 @@
 #include "imgui.h"
 
 #include "Data/SharedEditorData.h"
+#include "Layer/Blocks/RasterizationViewport.h"
 
 #include <functional>
 
@@ -63,6 +64,56 @@ namespace Runtime::GUI
                 ImGui::SliderFloat("##SSAOAffectness", &Runtime::EditorContext.ViewSettings.SSAOAffectness, 0.0f, 1.0f, "%.2f");
 
                 ImGui::EndTable();
+            }
+
+            // Dithering
+            ImGui::SeparatorText("Dithering");
+            if (ImGui::BeginTable("DitheringSettingsTable", 2, ImGuiTableFlags_SizingStretchProp))
+            {
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, labelWidth);
+                ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthFixed, 210.f);
+
+                bool ditheringChanged = false;
+
+                // Enable Dithering
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Enable Dithering");
+                ImGui::TableSetColumnIndex(1);
+                if (ImGui::Checkbox("##DitheringEnabled", &Runtime::EditorContext.ViewSettings.DitheringEnabled))
+                    ditheringChanged = true;
+
+                // Dithering Strength
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Dithering Strength");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+                if (ImGui::SliderFloat("##DitheringStrength", &Runtime::EditorContext.ViewSettings.DitheringStrength, 0.0f, 2.0f, "%.2f"))
+                    ditheringChanged = true;
+
+                // Color Depth
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Color Depth");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+                if (ImGui::SliderInt("##DitheringColorDepth", &Runtime::EditorContext.ViewSettings.DitheringColorDepth, 4, 64, "%d levels"))
+                    ditheringChanged = true;
+
+                // Pattern Scale
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted("Pattern Scale");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(200.f);
+                if (ImGui::SliderFloat("##DitheringScale", &Runtime::EditorContext.ViewSettings.DitheringScale, 1.0f, 8.0f, "%.1f"))
+                    ditheringChanged = true;
+
+                ImGui::EndTable();
+
+                if (ditheringChanged)
+                    Runtime::RasterizationViewport::UpdateDitheringUniforms();
             }
 
             // Shadow Mapping

@@ -18,6 +18,12 @@ namespace Runtime {
 		bool SSAOEnabled = true;
 		float SSAOAffectness = 0.6f;
 
+		// Dithering
+		bool DitheringEnabled = false;
+		float DitheringStrength = 1.0f;     // 0.0 - 2.0
+		int DitheringColorDepth = 16;       // Color levels per channel (PS1 = 32)
+		float DitheringScale = 1.0f;        // Pattern scale (1.0 = pixel perfect)
+
 		// Shadow Mapping
 		float ShadowBiasFactors[3] = { 1.0f, 2.0f, 10.0f };
 

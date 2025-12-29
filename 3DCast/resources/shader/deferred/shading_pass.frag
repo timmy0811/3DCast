@@ -30,6 +30,7 @@ uniform int BufferCountSpotLight;
 #include <components/light/spot_shade.frag>
 
 #include <components/shadow.frag>
+#include <components/dithering.frag>
 
 // dynamic buffers
 layout(std430, binding = 1) buffer DirectionalLightBuffer {
@@ -105,5 +106,10 @@ void main()
 
     float ssao = texture(u_SSAO, fragCoord).r;
     float ssaoMix = mix(1.0, ssao, clamp(u_SSAOAffectness, 0.0, 1.0));
-    o_Color = vec4(color * ssaoMix, 1.0);
+
+    vec3 finalColor = color * ssaoMix;
+
+    finalColor = ApplyDithering(finalColor, gl_FragCoord.xy, u_Resolution);
+
+    o_Color = vec4(finalColor, 1.0);
 }

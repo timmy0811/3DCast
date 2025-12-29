@@ -58,6 +58,8 @@ void Runtime::RasterizationViewport::Init()
 	EditorContext.Skybox.AddCubemap("cartoon_evening", std::string(ASSET_DIR) + "img/cubemap/cartoon_evening", ".png");
 	EditorContext.Skybox.SetActiveCubemap("cartoon_clear");
 	EditorContext.Skybox.SetCubemapShaderCache(Cast::ShaderCacheRegistryInstance.GetHandle("cubemap"));
+
+	UpdateDitheringUniforms();
 }
 
 void Runtime::RasterizationViewport::Destroy()
@@ -704,6 +706,17 @@ void Runtime::RasterizationViewport::UpdateCameraUniforms()
 	gridShader->Bind();
 	gridShader->SetUniformMat4f("u_ViewProjection", EditorContext.ActiveCamera.value()->GetViewProjectionMat());
 	gridShader->SetUniform3f("u_CameraWorldPos", camPos.x, camPos.y, camPos.z);
+}
+
+void Runtime::RasterizationViewport::UpdateDitheringUniforms()
+{
+	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
+	shader->Bind();
+	shader->SetUniform1i("u_DitheringEnabled", EditorContext.ViewSettings.DitheringEnabled ? 1 : 0);
+	shader->SetUniform1f("u_DitheringStrength", EditorContext.ViewSettings.DitheringStrength);
+	shader->SetUniform1i("u_ColorDepth", EditorContext.ViewSettings.DitheringColorDepth);
+	shader->SetUniform1f("u_DitheringScale", EditorContext.ViewSettings.DitheringScale);
+	shader->Unbind();
 }
 
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)

@@ -426,45 +426,46 @@ void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 void Runtime::GUI::SceneHierarchyPanel::CreateEntityFromTemplate(const Template templateName)
 {
 	Cast::Ref<Cast::Entity> entity = nullptr;
-	if (templateName != Template::Cube && templateName != Template::Plane)
-		entity = Cast::Shared.ActiveScene->CreateEntity(TemplateToString(templateName), ICON_FA_CUBE, false);
+	Cast::Component::TagComponent* tagComp = nullptr;
 
-	auto& tagComp = entity->GetComponent<Cast::Component::TagComponent>();
+	if (templateName != Template::Cube && templateName != Template::Plane)
+	{
+		entity = Cast::Shared.ActiveScene->CreateEntity(TemplateToString(templateName), ICON_FA_CUBE, false);
+		tagComp = &entity->GetComponent<Cast::Component::TagComponent>();
+	}
 
 	switch (templateName)
 	{
 		case Template::Cube:
 			Cast::Create::Cube("Cube", Cast::Shared.ActiveScene.value());
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SHAPES;
 			break;
 		case Template::Plane:
 			Cast::Create::Plane("Plane", Cast::Shared.ActiveScene.value());
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SHAPES;
 			break;
 		case Template::DirLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::DirectionalLightShaderObject(), &Cast::Shared.ActiveScene.value());
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_SUN;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_SUN;
 			break;
 		case Template::SpotLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::SpotLightShaderObject(), &Cast::Shared.ActiveScene.value());
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_BURST;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_BURST;
 			break;
 		case Template::PointLight:
 			entity->AddComponents<Cast::Component::LightComponent>(Cast::PointLightShaderObject(), &Cast::Shared.ActiveScene.value());
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_LIGHTBULB;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_LIGHTBULB;
 			break;
 		case Template::CustomMesh:
 			entity->AddComponents<Cast::Component::CustomMeshComponent>();
 			entity->AddComponents<Cast::Component::MaterialComponent>();
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_DRAW_POLYGON;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_DRAW_POLYGON;
 			break;
 	case Template::Model:
 			entity->AddComponents<Cast::Component::MeshComponent>(Cast::MeshNodeType::Root);
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_DRAW_POLYGON;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_DRAW_POLYGON;
 			break;
 		case Template::Camera:
 			entity->AddComponents<Cast::Component::CameraComponent>();
-			if (!tagComp.IconHasManuallyAssigned) tagComp.Icon = ICON_FA_VIDEO;
+			if (!tagComp->IconHasManuallyAssigned) tagComp->Icon = ICON_FA_VIDEO;
 			break;
 		default: ;
 	}

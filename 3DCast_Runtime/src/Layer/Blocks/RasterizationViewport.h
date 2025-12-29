@@ -29,6 +29,7 @@ namespace Runtime
 		void OnEvent(Cast::Event& e) override;
 
 		static void UpdateCameraUniforms();
+		static void UpdateDitheringUniforms();
 		static bool IsUsingGizmo();
 		static bool IsHoveringGizmo();
 		[[nodiscard]] bool IsGizmoScaleU() const { return IsGizmoScaleURendered; }
