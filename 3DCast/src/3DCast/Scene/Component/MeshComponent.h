@@ -7,6 +7,7 @@
 #include "3DCast/Gui/UIComponents.h"
 
 #include <imgui.h>
+#include <filesystem>
 
 #include "3DCast/Gui/TempElements/TempGuiElementCollection.h"
 #include "3DCast/Gui/TempElements/Elements/NotificationModal.h"
@@ -16,6 +17,8 @@ namespace Cast::Component
 	struct MeshComponent final : public Component
 	{
 #pragma region DATA
+		static inline std::string lastUsedDirectory;
+
 		std::string Path;
 		std::string Filename;
 		std::string header;
@@ -132,11 +135,24 @@ namespace Cast::Component
 			nfdopendialogu8args_t args = {nullptr};
 			args.filterList = filters;
 			args.filterCount = 1;
+
+			if (!lastUsedDirectory.empty() && std::filesystem::exists(lastUsedDirectory))
+			{
+				args.defaultPath = lastUsedDirectory.c_str();
+			}
+
 			const nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
 			if (result == NFD_OKAY)
 			{
 				std::string outPathStr(outPath);
 				LOG_CORE_TRACE("Loading Model: {0}", outPathStr);
+
+				const size_t found = outPathStr.find_last_of("/\\");
+				if (found != std::string::npos)
+				{
+					lastUsedDirectory = outPathStr.substr(0, found);
+				}
+
 				NFD_FreePathU8(outPath);
 				return outPathStr;
 			}

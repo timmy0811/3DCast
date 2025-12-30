@@ -5,6 +5,7 @@
 
 #include <imgui.h>
 #include <optional>
+#include <filesystem>
 
 #include "nfd.h"
 #include "3DCast/Scene/Registry/TextureCacheRegistry.h"
@@ -16,6 +17,8 @@ namespace Cast::Component
 	struct MaterialComponent final : Component
 	{
 #pragma region DATA
+		static inline std::string lastUsedDirectory;
+
 		// Sampler index used by vertex attribute for bindless textures
 		unsigned short samplerIndex = 0;
 
@@ -278,11 +281,24 @@ namespace Cast::Component
 			nfdopendialogu8args_t args = {nullptr};
 			args.filterList = filters;
 			args.filterCount = 1;
+
+			if (!lastUsedDirectory.empty() && std::filesystem::exists(lastUsedDirectory))
+			{
+				args.defaultPath = lastUsedDirectory.c_str();
+			}
+
 			const nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
 			if (result == NFD_OKAY)
 			{
 				std::string outPathStr(outPath);
 				LOG_CORE_TRACE("Loading Texture: {0}", outPathStr);
+
+				const size_t found = outPathStr.find_last_of("/\\");
+				if (found != std::string::npos)
+				{
+					lastUsedDirectory = outPathStr.substr(0, found);
+				}
+
 				NFD_FreePathU8(outPath);
 				return outPathStr;
 			}
