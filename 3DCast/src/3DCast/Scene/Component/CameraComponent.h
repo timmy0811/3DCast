@@ -80,12 +80,12 @@ namespace Cast::Component {
 
 				ImGui::Text("Position");
 				ImGui::SameLine(GUIWIN_WTHIRD);
-				TWOTHIRD_INPUT
+				TWOTHIRD_INPUT_WIDTH
 				ImGui::DragFloat3("##Position", &position.x, 0.1f);
 
 				ImGui::Text("Rotation");
 				ImGui::SameLine(GUIWIN_WTHIRD);
-				TWOTHIRD_INPUT
+				TWOTHIRD_INPUT_WIDTH
 				ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f);
 
 				Camera->SetPosition(position);
@@ -96,7 +96,7 @@ namespace Cast::Component {
 						float fov = perspectiveCam->GetFOV();
 						ImGui::Text("FOV");
 						ImGui::SameLine(GUIWIN_WTHIRD);
-						TWOTHIRD_INPUT
+						TWOTHIRD_INPUT_WIDTH
 						if (ImGui::DragFloat("##FOV", &fov, 1.0f, 5.0f, 175.0f, "%.1f°")) {
 							perspectiveCam->SetFOV(fov);
 						}

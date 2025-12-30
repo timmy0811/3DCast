@@ -5,6 +5,7 @@
 
 #include "GUI/Panels/SceneHierarchyPanel.h"
 #include "GUI/Panels/SkyboxPanel.h"
+#include "GUI/Panels/FogPanel.h"
 #include "GUI/Panels/TerminalPanel.h"
 
 #include "Layer/Blocks/RasterizationViewport.h"
@@ -45,5 +46,6 @@ private:
 	// Panels
 	Runtime::GUI::SceneHierarchyPanel SceneHierarchyPanel;
 	Runtime::GUI::SkyboxPanel SkyboxPanel;
+	Runtime::GUI::FogPanel FogPanel;
 	Runtime::GUI::TerminalPanel TerminalPanel{};
 };

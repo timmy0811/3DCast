@@ -731,6 +731,22 @@ void Runtime::RasterizationViewport::UpdateRetroUniforms()
 	shader->Unbind();
 }
 
+void Runtime::RasterizationViewport::UpdateFogUniforms()
+{
+	const Cast::Ref<API::Core::Shader> shader = Cast::ShaderCacheRegistryInstance.GetHandle("shading_pass");
+	shader->Bind();
+	shader->SetUniform1i("u_FogEnabled", EditorContext.Fog.Enabled ? 1 : 0);
+	shader->SetUniform3f("u_FogColorBottom", EditorContext.Fog.ColorBottom.x, EditorContext.Fog.ColorBottom.y, EditorContext.Fog.ColorBottom.z);
+	shader->SetUniform3f("u_FogColorTop", EditorContext.Fog.ColorTop.x, EditorContext.Fog.ColorTop.y, EditorContext.Fog.ColorTop.z);
+	shader->SetUniform1f("u_FogStartDistance", EditorContext.Fog.StartDistance);
+	shader->SetUniform1f("u_FogEndDistance", EditorContext.Fog.EndDistance);
+	shader->SetUniform1f("u_FogAngleMin", EditorContext.Fog.AngleMin);
+	shader->SetUniform1f("u_FogAngleMax", EditorContext.Fog.AngleMax);
+	shader->SetUniform1f("u_FogDensity", EditorContext.Fog.Density);
+	shader->SetUniform1i("u_FogUseExponential", EditorContext.Fog.UseExponential ? 1 : 0);
+	shader->Unbind();
+}
+
 bool Runtime::RasterizationViewport::OnMouseMoved(Cast::MouseMovedEvent& e)
 {
 	if (IsCameraRotating)

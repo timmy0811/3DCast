@@ -31,6 +31,7 @@ namespace Runtime
 		static void UpdateCameraUniforms();
 		static void UpdateDitheringUniforms();
 		static void UpdateRetroUniforms();
+		static void UpdateFogUniforms();
 
 		static bool IsUsingGizmo();
 		static bool IsHoveringGizmo();

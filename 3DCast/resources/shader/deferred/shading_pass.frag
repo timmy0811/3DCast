@@ -31,6 +31,7 @@ uniform int BufferCountSpotLight;
 
 #include <components/shadow.frag>
 #include <components/dithering.frag>
+#include <components/fog.frag>
 
 // dynamic buffers
 layout(std430, binding = 1) buffer DirectionalLightBuffer {
@@ -108,8 +109,8 @@ void main()
     float ssaoMix = mix(1.0, ssao, clamp(u_SSAOAffectness, 0.0, 1.0));
 
     vec3 finalColor = color * ssaoMix;
-
     finalColor = ApplyDithering(finalColor, gl_FragCoord.xy, u_Resolution);
+    finalColor = ApplyFog(finalColor, fragPos, u_ViewPosition);
 
     o_Color = vec4(finalColor, 1.0);
 }

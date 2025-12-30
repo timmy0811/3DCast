@@ -54,6 +54,11 @@ void EditorLayer::OnAttach()
 
 	SkyboxPanel.SetSkybox(&Runtime::EditorContext.Skybox);
 
+	FogPanel.SetOnChangeCallback([]() {
+		Runtime::RasterizationViewport::UpdateFogUniforms();
+	});
+	Runtime::RasterizationViewport::UpdateFogUniforms();
+
 	Serializer.SetScene(&Cast::Shared.ActiveScene.value());
 	Serializer.SetSkyboxCallback(&Runtime::EditorContext.Skybox);
 	Serializer.SetActiveCameraCallback(&Runtime::EditorContext.ActiveCamera);
@@ -248,9 +253,14 @@ void EditorLayer::OnImGuiRender()
 
 		if (ImGui::BeginMenu("World"))
 		{
-			if (ImGui::MenuItem("Configure Skybox"))
+			if (ImGui::MenuItem("Skybox"))
 			{
 				SkyboxPanel.Open();
+			}
+
+			if (ImGui::MenuItem("Fog"))
+			{
+				FogPanel.Open();
 			}
 
 			ImGui::EndMenu();
@@ -335,6 +345,7 @@ void EditorLayer::OnImGuiRender()
 
 	SceneHierarchyPanel.OnImGuiRender();
 	SkyboxPanel.OnImGuiRender();
+	FogPanel.OnImGuiRender();
 	TerminalPanel.OnImGuiRender();
 
 	Runtime::GUI::DiagnosticsPanel::OnImGuiRender(DeltaTime);
