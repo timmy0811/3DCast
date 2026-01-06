@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
+#include "3DCast/Scene/Component/MeshComponent.h"
 
 #include <vendor/glm/glm.hpp>
 #include <vendor/glm/gtx/euler_angles.hpp>
@@ -204,41 +205,62 @@ namespace Cast::Component
 			if (ImGui::SmallButton(ICON_FA_TRASH_CAN "##Transform"))
 				return {UIResponse::Code::Remove, Type::Camera};
 
-			if (isOpen)
-			{
-				bool edited = false;
-				ImGui::Text("Translation");
-				ImGui::SameLine(GUIWIN_WTHIRD);
-				TWOTHIRD_INPUT_WIDTH
-				if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
-				{
-					UpdateTransformMatrix();
-					edited = true;
-				}
+ 		if (isOpen)
+ 		{
+ 			// Check if this transform belongs to a non-root mesh node (Intermediate or Leaf)
+ 			// If so, gray out the controls since the transform is not used for these nodes
+ 			bool isNonRootMeshNode = false;
+ 			if (EntityNode && EntityNode->HasComponent<MeshComponent>())
+ 			{
+ 				const auto& meshComp = EntityNode->GetComponent<MeshComponent>();
+ 				MeshNodeType nodeType = meshComp.GetNodeType();
+ 				isNonRootMeshNode = (nodeType == MeshNodeType::Intermediate || nodeType == MeshNodeType::Leaf);
+ 			}
 
-				ImGui::Text("Scale");
-				ImGui::SameLine(GUIWIN_WTHIRD);
-				TWOTHIRD_INPUT_WIDTH
-				if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
-				{
-					UpdateTransformMatrix();
-					edited = true;
-				}
+ 			if (isNonRootMeshNode)
+ 			{
+ 				ImGui::BeginDisabled(true);
+ 				ImGui::TextWrapped("Transform is controlled by the root model node.");
+ 			}
 
-				ImGui::Text("Rotation");
-				ImGui::SameLine(GUIWIN_WTHIRD);
-				TWOTHIRD_INPUT_WIDTH
-				if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
-				{
-					UpdateTransformMatrix();
-					edited = true;
-				}
+ 			bool edited = false;
+ 			ImGui::Text("Translation");
+ 			ImGui::SameLine(GUIWIN_WTHIRD);
+ 			TWOTHIRD_INPUT_WIDTH
+ 			if (ImGui::DragFloat3("##Translation", &translation.x, 0.1f))
+ 			{
+ 				UpdateTransformMatrix();
+ 				edited = true;
+ 			}
 
-				if (edited && transformRegistry)
-					UpdateOnGPUMem();
+ 			ImGui::Text("Scale");
+ 			ImGui::SameLine(GUIWIN_WTHIRD);
+ 			TWOTHIRD_INPUT_WIDTH
+ 			if (ImGui::DragFloat3("##Scale", &scale.x, 0.1f))
+ 			{
+ 				UpdateTransformMatrix();
+ 				edited = true;
+ 			}
 
-				ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
-			}
+ 			ImGui::Text("Rotation");
+ 			ImGui::SameLine(GUIWIN_WTHIRD);
+ 			TWOTHIRD_INPUT_WIDTH
+ 			if (ImGui::DragFloat3("##Rotation", &rotation.x, 0.1f))
+ 			{
+ 				UpdateTransformMatrix();
+ 				edited = true;
+ 			}
+
+ 			if (isNonRootMeshNode)
+ 			{
+ 				ImGui::EndDisabled();
+ 			}
+
+ 			if (edited && transformRegistry)
+ 				UpdateOnGPUMem();
+
+ 			ImGui::Dummy(ImVec2(0.f, DUMMYSPACE_AFTER_COMPONENT));
+ 		}
 
 			return {};
 		}

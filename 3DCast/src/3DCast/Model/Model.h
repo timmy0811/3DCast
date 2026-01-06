@@ -43,11 +43,11 @@ namespace Cast
 		}
 
 	private:
-		void CalcModelBounds(const aiNode* node, const aiScene* scene);
+ 	void CalcModelBounds(const aiNode* node, const aiScene* scene);
 
-		Ref<Entity> ProcessNode(const aiNode* node, const aiScene* scene, const Ref<Entity>& parent, bool isRoot = false);
-		Mesh* ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Entity> context,
-		                  unsigned short transformIndex) const;
+ 	Ref<Entity> ProcessNode(const aiNode* node, const aiScene* scene, const Ref<Entity>& parent, unsigned short rootTransformIndex, bool isRoot = false);
+ 	Mesh* ProcessMesh(aiMesh* mesh, const aiScene* scene, Ref<Entity> context,
+ 	                  unsigned short transformIndex) const;
 		std::vector<Ref<API::Texture::Texture>> LoadMaterialTextures(
 			const aiMaterial* mat, aiTextureType type, API::Texture::TextureType typeAPI) const;
 

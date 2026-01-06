@@ -73,6 +73,11 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const
 {
 	entt::entity handle = Registry.create();
 	auto entity = CreateRef<Entity>(handle, this);
+	
+	// Insert into EntityDescriptorPool BEFORE adding components so that
+	// GetEntityReferenceByHandle() works correctly when SetEntity() is called
+	EntityDescriptorPool.insert({handle, entity});
+	
 	entity->AddComponents<Component::TransformComponent>(glm::mat4(1.0f));
 
 	if (registerTransform)
@@ -82,7 +87,6 @@ Cast::Ref<Cast::Entity> Cast::Scene::CreateEntity(const std::string& name, const
 	}
 
 	entity->AddComponents<Component::TagComponent>(name, icon);
-	EntityDescriptorPool.insert({handle, entity});
 
 	return entity;
 }

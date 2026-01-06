@@ -62,7 +62,13 @@ bool Cast::Model::Load(const std::string& path, Ref<Entity> entity)
 	CalcModelBounds(scene->mRootNode, scene);
 
 	DirPath = path.substr(0, path.find_last_of("/\\"));
-	ProcessNode(scene->mRootNode, scene, this->EntityContainer);
+
+	// Register the root entity's transform so all submeshes share the same transform
+	Shared.ActiveScene->RegisterTransformComponent(entity);
+	const auto& rootTransform = entity->GetComponent<Component::TransformComponent>();
+	unsigned short rootTransformIndex = static_cast<unsigned short>(rootTransform.transformRegistryIndex);
+
+	ProcessNode(scene->mRootNode, scene, this->EntityContainer, rootTransformIndex);
 	IsLoaded = true;
 
 	return true;
@@ -99,7 +105,7 @@ void Cast::Model::CalcModelBounds(const aiNode* node, const aiScene* scene)
 	}
 }
 
-Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiScene* scene, const Ref<Entity>& parent, const bool isRoot)
+Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiScene* scene, const Ref<Entity>& parent, unsigned short rootTransformIndex, const bool isRoot)
 {
 	const std::string nodeName = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed Node";
 	Ref<Entity> currentEntity = Shared.ActiveScene->CreateEntity(nodeName);
@@ -118,10 +124,10 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiSce
 
 		meshEntity->AddComponents<Component::MaterialComponent>();
 		auto& meshComp = meshEntity->AddComponents<Component::MeshComponent>(MeshNodeType::Leaf);
-		const auto& transformComp = meshEntity->GetComponent<Component::TransformComponent>();
 
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, transformComp.transformRegistryIndex);
+		// Use the root entity's transform index
+		auto sceneMesh = ProcessMesh(mesh, scene, meshEntity, rootTransformIndex);
 		if (!sceneMesh->LoadedSuccessfully())
 		{
 			LOG_CORE_ERROR("Submesh could not be loaded.");
@@ -137,7 +143,7 @@ Cast::Ref<Cast::Entity> Cast::Model::ProcessNode(const aiNode* node, const aiSce
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		const Ref<Entity> childEntity = ProcessNode(node->mChildren[i], scene, currentEntity);
+		const Ref<Entity> childEntity = ProcessNode(node->mChildren[i], scene, currentEntity, rootTransformIndex);
 		if (!childEntity)
 		{
 			LOG_CORE_WARN("Detected empty mesh node. Ignoring.");

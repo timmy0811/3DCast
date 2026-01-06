@@ -9,7 +9,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include "../../Util/Helper.h"
 #include "entt/entt.hpp"
 
 namespace Cast::Serialization
@@ -748,7 +747,8 @@ namespace Cast::Serialization
         {
             auto path = meshComponent["ModelPath"].as<std::string>();
             //std::string filename = meshComponent["Filename"].as<std::string>();
-            auto& mc = entity->AddComponents<Component::MeshComponent>(path);
+            // Use deferred loading (true) so the model loads after EntityNode is set
+            auto& mc = entity->AddComponents<Component::MeshComponent>(path, true);
         }
 
         // Deserialize RasterizableComponent

@@ -33,6 +33,7 @@ namespace Cast::Component
 
 	private:
 		Mesh* MeshInstance = nullptr;
+		bool _deferredLoad = false;
 
 	public:
 #pragma endregion
@@ -68,12 +69,17 @@ namespace Cast::Component
 			header = "Mesh Leaf Node";
 		}
 
-		explicit MeshComponent(const std::string& path)
-			: Path(path), TypeNode(MeshNodeType::Root)
+		explicit MeshComponent(const std::string& path, bool deferLoad = false)
+			: Path(path), TypeNode(MeshNodeType::Root), _deferredLoad(deferLoad)
 		{
 			RootModel = CreateRef<Model>();
-			RootModel->Load(path, EntityNode);
 			header = "Model Root Node";
+			// If not deferred, load immediately (for UI-triggered loads where EntityNode is already set)
+			// For deserialization, deferLoad=true and loading happens in OnAfterEntitySetBehaviour
+			if (!deferLoad && EntityNode)
+			{
+				RootModel->Load(path, EntityNode);
+			}
 		}
 
 		MeshComponent(MeshComponent&& other) noexcept
@@ -183,6 +189,14 @@ namespace Cast::Component
 		{
 			if (TypeNode == MeshNodeType::Leaf)
 				Shared.ActiveScene->RegisterTransformComponent(EntityNode);
+			
+			// Handle deferred model loading (used during deserialization)
+			if (_deferredLoad && TypeNode == MeshNodeType::Root && EntityNode && !Path.empty())
+			{
+				RootModel->Load(Path, EntityNode);
+				Filename = ExtractFilename(Path);
+				_deferredLoad = false;
+			}
 		}
 
 		UIResponse OnImGuiRender() override
