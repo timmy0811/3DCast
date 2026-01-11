@@ -67,12 +67,12 @@ namespace Cast::GUI {
 			        ImGui::SameLine(iconSize + 40.0f);
 
 			        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - horizontalPadding));
-			        ImGui::Text("%s", message);
+			        ImGui::Text("%s", message.c_str());
 			        ImGui::PopTextWrapPos();
 			    }
 			    else {
 			        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - horizontalPadding));
-			        ImGui::Text("%s", message);
+			        ImGui::Text("%s", message.c_str());
 			        ImGui::PopTextWrapPos();
 			    }
 
