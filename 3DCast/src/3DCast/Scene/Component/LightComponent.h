@@ -150,7 +150,10 @@ namespace Cast::Component
 		void SafeCleanup()
 		{
 			if (CastShadows && SceneInstance)
+			{
 				SceneInstance->ClearActiveShadowDirectionalLight();
+				CastShadows = false;
+			}
 
 			if (Light && SceneInstance)
 			{

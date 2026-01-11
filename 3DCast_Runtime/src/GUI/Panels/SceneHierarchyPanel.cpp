@@ -415,6 +415,16 @@ void Runtime::GUI::SceneHierarchyPanel::RemoveEntity()
 		return;
 	}
 
+	// Safely clean up shadow casting before removing the entity
+	if (SelectionContext->HasComponent<Cast::Component::LightComponent>())
+	{
+		if (auto& lightComp = SelectionContext->GetComponent<Cast::Component::LightComponent>(); lightComp.CastShadows && lightComp.SceneInstance)
+		{
+			lightComp.SceneInstance->ClearActiveShadowDirectionalLight();
+			lightComp.CastShadows = false;
+		}
+	}
+
 	Cast::Shared.ActiveScene->RemoveEntityBulkOptimized(SelectionContext);
 	if (SelectionContext->IsChild())
 		SelectionContext->GetParent()->RemoveChild(SelectionContext);
