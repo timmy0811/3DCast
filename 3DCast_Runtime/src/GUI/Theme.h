@@ -85,7 +85,7 @@ namespace Runtime::GUI::Theme
 		}
 		else
 		{
-			for (int i = 0; i <= ImGuiCol_COUNT; i++)
+			for (int i = 0; i < ImGuiCol_COUNT; i++)
 			{
 				ImVec4& col = style.Colors[i];
 				if (col.w < 1.00f)
