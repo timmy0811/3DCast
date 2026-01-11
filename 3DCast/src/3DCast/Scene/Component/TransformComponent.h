@@ -57,7 +57,7 @@ namespace Cast::Component
 		  isRegistered(other.isRegistered),
 		  transformRegistryIndex(other.transformRegistryIndex)
 		{
-			if (transformRegistry && isRegistered)
+			if (transformRegistry && isRegistered && transformRegistry->IsValid(transformRegistryIndex))
 			{
 				transformRegistry->Edit(transformRegistryIndex, &Transform);
 			}
@@ -83,7 +83,7 @@ namespace Cast::Component
 				isRegistered = other.isRegistered;
 				transformRegistryIndex = other.transformRegistryIndex;
 
-				if (transformRegistry && isRegistered)
+				if (transformRegistry && isRegistered && transformRegistry->IsValid(transformRegistryIndex))
 				{
 					transformRegistry->Edit(transformRegistryIndex, &Transform);
 				}

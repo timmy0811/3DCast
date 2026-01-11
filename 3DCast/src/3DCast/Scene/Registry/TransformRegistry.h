@@ -39,9 +39,15 @@ namespace Cast
 			if (!IsTransformUsed(index))
 			{
 				LOG_CORE_WARN("Editing a transform that is not assigned to an object.");
+				return;
 			}
 
 			SSBO->AddData(transform, sizeof(glm::mat4), index * sizeof(glm::mat4));
+		}
+
+		[[nodiscard]] bool IsValid(const int index) const
+		{
+			return index >= 0 && index < MAX_TRANSFORMS && IsTransformUsed(index);
 		}
 
 		void Clear()
