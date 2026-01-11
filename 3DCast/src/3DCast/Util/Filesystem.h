@@ -88,15 +88,9 @@ namespace Cast::Util
         return "";
     }
 
-    static std::string FindTexturePath(const std::string& basePath, const std::string& textureName) {
-        std::string filename = textureName;
-        const size_t lastSeparator = textureName.find_last_of("/\\");
-        if (lastSeparator != std::string::npos) {
-            filename = textureName.substr(lastSeparator + 1);
-        }
-
+    static std::string FindTextureInDirectory(const std::string& directory, const std::string& filename) {
         // Check if file exists as-is
-        std::string fullPath = basePath + "/" + filename;
+        std::string fullPath = directory + "/" + filename;
         if (std::filesystem::exists(fullPath)) {
             return fullPath;
         }
@@ -105,7 +99,7 @@ namespace Cast::Util
         if (filename.find('.') == std::string::npos) {
             const std::vector<std::string> extensions = {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".dds"};
             for (const auto& ext : extensions) {
-                std::string pathWithExt = basePath + "/" + filename + ext;
+                std::string pathWithExt = directory + "/" + filename + ext;
                 if (std::filesystem::exists(pathWithExt)) {
                     return pathWithExt;
                 }
@@ -113,13 +107,39 @@ namespace Cast::Util
         }
 
         // Try case-insensitive search
-        for (const auto& entry : std::filesystem::directory_iterator(basePath)) {
-            std::string entryName = entry.path().filename().string();
-            if (strcasecmp(entryName.c_str(), filename.c_str()) == 0) {
-                return entry.path().string();
+        if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory)) {
+            for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+                std::string entryName = entry.path().filename().string();
+                if (strcasecmp(entryName.c_str(), filename.c_str()) == 0) {
+                    return entry.path().string();
+                }
             }
         }
 
-        return fullPath;
+        return "";
+    }
+
+    static std::string FindTexturePath(const std::string& basePath, const std::string& textureName, bool search = false) {
+        std::string filename = textureName;
+        const size_t lastSeparator = textureName.find_last_of("/\\");
+        if (lastSeparator != std::string::npos) {
+            filename = textureName.substr(lastSeparator + 1);
+        }
+
+        std::string result = FindTextureInDirectory(basePath, filename);
+        if (!result.empty()) {
+            return result;
+        }
+
+        if (search) {
+            std::filesystem::path parentPath = std::filesystem::path(basePath).parent_path();
+            std::string texturesDir = (parentPath / "Textures").string();
+            result = FindTextureInDirectory(texturesDir, filename);
+            if (!result.empty()) {
+                return result;
+            }
+        }
+
+        return basePath + "/" + filename;
     }
 }

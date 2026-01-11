@@ -351,7 +351,7 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 		aiString str;
 		mat->GetTexture(type, i, &str);
 
-		std::string resolvedPath = Util::FindTexturePath(DirPath, str.C_Str());
+		std::string resolvedPath = Util::FindTexturePath(DirPath, str.C_Str(), true);
 
 		const auto textureId = TextureCacheRegistryInstance.AddFromFile(resolvedPath, true); // make adjustable
 		Ref<API::Texture::Texture> texture = TextureCacheRegistryInstance.GetHandle(textureId);
