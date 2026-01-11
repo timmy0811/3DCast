@@ -53,9 +53,87 @@ namespace Cast::Component
 #pragma endregion
 
 #pragma region CONSTRUCTOR
-		MaterialComponent(const MaterialComponent&) = default;
+		// Copy constructor - creates new sampler mapping for the copy
+		MaterialComponent(const MaterialComponent& other)
+			: diffuseInfo(other.diffuseInfo),
+			  diffuseID(other.diffuseID),
+			  specularInfo(other.specularInfo),
+			  specularID(other.specularID),
+			  parallaxInfo(other.parallaxInfo),
+			  parallaxID(other.parallaxID),
+			  normalInfo(other.normalInfo),
+			  normalID(other.normalID),
+			  isCustomMaterial(other.isCustomMaterial),
+			  isPrivateMaterialCreated(false), // Don't copy private material ownership
+			  currentMaterialInfo(other.currentMaterialInfo),
+			  currentMaterial(other.currentMaterial),
+			  privateMaterial(other.privateMaterial),
+			  diffuseFile(other.diffuseFile),
+			  specularFile(other.specularFile),
+			  parallaxFile(other.parallaxFile),
+			  normalFile(other.normalFile),
+			  selectedItem(other.selectedItem),
+			  diffuseLoaded(other.diffuseLoaded),
+			  specularLoaded(other.specularLoaded),
+			  parallaxLoaded(other.parallaxLoaded),
+			  normalLoaded(other.normalLoaded),
+			  textHeight(other.textHeight)
+		{
+			// Create a NEW sampler mapping for this copy
+			samplerIndex = DeferredSamplerStoreInstance.CreateSamplerMapping(
+				diffuseInfo.samplerArrayIndex,
+				specularInfo.samplerArrayIndex,
+				parallaxInfo.samplerArrayIndex,
+				normalInfo.samplerArrayIndex,
+				currentMaterialInfo
+			);
+		}
 
-		// Todo: Check if move fields are up to date
+		// Copy assignment operator
+		MaterialComponent& operator=(const MaterialComponent& other)
+		{
+			if (this != &other)
+			{
+				// Remove old sampler mapping
+				DeferredSamplerStoreInstance.RemoveSamplerMapping(samplerIndex);
+
+				// Copy all fields
+				diffuseInfo = other.diffuseInfo;
+				diffuseID = other.diffuseID;
+				specularInfo = other.specularInfo;
+				specularID = other.specularID;
+				parallaxInfo = other.parallaxInfo;
+				parallaxID = other.parallaxID;
+				normalInfo = other.normalInfo;
+				normalID = other.normalID;
+				isCustomMaterial = other.isCustomMaterial;
+				isPrivateMaterialCreated = false; // Don't copy private material ownership
+				currentMaterialInfo = other.currentMaterialInfo;
+				currentMaterial = other.currentMaterial;
+				privateMaterial = other.privateMaterial;
+				diffuseFile = other.diffuseFile;
+				specularFile = other.specularFile;
+				parallaxFile = other.parallaxFile;
+				normalFile = other.normalFile;
+				selectedItem = other.selectedItem;
+				diffuseLoaded = other.diffuseLoaded;
+				specularLoaded = other.specularLoaded;
+				parallaxLoaded = other.parallaxLoaded;
+				normalLoaded = other.normalLoaded;
+				textHeight = other.textHeight;
+
+				// Create a NEW sampler mapping for this copy
+				samplerIndex = DeferredSamplerStoreInstance.CreateSamplerMapping(
+					diffuseInfo.samplerArrayIndex,
+					specularInfo.samplerArrayIndex,
+					parallaxInfo.samplerArrayIndex,
+					normalInfo.samplerArrayIndex,
+					currentMaterialInfo
+				);
+			}
+			return *this;
+		}
+
 		MaterialComponent(MaterialComponent&& other) noexcept
 			: samplerIndex(other.samplerIndex),
 			  diffuseInfo(other.diffuseInfo),

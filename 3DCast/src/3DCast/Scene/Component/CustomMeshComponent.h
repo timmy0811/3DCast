@@ -33,7 +33,82 @@ namespace Cast::Component
 
 #pragma region CONSTRUCTOR
 		explicit CustomMeshComponent() = default;
-		CustomMeshComponent(const CustomMeshComponent&) = default;
+
+		// Copy constructor - creates a deep copy without sharing BatchId
+		CustomMeshComponent(const CustomMeshComponent& other)
+			: BatchId(UID::None()),  // New copy needs its own BatchId
+			  memPos{},  // Will be set when added to batch
+			  isAvailableInMemory(other.isAvailableInMemory),
+			  vertexData(nullptr),
+			  indexData(nullptr),
+			  isIndexed(other.isIndexed),
+			  vertexDataSize(other.vertexDataSize),
+			  indexDataSize(other.indexDataSize),
+			  isHeapAlloc(false)
+		{
+			// Deep copy vertex data if it exists
+			if (other.vertexData && other.vertexDataSize > 0)
+			{
+				vertexData = static_cast<float*>(malloc(other.vertexDataSize));
+				memcpy(vertexData, other.vertexData, other.vertexDataSize);
+				isHeapAlloc = true;
+			}
+
+			// Deep copy index data if it exists
+			if (other.indexData && other.indexDataSize > 0)
+			{
+				indexData = static_cast<unsigned int*>(malloc(other.indexDataSize));
+				memcpy(indexData, other.indexData, other.indexDataSize);
+			}
+		}
+
+		// Copy assignment operator
+		CustomMeshComponent& operator=(const CustomMeshComponent& other)
+		{
+			if (this != &other)
+			{
+				// Clean up existing resources
+				if (isHeapAlloc)
+				{
+					free(vertexData);
+					free(indexData);
+				}
+
+				if (BatchId != UID::None())
+				{
+					Memory::BatchMemoryHandler.AddToBulk(BatchId);
+					Shared.VertexEntities.erase(BatchId);
+				}
+
+				// Copy data without sharing BatchId
+				BatchId = UID::None();
+				memPos = {};
+				isAvailableInMemory = other.isAvailableInMemory;
+				isIndexed = other.isIndexed;
+				vertexDataSize = other.vertexDataSize;
+				indexDataSize = other.indexDataSize;
+				isHeapAlloc = false;
+
+				vertexData = nullptr;
+				indexData = nullptr;
+
+				// Deep copy vertex data if it exists
+				if (other.vertexData && other.vertexDataSize > 0)
+				{
+					vertexData = static_cast<float*>(malloc(other.vertexDataSize));
+					memcpy(vertexData, other.vertexData, other.vertexDataSize);
+					isHeapAlloc = true;
+				}
+
+				// Deep copy index data if it exists
+				if (other.indexData && other.indexDataSize > 0)
+				{
+					indexData = static_cast<unsigned int*>(malloc(other.indexDataSize));
+					memcpy(indexData, other.indexData, other.indexDataSize);
+				}
+			}
+			return *this;
+		}
 
 		explicit CustomMeshComponent(const size_t vertexBufferSize, const size_t indexBufferSize)
 		{

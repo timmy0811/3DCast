@@ -36,7 +36,75 @@ namespace Cast::Component
 		explicit LightComponent(const bool IsEnvironmentLight = false)
 			:IsEnvironmentLight(IsEnvironmentLight)
 		{}
-		LightComponent(const LightComponent&) = default;
+
+		// Copy constructor - creates a new buffer entry for the copy
+		LightComponent(const LightComponent& other)
+			: EntityPosition(other.EntityPosition),
+			  LastEntityPosition(other.LastEntityPosition),
+			  LightType(other.LightType),
+			  Light(nullptr),
+			  SceneInstance(other.SceneInstance),
+			  BufferPos(0),
+			  BufferIndex(0),
+			  IsEnvironmentLight(other.IsEnvironmentLight),
+			  CastShadows(false)  // Don't copy shadow casting - only one light can cast shadows
+		{
+			if (other.Light && SceneInstance)
+			{
+				// Create a deep copy of the light data and register it in the buffer
+				switch (LightType)
+				{
+				case Directional:
+					Light = new DirectionalLightShaderObject(*static_cast<DirectionalLightShaderObject*>(other.Light));
+					SetupDirLight();
+					break;
+				case Spot:
+					Light = new SpotLightShaderObject(*static_cast<SpotLightShaderObject*>(other.Light));
+					SetupSpotLight();
+					break;
+				case Point:
+					Light = new PointLightShaderObject(*static_cast<PointLightShaderObject*>(other.Light));
+					SetupPointLight();
+					break;
+				}
+			}
+		}
+
+		// Copy assignment operator
+		LightComponent& operator=(const LightComponent& other)
+		{
+			if (this != &other)
+			{
+				SafeCleanup();
+
+				EntityPosition = other.EntityPosition;
+				LastEntityPosition = other.LastEntityPosition;
+				LightType = other.LightType;
+				SceneInstance = other.SceneInstance;
+				IsEnvironmentLight = other.IsEnvironmentLight;
+				CastShadows = false;  // Don't copy shadow casting
+
+				if (other.Light && SceneInstance)
+				{
+					switch (LightType)
+					{
+					case Directional:
+						Light = new DirectionalLightShaderObject(*static_cast<DirectionalLightShaderObject*>(other.Light));
+						SetupDirLight();
+						break;
+					case Spot:
+						Light = new SpotLightShaderObject(*static_cast<SpotLightShaderObject*>(other.Light));
+						SetupSpotLight();
+						break;
+					case Point:
+						Light = new PointLightShaderObject(*static_cast<PointLightShaderObject*>(other.Light));
+						SetupPointLight();
+						break;
+					}
+				}
+			}
+			return *this;
+		}
 
 		LightComponent(const Type type, Scene* scene)
 			: LightType(type), SceneInstance(scene)

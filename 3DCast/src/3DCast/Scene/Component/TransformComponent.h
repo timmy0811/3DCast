@@ -34,7 +34,59 @@ namespace Cast::Component
 
 #pragma region CONSTRUCTOR
 		TransformComponent() = default;
-		TransformComponent(const TransformComponent&) = default;
+
+		// Copy constructor - creates new transform registry entry for the copy
+		TransformComponent(const TransformComponent& other)
+			: Transform(other.Transform),
+			  translation(other.translation),
+			  scale(other.scale),
+			  rotation(other.rotation),
+			  BBox(other.BBox),
+			  transformRegistry(other.transformRegistry),
+			  isRegistered(false),  // Will re-register if needed
+			  transformRegistryIndex(-1)
+		{
+			// If the original was registered, register this copy with a NEW index
+			if (other.isRegistered && transformRegistry)
+			{
+				transformRegistryIndex = transformRegistry->Register(&Transform);
+				isRegistered = true;
+			}
+		}
+
+		// Copy assignment operator
+		TransformComponent& operator=(const TransformComponent& other)
+		{
+			if (this != &other)
+			{
+				// Invalidate old registration
+				if (transformRegistry && isRegistered)
+				{
+					transformRegistry->InvalidateEntry(transformRegistryIndex);
+				}
+
+				// Copy data
+				Transform = other.Transform;
+				translation = other.translation;
+				scale = other.scale;
+				rotation = other.rotation;
+				BBox = other.BBox;
+				transformRegistry = other.transformRegistry;
+
+				// Re-register if the original was registered
+				if (other.isRegistered && transformRegistry)
+				{
+					transformRegistryIndex = transformRegistry->Register(&Transform);
+					isRegistered = true;
+				}
+				else
+				{
+					isRegistered = false;
+					transformRegistryIndex = -1;
+				}
+			}
+			return *this;
+		}
 
 		explicit TransformComponent(const glm::mat4& transform)
 			: Transform(transform)

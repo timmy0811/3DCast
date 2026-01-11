@@ -40,9 +40,45 @@ namespace Cast::Component
 #pragma endregion
 
 #pragma region CONSTRUCTOR
-		MeshComponent(const MeshComponent&)
+		// Copy constructor - copies basic fields but does not share MeshInstance
+		// MeshInstance is owned by RootModel and should not be shallow copied
+		MeshComponent(const MeshComponent& other)
+			: Path(other.Path),
+			  Filename(other.Filename),
+			  header(other.header),
+			  popupID(UID::None()),
+			  RootModel(other.RootModel),  // Shared pointer - OK to share
+			  TypeNode(other.TypeNode),
+			  _load(other._load),
+			  _loadC(other._loadC),
+			  MeshInstance(nullptr),  // Do not copy MeshInstance - it's owned by RootModel
+			  _deferredLoad(other._deferredLoad)
 		{
-		};
+			// Note: MeshInstance is intentionally not copied as it's managed by RootModel
+			// For Leaf nodes, the MeshInstance will be set by the parent model
+		}
+
+		// Copy assignment operator
+		MeshComponent& operator=(const MeshComponent& other)
+		{
+			if (this != &other)
+			{
+				// Note: Don't delete MeshInstance here as it may be shared with RootModel
+				// Only the destructor or move assignment should handle deletion
+
+				Path = other.Path;
+				Filename = other.Filename;
+				header = other.header;
+				popupID = UID::None();
+				RootModel = other.RootModel;
+				TypeNode = other.TypeNode;
+				_load = other._load;
+				_loadC = other._loadC;
+				MeshInstance = nullptr;  // Do not copy MeshInstance
+				_deferredLoad = other._deferredLoad;
+			}
+			return *this;
+		}
 
 		explicit MeshComponent(const MeshNodeType nodeType = MeshNodeType::Root)
 			:TypeNode(nodeType)
