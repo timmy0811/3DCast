@@ -15,6 +15,7 @@ namespace Cast::Component
 		std::string Tag;
 		std::string Icon;
 		bool IconHasManuallyAssigned = false;
+		bool TagHasManuallyAltered = false;
 		constexpr static size_t MAX_TAG_SIZE = 96;
 
 		// Available icons for entity tagging
@@ -63,7 +64,10 @@ namespace Cast::Component
 			ImGui::Text(ICON_FA_TAG " Name");
 			ImGui::SameLine(GUIWIN_WSIXTH);
 			ImGui::SetNextItemWidth(GUIWIN_WSIXTH * 2.f - GUIWIN_ELEMENT_PADDING);
-			ImGui::InputText("##Tag", Tag.data(), MAX_TAG_SIZE);
+			if (ImGui::InputText("##Tag", Tag.data(), MAX_TAG_SIZE))
+			{
+				TagHasManuallyAltered = true;
+			}
 
 			ImGui::SameLine(GUIWIN_WSIXTH * 3.f);
 			ImGui::Text(ICON_FA_ICONS " Icon");

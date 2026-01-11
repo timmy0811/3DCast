@@ -158,6 +158,7 @@ namespace Cast::Serialization
             const auto& tagComp = entity->GetComponent<Component::TagComponent>();
             out << YAML::Key << "Tag" << YAML::Value << tagComp.Tag;
             out << YAML::Key << "Icon" << YAML::Value << tagComp.Icon;
+            out << YAML::Key << "TagHasManuallyAltered" << YAML::Value << tagComp.TagHasManuallyAltered;
 
             out << YAML::EndMap; // TagComponent
         }
@@ -543,6 +544,8 @@ namespace Cast::Serialization
             auto& tc = entity->GetComponent<Component::TagComponent>();
             if (tagComponent["Icon"])
                 tc.Icon = tagComponent["Icon"].as<std::string>();
+            if (tagComponent["TagHasManuallyAltered"])
+                tc.TagHasManuallyAltered = tagComponent["TagHasManuallyAltered"].as<bool>();
         }
 
         // Deserialize TransformComponent

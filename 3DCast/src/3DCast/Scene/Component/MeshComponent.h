@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3DCast/Scene/Component/AbstractComponent.h"
+#include "3DCast/Scene/Component/TagComponent.h"
 #include "3DCast/Model/Model.h"
 #include "3DCast/Data/GlobalShared.h"
 
@@ -179,6 +180,16 @@ namespace Cast::Component
 			const size_t found = path.find_last_of("/\\");
 			return path.substr(found + 1);
 		}
+
+		static std::string ExtractFilenameWithoutExtension(const std::string& path)
+		{
+			std::string filename = ExtractFilename(path);
+			if (const size_t dotPos = filename.find_last_of('.'); dotPos != std::string::npos)
+			{
+				return filename.substr(0, dotPos);
+			}
+			return filename;
+		}
 #pragma endregion
 
 #pragma region OVERRIDE
@@ -195,6 +206,17 @@ namespace Cast::Component
 			{
 				RootModel->Load(Path, EntityNode);
 				Filename = ExtractFilename(Path);
+
+				// Update entity name from filename if tag hasn't been manually altered
+				if (EntityNode->HasComponent<TagComponent>())
+				{
+					auto& tagComp = EntityNode->GetComponent<TagComponent>();
+					if (!tagComp.TagHasManuallyAltered)
+					{
+						tagComp.Tag = ExtractFilenameWithoutExtension(Path);
+					}
+				}
+
 				_deferredLoad = false;
 			}
 		}
@@ -213,6 +235,16 @@ namespace Cast::Component
 				RootModel = CreateRef<Model>();
 				RootModel->Load(Path, EntityNode);
 				//UI::ModalImportInProgress(Path, true);
+
+				// Update entity name from filename if tag hasn't been manually altered
+				if (EntityNode->HasComponent<TagComponent>())
+				{
+					auto& tagComp = EntityNode->GetComponent<TagComponent>();
+					if (!tagComp.TagHasManuallyAltered)
+					{
+						tagComp.Tag = ExtractFilenameWithoutExtension(Path);
+					}
+				}
 
 				GUI::TempGuiElementCollection::CloseElement(popupID);
 
