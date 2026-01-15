@@ -18,9 +18,10 @@ Cast::Model::Model(): ModelSize(), ModelOffset(), BoundsMin(), BoundsMax()
 	Meshes.reserve(8);
 }
 
-bool Cast::Model::Load(const std::string& path, Ref<Entity> entity)
+bool Cast::Model::Load(const std::string& path, Ref<Entity> entity, bool flipTextures)
 {
 	this->EntityContainer = entity;
+	this->FlipTextures = flipTextures;
 
 	Assimp::Importer importer;
 
@@ -28,11 +29,15 @@ bool Cast::Model::Load(const std::string& path, Ref<Entity> entity)
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
 	unsigned int importFlags = aiProcess_Triangulate |
-                              aiProcess_FlipUVs |
                               aiProcess_JoinIdenticalVertices |
                               aiProcess_OptimizeMeshes |
                               aiProcess_OptimizeGraph |
                               aiProcess_GenBoundingBoxes;
+
+	if (flipTextures)
+	{
+		importFlags |= aiProcess_FlipUVs;
+	}
 
 	if (extension == "fbx") {
 		importFlags |= aiProcess_CalcTangentSpace |
@@ -353,7 +358,7 @@ std::vector<Cast::Ref<API::Texture::Texture>> Cast::Model::LoadMaterialTextures(
 
 		std::string resolvedPath = Util::FindTexturePath(DirPath, str.C_Str(), true);
 
-		const auto textureId = TextureCacheRegistryInstance.AddFromFile(resolvedPath, true); // make adjustable
+		const auto textureId = TextureCacheRegistryInstance.AddFromFile(resolvedPath, false);
 		Ref<API::Texture::Texture> texture = TextureCacheRegistryInstance.GetHandle(textureId);
 		if (!texture) continue;
 		texture->SetType(typeAPI);

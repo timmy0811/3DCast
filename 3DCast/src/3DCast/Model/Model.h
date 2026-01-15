@@ -17,7 +17,7 @@ namespace Cast
 		Model();
 		~Model() = default;
 
-		bool Load(const std::string& path, Ref<Entity> entity);
+		bool Load(const std::string& path, Ref<Entity> entity, bool flipTextures = true);
 
 		[[nodiscard]] const std::string& GetDirectory() const { return DirPath; }
 		[[nodiscard]] int GetMeshCount() const { return (int)Meshes.size(); }
@@ -63,6 +63,7 @@ namespace Cast
 		glm::vec3 ModelOffset;
 
 		bool IsLoaded = false;
+		bool FlipTextures = true;
 		bool IsFirstBoundCheck = true;
 		glm::vec3 BoundsMin;
 		glm::vec3 BoundsMax;

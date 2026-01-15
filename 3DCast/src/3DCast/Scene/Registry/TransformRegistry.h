@@ -91,17 +91,17 @@ namespace Cast
 
 		inline void SetTransformUsed(const int index)
 		{
-			isUsed[index / sizeof(uint64_t)] |= (1ULL << index % 64);
+			isUsed[index / 64] |= (1ULL << (index % 64));
 		}
 
 		inline void SetTransformUnused(const int index)
 		{
-			isUsed[index / sizeof(uint64_t)] &= ~(1ULL << index % 64);
+			isUsed[index / 64] &= ~(1ULL << (index % 64));
 		}
 
 		[[nodiscard]] inline bool IsTransformUsed(const int index) const
 		{
-			return (isUsed[index / sizeof(uint64_t)] & (1ULL << index % 64)) != 0;
+			return (isUsed[index / 64] & (1ULL << (index % 64))) != 0;
 		}
 
 	private:

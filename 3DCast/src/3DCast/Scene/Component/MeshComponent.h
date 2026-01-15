@@ -31,6 +31,7 @@ namespace Cast::Component
 
 		int _load = false;
 		int _loadC = 0;
+		bool FlipTextures = false;
 
 	private:
 		Mesh* MeshInstance = nullptr;
@@ -51,6 +52,7 @@ namespace Cast::Component
 			  TypeNode(other.TypeNode),
 			  _load(other._load),
 			  _loadC(other._loadC),
+			  FlipTextures(other.FlipTextures),
 			  MeshInstance(nullptr),  // Do not copy MeshInstance - it's owned by RootModel
 			  _deferredLoad(other._deferredLoad)
 		{
@@ -74,6 +76,7 @@ namespace Cast::Component
 				TypeNode = other.TypeNode;
 				_load = other._load;
 				_loadC = other._loadC;
+				FlipTextures = other.FlipTextures;
 				MeshInstance = nullptr;  // Do not copy MeshInstance
 				_deferredLoad = other._deferredLoad;
 			}
@@ -106,8 +109,8 @@ namespace Cast::Component
 			header = "Mesh Leaf Node";
 		}
 
-		explicit MeshComponent(const std::string& path, bool deferLoad = false)
-			: Path(path), TypeNode(MeshNodeType::Root), _deferredLoad(deferLoad)
+		explicit MeshComponent(const std::string& path, bool deferLoad = false, bool flipTextures = true)
+			: Path(path), TypeNode(MeshNodeType::Root), _deferredLoad(deferLoad), FlipTextures(flipTextures)
 		{
 			RootModel = CreateRef<Model>();
 			header = "Model Root Node";
@@ -115,7 +118,7 @@ namespace Cast::Component
 			// For deserialization, deferLoad=true and loading happens in OnAfterEntitySetBehaviour
 			if (!deferLoad && EntityNode)
 			{
-				RootModel->Load(path, EntityNode);
+				RootModel->Load(path, EntityNode, flipTextures);
 			}
 		}
 
@@ -123,6 +126,7 @@ namespace Cast::Component
 			: Path(std::move(other.Path)), Filename(std::move(other.Filename)),
 			  header(std::move(other.header)), RootModel(std::move(other.RootModel)),
 			  TypeNode(other.TypeNode), _load(other._load), _loadC(other._loadC),
+			  FlipTextures(other.FlipTextures),
 			  MeshInstance(other.MeshInstance)
 		{
 			other.MeshInstance = nullptr;
@@ -145,6 +149,7 @@ namespace Cast::Component
 				TypeNode = other.TypeNode;
 				_load = other._load;
 				_loadC = other._loadC;
+				FlipTextures = other.FlipTextures;
 				MeshInstance = other.MeshInstance;
 
 				other.MeshInstance = nullptr;
@@ -240,7 +245,7 @@ namespace Cast::Component
 			// Handle deferred model loading (used during deserialization)
 			if (_deferredLoad && TypeNode == MeshNodeType::Root && EntityNode && !Path.empty())
 			{
-				RootModel->Load(Path, EntityNode);
+				RootModel->Load(Path, EntityNode, FlipTextures);
 				Filename = ExtractFilename(Path);
 
 				// Update entity name from filename if tag hasn't been manually altered
@@ -269,7 +274,7 @@ namespace Cast::Component
 			if (_loadC > 2)
 			{
 				RootModel = CreateRef<Model>();
-				RootModel->Load(Path, EntityNode);
+				RootModel->Load(Path, EntityNode, FlipTextures);
 				//UI::ModalImportInProgress(Path, true);
 
 				// Update entity name from filename if tag hasn't been manually altered
@@ -341,15 +346,19 @@ namespace Cast::Component
 						ImGui::Text("No Model loaded");
 						ImGui::EndDisabled();
 
-						ImGui::SameLine(GUIWIN_WTHIRD);
+						HALF_INPUT
 
-						if (ImGui::Button("Load from file"))
+						if (ImGui::Button("Load from file", ImVec2(GUIWIN_WHalf - GUIWIN_ENDELEMENT_PADDING, 0.f)))
 						{
 							Path = OpenFileDialogue();
 							Filename = ExtractFilename(Path);
 							popupID = GUI::TempGuiElementCollection::AddElement(new Cast::GUI::NotificationModal("Loading Model", std::string("Model import running for: ") + Path , ICON_FA_HOURGLASS_HALF));
 							_load = true;
 						}
+
+						ImGui::TextUnformatted("Flip Textures");
+						HALF_INPUT
+						ImGui::Checkbox("##Flip", &FlipTextures);
 					}
 				}
 				else

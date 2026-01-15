@@ -117,17 +117,17 @@ namespace Cast
 
 		inline void SetMappingUsed(const int index)
 		{
-			isMappingUsedMap[index / sizeof(uint64_t)] |= (1ULL << index % 64);
+			isMappingUsedMap[index / 64] |= (1ULL << (index % 64));
 		}
 
 		inline void SetMappingUnused(const int index)
 		{
-			isMappingUsedMap[index / sizeof(uint64_t)] &= ~(1ULL << index % 64);
+			isMappingUsedMap[index / 64] &= ~(1ULL << (index % 64));
 		}
 
 		inline bool IsMappingUsed(const int index) const
 		{
-			return (isMappingUsedMap[index / sizeof(uint64_t)] & (1ULL << index % 64)) != 0;
+			return (isMappingUsedMap[index / 64] & (1ULL << (index % 64))) != 0;
 		}
 
 	private:
