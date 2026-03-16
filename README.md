@@ -41,6 +41,9 @@ Switch the mood with one click and automatically calculate the environment light
 See the difference when applying effects like ambient occlusion and cascaded shadow mapping.
 ![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/effects.png)
 
+Tweak the rasterizer settings to achieve a realistic PS1 style for your scenes.
+![PSX Graphics](https://github.com/timmy0811/3DCast/blob/Projects/img/psx.png)
+
 Submenus providing customizability.
 ![Features Highlight](https://github.com/timmy0811/3DCast/blob/Projects/img/feature1.jpg)
 
